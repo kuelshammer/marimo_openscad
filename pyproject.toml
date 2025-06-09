@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "marimo-openscad"
+version = "1.0.0"
+description = "Interactive 3D CAD modeling in Marimo notebooks using SolidPython2 and OpenSCAD"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Marimo-OpenSCAD Contributors"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers", 
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9", 
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Multimedia :: Graphics :: 3D Modeling",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "marimo>=0.13.0",
+    "solidpython2>=1.0.0", 
+    "anywidget>=0.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov",
+    "black",
+    "isort", 
+    "mypy",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-username/marimo-openscad"
+Repository = "https://github.com/your-username/marimo-openscad"
+Documentation = "https://github.com/your-username/marimo-openscad/blob/main/docs/"
+"Bug Reports" = "https://github.com/your-username/marimo-openscad/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ["py38"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
