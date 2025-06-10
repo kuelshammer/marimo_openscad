@@ -1,20 +1,33 @@
 [build-system]
-requires = ["setuptools>=45", "wheel"]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "marimo-openscad"
-version = "1.0.0"
 description = "Interactive 3D CAD modeling in Marimo notebooks using SolidPython2 and OpenSCAD"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Marimo-OpenSCAD Contributors"}
+    {name = "Claude Code Assistant", email = "noreply@anthropic.com"},
+]
+maintainers = [
+    {name = "Claude Code Assistant", email = "noreply@anthropic.com"},
+]
+keywords = [
+    "marimo",
+    "openscad", 
+    "solidpython",
+    "3d",
+    "cad",
+    "modeling",
+    "visualization",
+    "parametric",
+    "notebook"
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers", 
-    "Intended Audience :: Education",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education", 
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -25,37 +38,54 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Visualization",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Multimedia :: Graphics :: 3D Modeling",
 ]
 requires-python = ">=3.8"
 dependencies = [
-    "marimo>=0.13.0",
-    "solidpython2>=1.0.0", 
+    "marimo>=0.8.0",
+    "solidpython2>=1.0.0",
     "anywidget>=0.9.0",
+    "traitlets>=5.0.0",
 ]
+dynamic = ["version"]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=6.0",
     "pytest-cov",
     "black",
-    "isort", 
+    "isort",
+    "flake8",
     "mypy",
+    "pre-commit",
+]
+docs = [
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocstrings[python]",
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-username/marimo-openscad"
-Repository = "https://github.com/your-username/marimo-openscad"
-Documentation = "https://github.com/your-username/marimo-openscad/blob/main/docs/"
-"Bug Reports" = "https://github.com/your-username/marimo-openscad/issues"
+Homepage = "https://github.com/yourusername/marimo-openscad"
+Documentation = "https://github.com/yourusername/marimo-openscad/blob/main/docs/"
+Repository = "https://github.com/yourusername/marimo-openscad.git"
+"Bug Tracker" = "https://github.com/yourusername/marimo-openscad/issues"
+Changelog = "https://github.com/yourusername/marimo-openscad/blob/main/CHANGELOG.md"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["marimo_openscad*"]
+
+[tool.setuptools_scm]
+write_to = "src/marimo_openscad/_version.py"
 
 [tool.black]
 line-length = 88
-target-version = ["py38"]
+target-version = ['py38']
 
 [tool.isort]
 profile = "black"
@@ -66,3 +96,10 @@ python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=marimo_openscad --cov-report=term-missing"
