@@ -138,6 +138,7 @@ class SceneManager {
         
         this.container.appendChild(this.renderer.domElement);
         
+        this.setupWebGLContextHandling();
         this.setupLighting();
         this.setupGrid();
         this.setupControls();
@@ -214,6 +215,28 @@ class SceneManager {
         this.camera.lookAt(0, 0, 0);
     }
     
+    setupWebGLContextHandling() {
+        if (!this.renderer || !this.renderer.domElement) return;
+        
+        this.renderer.domElement.addEventListener('webglcontextlost', (event) => {
+            event.preventDefault();
+            console.warn('⚠️ WebGL context lost');
+        });
+        
+        this.renderer.domElement.addEventListener('webglcontextrestored', () => {
+            console.log('✅ WebGL context restored');
+            // Reinitialize scene components
+            this.setupLighting();
+            this.setupGrid();
+            if (this.currentMesh) {
+                // Reload current mesh if it exists
+                const geometry = this.currentMesh.geometry;
+                const material = this.currentMesh.material;
+                this.scene.add(new THREE.Mesh(geometry, material));
+            }
+        });
+    }
+    
     startAnimationLoop() {
         const animate = () => {
             requestAnimationFrame(animate);
@@ -286,9 +309,28 @@ class SceneManager {
     
     dispose() {
         this.clearMesh();
+        
+        // Remove event listeners
+        if (this.renderer && this.renderer.domElement) {
+            this.renderer.domElement.removeEventListener('webglcontextlost', null);
+            this.renderer.domElement.removeEventListener('webglcontextrestored', null);
+            this.renderer.domElement.removeEventListener('mousedown', null);
+            this.renderer.domElement.removeEventListener('mousemove', null);
+            this.renderer.domElement.removeEventListener('mouseup', null);
+            this.renderer.domElement.removeEventListener('wheel', null);
+        }
+        
         if (this.renderer) {
             this.renderer.dispose();
+            this.renderer = null;
         }
+        
+        if (this.scene) {
+            this.scene.clear();
+            this.scene = null;
+        }
+        
+        this.camera = null;
     }
 }
 
