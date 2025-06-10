@@ -1,7 +1,10 @@
 # Marimo-OpenSCAD
 
+[![CI/CD Tests](https://github.com/kuelshammer/marimo_openscad/actions/workflows/test.yml/badge.svg)](https://github.com/kuelshammer/marimo_openscad/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Critical Cache Tests](https://img.shields.io/badge/Cache%20Tests-🔥%20Critical-red)](tests/test_cache_behavior.py)
+[![LLM Regression Prevention](https://img.shields.io/badge/LLM%20Regression-🎯%20Prevented-green)](tests/test_llm_identified_issues.py)
 
 **Interactive 3D CAD modeling in Marimo notebooks using SolidPython2 and OpenSCAD**
 

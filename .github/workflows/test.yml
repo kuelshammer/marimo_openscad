@@ -1,4 +1,4 @@
-name: Tests
+name: CI/CD Tests
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  test:
+  python-tests:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -37,17 +37,46 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
     
-    - name: Run cache behavior tests (critical)
+    - name: 🔥 CRITICAL - Cache Behavior Tests (LLM Regression Prevention)
       run: |
-        pytest tests/test_cache_behavior.py -v -m "not slow" --tb=short
+        echo "::group::🔥 Critical Cache Behavior Tests"
+        pytest tests/test_cache_behavior.py -v -m "not slow" --tb=short --junit-xml=cache-test-results.xml
+        echo "::endgroup::"
     
-    - name: Run integration tests  
+    - name: 🎯 LLM-Identified Issues Regression Tests
       run: |
-        pytest tests/test_viewer_integration.py -v -m "not slow" --tb=short
+        echo "::group::🎯 LLM Regression Tests"
+        pytest tests/test_llm_identified_issues.py -v --tb=long --junit-xml=llm-test-results.xml
+        echo "::endgroup::"
     
-    - name: Run all tests with coverage
+    - name: 🔗 Integration Tests
       run: |
-        pytest tests/ --cov=marimo_openscad --cov-report=xml --cov-report=term-missing
+        echo "::group::🔗 Integration Tests"
+        pytest tests/test_viewer_integration.py -v -m "not slow" --tb=short --junit-xml=integration-test-results.xml
+        echo "::endgroup::"
+    
+    - name: 📊 All Python Tests with Coverage
+      run: |
+        echo "::group::📊 Complete Python Test Suite"
+        pytest tests/ --cov=marimo_openscad --cov-report=xml --cov-report=term-missing --junit-xml=python-test-results.xml
+        echo "::endgroup::"
+    
+    - name: Upload Python Test Results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: python-test-results-${{ matrix.os }}-${{ matrix.python-version }}
+        path: |
+          *-test-results.xml
+          coverage.xml
+    
+    - name: Comment Test Results on PR
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: Python Tests (${{ matrix.os }}, Python ${{ matrix.python-version }})
+        path: '*-test-results.xml'
+        reporter: java-junit
     
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
@@ -57,7 +86,8 @@ jobs:
         flags: unittests
         name: codecov-umbrella
 
-  regression-tests:
+  critical-regression-tests:
+    name: 🚨 Critical Regression Prevention
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -72,15 +102,42 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
     
-    - name: Run regression tests for cache fix
+    - name: 🚨 CRITICAL - Prevent LLM-Identified Cache Regression
       run: |
-        pytest tests/ -v -m "regression" --tb=long
+        echo "::error title=Critical Test::Testing LLM-identified cache regression prevention"
+        echo "::group::🚨 Critical Regression Tests"
+        pytest tests/ -v -m "regression" --tb=long --junit-xml=regression-results.xml
+        echo "::endgroup::"
         
-    - name: Run cache-specific tests
+    - name: 🔥 Cache-Specific Validation
       run: |
-        pytest tests/ -v -m "cache" --tb=long
+        echo "::group::🔥 Cache Behavior Validation"
+        pytest tests/ -v -m "cache" --tb=long --junit-xml=cache-results.xml
+        echo "::endgroup::"
+    
+    - name: 🧪 End-to-End Cache Fix Validation
+      run: |
+        echo "::group::🧪 Complete Cache Fix Validation"
+        python test_cache_fix.py
+        echo "::endgroup::"
+    
+    - name: Upload Critical Test Results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: critical-regression-results
+        path: |
+          regression-results.xml
+          cache-results.xml
+    
+    - name: Notify on Critical Test Failure
+      if: failure()
+      run: |
+        echo "::error title=CRITICAL FAILURE::Cache regression tests failed - LLM-identified issue may have returned!"
+        echo "::error::Check test results and verify update_scad_code functionality"
 
   javascript-tests:
+    name: 🟨 JavaScript Frontend Tests
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -92,10 +149,62 @@ jobs:
         cache: 'npm'
     
     - name: Install JavaScript dependencies
-      run: npm install
+      run: |
+        echo "::group::📦 Installing JavaScript Dependencies"
+        npm install
+        echo "::endgroup::"
     
-    - name: Run JavaScript tests
-      run: npm test
+    - name: 🟨 JavaScript Widget Tests
+      run: |
+        echo "::group::🟨 JavaScript Widget Tests"
+        npm run test:ci
+        echo "::endgroup::"
     
-    - name: Build JavaScript
-      run: npm run build
+    - name: 🔧 JavaScript Build Validation
+      run: |
+        echo "::group::🔧 JavaScript Build"
+        npm run build
+        echo "::endgroup::"
+    
+    - name: Upload JavaScript Test Results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: javascript-test-results
+        path: js-test-results.xml
+    
+    - name: Comment JS Test Results on PR
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: JavaScript Tests
+        path: 'js-test-results.xml'
+        reporter: java-junit
+  
+  test-summary:
+    name: 📋 Test Summary & Notifications
+    runs-on: ubuntu-latest
+    needs: [python-tests, critical-regression-tests, javascript-tests]
+    if: always()
+    steps:
+    - name: Check Overall Test Status
+      run: |
+        echo "::group::📋 Test Summary"
+        echo "Python Tests: ${{ needs.python-tests.result }}"
+        echo "Critical Regression Tests: ${{ needs.critical-regression-tests.result }}"
+        echo "JavaScript Tests: ${{ needs.javascript-tests.result }}"
+        echo "::endgroup::"
+        
+        if [[ "${{ needs.critical-regression-tests.result }}" == "failure" ]]; then
+          echo "::error title=CRITICAL FAILURE::Cache regression tests failed!"
+          echo "::error::The LLM-identified cache issue may have returned. Check update_scad_code functionality."
+          exit 1
+        fi
+        
+        if [[ "${{ needs.python-tests.result }}" == "failure" ]]; then
+          echo "::error title=Python Backend Failure::Python backend tests failed"
+        fi
+        
+        if [[ "${{ needs.javascript-tests.result }}" == "failure" ]]; then
+          echo "::error title=JavaScript Frontend Failure::JavaScript frontend tests failed"
+        fi
