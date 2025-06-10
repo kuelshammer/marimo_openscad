@@ -42,12 +42,13 @@ class SolidPythonBridge:
         
         logger.info("SolidPython bridge initialized")
     
-    def render_to_stl(self, model) -> bytes:
+    def render_to_stl(self, model, use_cache: bool = True) -> bytes:
         """
-        Render a SolidPython2 model object to STL bytes with caching
+        Render a SolidPython2 model object to STL bytes with optional caching
         
         Args:
             model: SolidPython2 object with as_scad() method
+            use_cache: Whether to use caching (default True)
             
         Returns:
             STL file contents as bytes
@@ -62,21 +63,30 @@ class SolidPythonBridge:
             )
         
         try:
-            # Generate model hash for caching
+            # Generate SCAD code
             scad_code = model.as_scad()
-            model_hash = self._hash_scad_code(scad_code)
             
-            # Check if model is cached
-            if model_hash in self.model_cache:
+            # Create comprehensive hash including model identity and SCAD code
+            model_hash = self._hash_model(model, scad_code)
+            
+            # Check cache only if enabled
+            if use_cache and model_hash in self.model_cache:
                 logger.info(f"Using cached model for hash {model_hash[:8]}")
                 return self.model_cache[model_hash]
+            
+            # Log for debugging cache misses
+            if use_cache:
+                logger.info(f"Cache miss for hash {model_hash[:8]}, rendering new STL")
+            else:
+                logger.info(f"Cache disabled, rendering new STL for hash {model_hash[:8]}")
             
             # Render to STL
             stl_data = self.renderer.render_scad_to_stl(scad_code)
             
-            # Cache the result
-            self.model_cache[model_hash] = stl_data
-            logger.info(f"Cached model with hash {model_hash[:8]}")
+            # Cache the result if enabled
+            if use_cache:
+                self.model_cache[model_hash] = stl_data
+                logger.info(f"Cached model with hash {model_hash[:8]}")
             
             return stl_data
             
@@ -112,7 +122,43 @@ class SolidPythonBridge:
         hasher.update(scad_code.encode('utf-8'))
         return hasher.hexdigest()
     
+    def _hash_model(self, model, scad_code: str) -> str:
+        """
+        Generate a comprehensive hash for a model including object identity and SCAD code
+        
+        This ensures that different model instances with the same SCAD code
+        get different cache entries if they represent different parameter states.
+        """
+        hasher = hashlib.md5()
+        
+        # Include SCAD code
+        hasher.update(scad_code.encode('utf-8'))
+        
+        # Include model object identity to catch parameter changes
+        # that don't change SCAD code structure
+        hasher.update(str(id(model)).encode('utf-8'))
+        
+        # Try to include parameter values if accessible
+        try:
+            if hasattr(model, '__dict__'):
+                # Sort dict items for consistent hashing
+                model_state = str(sorted(model.__dict__.items()))
+                hasher.update(model_state.encode('utf-8'))
+        except Exception:
+            # If we can't access model state, just use object id
+            pass
+            
+        return hasher.hexdigest()
+    
     def clear_cache(self) -> None:
         """Clear all cached models"""
+        cache_size = len(self.model_cache)
         self.model_cache = {}
-        logger.info("SolidPython bridge cache cleared")
+        logger.info(f"SolidPython bridge cache cleared ({cache_size} entries removed)")
+    
+    def get_cache_info(self) -> Dict[str, Any]:
+        """Get information about the current cache state"""
+        return {
+            'cache_size': len(self.model_cache),
+            'cache_keys': [key[:8] + '...' for key in self.model_cache.keys()]
+        }

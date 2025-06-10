@@ -230,24 +230,83 @@ class InteractiveViewer(anywidget.AnyWidget):
         self.bridge = SolidPythonBridge()
         logger.info("Interactive viewer initialized")
     
-    def update_model(self, model) -> None:
+    def force_update_model(self, model) -> None:
+        """
+        Force update the model, bypassing any caching
+        
+        Args:
+            model: SolidPython2 object to render
+        """
+        self.update_model(model, force_render=True)
+    
+    def update_scad_code(self, scad_code: str) -> None:
+        """
+        Update the viewer with new SCAD code directly
+        
+        This method bypasses SolidPython2 and renders SCAD code directly,
+        ensuring that code changes are immediately reflected in the viewer.
+        
+        Args:
+            scad_code: Raw OpenSCAD code as string
+        """
+        try:
+            # Store previous STL data for comparison
+            previous_stl = self.stl_data
+            
+            # Render SCAD code directly to STL (no caching for code updates)
+            stl_data = self.bridge.renderer.render_scad_to_stl(scad_code)
+            
+            # Convert to base64 for JavaScript transmission
+            stl_base64 = base64.b64encode(stl_data).decode('utf-8')
+            
+            # Always update even if data appears same (code might have changed)
+            self.stl_data = stl_base64
+            
+            logger.info(f"SCAD code updated: {len(stl_data)} bytes STL from {len(scad_code)} chars SCAD")
+            logger.info(f"STL data changed: {stl_base64 != previous_stl}")
+            
+        except Exception as e:
+            logger.error(f"SCAD code update failed: {e}")
+            # Clear STL data to show error state
+            self.stl_data = ""
+    
+    def clear_model_cache(self) -> None:
+        """
+        Clear the model rendering cache to ensure fresh renders
+        """
+        self.bridge.clear_cache()
+        logger.info("Model cache cleared via interactive viewer")
+    
+    def update_model(self, model, force_render: bool = False) -> None:
         """
         Update the 3D model displayed in the viewer
         
         Args:
             model: SolidPython2 object to render
+            force_render: Force re-rendering even if cached (default False)
         """
         try:
-            # Render model to STL
-            stl_data = self.bridge.render_to_stl(model)
+            # Store previous STL data for comparison
+            previous_stl = self.stl_data
+            
+            # Render model to STL (optionally bypassing cache)
+            stl_data = self.bridge.render_to_stl(model, use_cache=not force_render)
             
             # Convert to base64 for JavaScript transmission
             stl_base64 = base64.b64encode(stl_data).decode('utf-8')
             
+            # Check if STL data actually changed
+            if stl_base64 == previous_stl and not force_render:
+                logger.info("Model unchanged, skipping update")
+                return
+            
             # Update widget trait (triggers JavaScript update)
             self.stl_data = stl_base64
             
+            # Log cache info for debugging
+            cache_info = self.bridge.get_cache_info()
             logger.info(f"Model updated: {len(stl_data)} bytes STL, {len(stl_base64)} chars base64")
+            logger.info(f"Cache info: {cache_info['cache_size']} entries")
             
         except Exception as e:
             logger.error(f"Model update failed: {e}")

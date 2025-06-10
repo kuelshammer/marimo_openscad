@@ -465,11 +465,14 @@ class OpenSCADViewer(anywidget.AnyWidget):
         if model is not None:
             self.update_model(model)
     
-    def update_model(self, model):
+    def update_model(self, model, force_render: bool = False):
         """Update mit SolidPython2-Objekt - echte STL-Pipeline"""
         try:
             self.is_loading = True
             self.error_message = ""
+            
+            # Store previous STL for comparison
+            previous_stl = self.stl_data
             
             # SolidPython2 → SCAD Code
             if hasattr(model, 'as_scad'):
@@ -481,13 +484,21 @@ class OpenSCADViewer(anywidget.AnyWidget):
             else:
                 raise ValueError("Model muss SolidPython2-Objekt mit .as_scad() Methode oder SCAD-String sein")
             
-            # SCAD → STL
-            stl_data = self._render_stl(scad_code)
+            # SCAD → STL (with optional cache bypass)
+            stl_data = self._render_stl(scad_code, force_render)
             
             # STL → Base64 für Browser
-            self.stl_data = base64.b64encode(stl_data).decode('utf-8')
+            new_stl_base64 = base64.b64encode(stl_data).decode('utf-8')
+            
+            # Check if STL actually changed
+            if new_stl_base64 == previous_stl and not force_render:
+                logger.info("Model unchanged, skipping update")
+                return
+            
+            self.stl_data = new_stl_base64
             
             logger.info(f"✅ STL rendered: {len(stl_data)} bytes")
+            logger.info(f"STL data changed: {new_stl_base64 != previous_stl}")
             
         except Exception as e:
             self.error_message = str(e)
@@ -495,8 +506,46 @@ class OpenSCADViewer(anywidget.AnyWidget):
         finally:
             self.is_loading = False
     
-    def _render_stl(self, scad_code):
-        """OpenSCAD Code zu STL"""
+    def update_scad_code(self, scad_code: str) -> None:
+        """
+        Update viewer with new SCAD code directly, bypassing caching
+        
+        Args:
+            scad_code: Raw OpenSCAD code as string
+        """
+        try:
+            self.is_loading = True
+            self.error_message = ""
+            
+            # Store previous STL for comparison
+            previous_stl = self.stl_data
+            
+            # SCAD → STL (no caching for direct code updates)
+            stl_data = self._render_stl(scad_code, force_render=True)
+            
+            # STL → Base64 für Browser
+            new_stl_base64 = base64.b64encode(stl_data).decode('utf-8')
+            
+            # Always update for code changes
+            self.stl_data = new_stl_base64
+            
+            logger.info(f"✅ SCAD code updated: {len(stl_data)} bytes from {len(scad_code)} chars SCAD")
+            logger.info(f"STL data changed: {new_stl_base64 != previous_stl}")
+            
+        except Exception as e:
+            self.error_message = str(e)
+            logger.error(f"❌ SCAD code update error: {e}")
+        finally:
+            self.is_loading = False
+    
+    def _render_stl(self, scad_code, force_render: bool = False):
+        """OpenSCAD Code zu STL mit optionalem Cache-Bypass"""
+        # Log for debugging cache behavior
+        if force_render:
+            logger.info("Force rendering STL (cache bypassed)")
+        else:
+            logger.info("Normal STL rendering")
+            
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_dir = Path(tmp_dir)
             
