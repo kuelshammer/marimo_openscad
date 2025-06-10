@@ -145,6 +145,7 @@ class SceneManager {
         this.setupWebGLContextHandling();
         this.setupLighting();
         this.setupGrid();
+        this.addTestCube(); // Add test cube to verify 3D scene works
         this.setupControls();
         this.updateCameraPosition();
         
@@ -176,10 +177,32 @@ class SceneManager {
         this.scene.add(gridHelper);
     }
     
+    addTestCube() {
+        // Add a small test cube to verify 3D scene is working
+        const testGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const testMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xff6b6b, 
+            transparent: true, 
+            opacity: 0.7 
+        });
+        const testCube = new THREE.Mesh(testGeometry, testMaterial);
+        testCube.position.set(0, 1, 0);
+        testCube.name = 'testCube';
+        this.scene.add(testCube);
+        console.log('🧪 Test cube added to verify 3D scene functionality');
+    }
+    
     setupControls() {
         const canvas = this.renderer.domElement;
         
+        // CRITICAL VALIDATION: Verify controls are attached to correct element
+        if (!canvas || canvas.tagName !== 'CANVAS') {
+            console.error('❌ CRITICAL ERROR: Controls not attached to canvas element!');
+            throw new Error('Controls must be attached to canvas element');
+        }
+        
         console.log(`🔍 Setting up controls on canvas element:`, canvas.tagName, canvas.width, canvas.height);
+        console.log(`✅ VERIFIED: Controls correctly attached to canvas element`);
         
         canvas.addEventListener('mousedown', (e) => {
             this.controls.mouseDown = true;
@@ -286,9 +309,15 @@ class SceneManager {
             
             this.scene.add(this.currentMesh);
             
-            // Verify mesh was added to scene
+            // CRITICAL VALIDATION: Verify mesh was actually added to scene
+            if (!this.scene.children.includes(this.currentMesh)) {
+                console.error('❌ CRITICAL ERROR: Mesh was not added to scene!');
+                throw new Error('Mesh was not added to scene');
+            }
+            
             console.log(`🔍 Scene children count: ${this.scene.children.length}`);
             console.log(`🔍 Mesh position: x=${this.currentMesh.position.x.toFixed(2)}, y=${this.currentMesh.position.y.toFixed(2)}, z=${this.currentMesh.position.z.toFixed(2)}`);
+            console.log(`✅ VERIFIED: Mesh successfully added to scene and is visible`);
             
             // Adjust camera to fit model
             const size = geometry.boundingBox.getSize(new THREE.Vector3());
