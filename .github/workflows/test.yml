@@ -1,0 +1,101 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        exclude:
+          # Reduce matrix size for faster CI
+          - os: windows-latest
+            python-version: "3.8"
+          - os: windows-latest  
+            python-version: "3.9"
+          - os: macos-latest
+            python-version: "3.8"
+          - os: macos-latest
+            python-version: "3.9"
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+    
+    - name: Run cache behavior tests (critical)
+      run: |
+        pytest tests/test_cache_behavior.py -v -m "not slow" --tb=short
+    
+    - name: Run integration tests  
+      run: |
+        pytest tests/test_viewer_integration.py -v -m "not slow" --tb=short
+    
+    - name: Run all tests with coverage
+      run: |
+        pytest tests/ --cov=marimo_openscad --cov-report=xml --cov-report=term-missing
+    
+    - name: Upload coverage to Codecov
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  regression-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+    
+    - name: Run regression tests for cache fix
+      run: |
+        pytest tests/ -v -m "regression" --tb=long
+        
+    - name: Run cache-specific tests
+      run: |
+        pytest tests/ -v -m "cache" --tb=long
+
+  javascript-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install JavaScript dependencies
+      run: npm install
+    
+    - name: Run JavaScript tests
+      run: npm test
+    
+    - name: Build JavaScript
+      run: npm run build

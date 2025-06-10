@@ -2,7 +2,9 @@
 
 ## Overview
 
-This document provides comprehensive information for writing tests for the JavaScript widget component of the Marimo-OpenSCAD project.
+This document provides comprehensive information for testing both the JavaScript widget component and Python backend of the Marimo-OpenSCAD project.
+
+**⚠️ CRITICAL:** This project includes specific tests for cache behavior issues identified by external LLM analysis. These tests are essential for preventing regression of the `update_scad_code` functionality.
 
 ## Project Structure
 
@@ -11,12 +13,23 @@ marimo-openscad-clean/
 ├── src/
 │   ├── js/
 │   │   └── widget.js           # Main widget implementation
+│   ├── marimo_openscad/        # Python backend
+│   │   ├── viewer.py           # Main viewer classes
+│   │   ├── solid_bridge.py     # SolidPython2 integration
+│   │   └── interactive_viewer.py # Interactive widget
 │   └── test/
-│       ├── setup.js            # Test environment setup
-│       └── widget.test.js      # Basic test examples
-├── package.json                # Dependencies and test scripts
-├── vitest.config.js           # Test framework configuration
-└── public/index.html          # Development test page
+│       ├── setup.js            # JS test environment setup
+│       └── widget.test.js      # Basic JS test examples
+├── tests/                      # Python tests
+│   ├── test_cache_behavior.py  # 🔥 CRITICAL: Cache fix tests
+│   ├── test_llm_identified_issues.py # LLM-specific regression tests
+│   ├── test_viewer_integration.py # Integration tests
+│   └── conftest.py             # Pytest configuration
+├── .github/workflows/test.yml  # CI/CD pipeline
+├── Makefile                    # Development commands
+├── package.json                # JS dependencies
+├── pytest.ini                 # Python test config
+└── pyproject.toml             # Python package config
 ```
 
 ## Widget Architecture
@@ -151,8 +164,35 @@ endsolid test`;
 
 ## Test Commands
 
+### Python Tests (Backend)
+
 ```bash
-# Run all tests
+# Run all Python tests
+make test
+
+# 🔥 CRITICAL: Run cache behavior tests (prevents LLM-identified regression)
+make test-cache-behavior
+
+# Run regression tests for LLM-identified issues
+make test-regression
+
+# Run integration tests
+make test-integration
+
+# Run LLM-specific issue tests
+make test-llm-issues
+
+# Run with coverage
+make test-coverage
+
+# Quick validation (fast subset)
+make validate
+```
+
+### JavaScript Tests (Frontend)
+
+```bash
+# Run all JS tests
 npm run test
 
 # Run tests in watch mode
@@ -163,6 +203,16 @@ npm run test:ui
 
 # Run tests with coverage
 npm run test -- --coverage
+```
+
+### Combined Tests
+
+```bash
+# Run both Python and JavaScript tests
+make test-all
+
+# Full CI-like test suite
+make test-ci
 ```
 
 ## Example Test Structure
@@ -191,8 +241,21 @@ describe('Widget Component', () => {
 
 ## Coverage Goals
 
+### Python Backend Coverage
+Aim for comprehensive coverage of:
+- **Cache behavior** (CRITICAL - prevents regression)
+- `update_scad_code()` functionality
+- `update_model()` with different parameters
+- Cache invalidation scenarios
+- Force rendering options
+- Error handling paths
+- STL generation pipeline
+
+### JavaScript Frontend Coverage
 Aim for comprehensive coverage of:
 - All public methods and functions
+- STL parsing (binary/ASCII)
+- Three.js scene management
 - Error handling paths
 - Edge cases (empty data, malformed STL, etc.)
 - Resource cleanup
@@ -200,15 +263,69 @@ Aim for comprehensive coverage of:
 
 ## Performance Considerations
 
-Test scenarios should include:
+### Python Backend Performance
+- Cache hit/miss ratios
+- STL generation time
+- Memory usage with large models
+- Cache memory consumption
+
+### JavaScript Frontend Performance  
 - Large STL files (1MB+)
 - Rapid model updates
+- Three.js scene complexity
 - Memory usage patterns
 - Cleanup verification
+
+### Cache Performance (Critical)
+- Ensure cache fixes don't cause performance regression
+- Monitor cache memory usage
+- Test cache effectiveness with various model types
+- Validate force-render performance impact
+
+## Critical Test Categories
+
+### 🔥 Cache Behavior Tests (`test_cache_behavior.py`)
+**Purpose**: Prevent regression of the LLM-identified cache issue where `update_scad_code` doesn't update visual display.
+
+**Key Test Cases**:
+- Cache invalidation with different SCAD code
+- Cache invalidation with different parameters  
+- Cache bypass functionality
+- Force rendering options
+- Cache clearing effectiveness
+
+### 🎯 LLM Regression Tests (`test_llm_identified_issues.py`)
+**Purpose**: Directly test the specific scenarios that failed in external LLM analysis.
+
+**Key Test Cases**:
+- Cube-to-sphere SCAD code updates produce different output
+- Mock content changes appear in HTML output
+- SCAD code property vs HTML output consistency
+- End-to-end update workflows
+
+### 🔗 Integration Tests (`test_viewer_integration.py`)
+**Purpose**: Test complete workflows and ensure all reported-working functionality continues to work.
+
+**Key Test Cases**:
+- Viewer size customization
+- Error message handling
+- File format support (STL, OBJ, SVG, DXF)
+- Case-insensitive file extensions
+- Performance and memory usage
+
+## CI/CD Integration
+
+The GitHub Actions workflow (`.github/workflows/test.yml`) automatically runs:
+1. **Cache behavior tests** (critical for preventing regression)
+2. **LLM regression tests** (ensures identified issues stay fixed)
+3. **Integration tests** (ensures overall functionality)
+4. **Coverage reporting** (maintains code quality)
 
 ## Additional Resources
 
 - **Vitest Documentation**: https://vitest.dev/
 - **Three.js Documentation**: https://threejs.org/docs/
 - **anywidget Documentation**: https://anywidget.dev/
+- **pytest Documentation**: https://docs.pytest.org/
 - **STL Format Specification**: Binary and ASCII format details
+- **SolidPython2**: https://github.com/jeff-dh/SolidPython2
