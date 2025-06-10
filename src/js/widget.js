@@ -136,6 +136,10 @@ class SceneManager {
         this.renderer.sortObjects = true;
         this.renderer.toneMapping = THREE.LinearToneMapping;
         
+        // Ensure canvas can receive mouse events
+        this.renderer.domElement.style.cursor = 'grab';
+        this.renderer.domElement.style.userSelect = 'none';
+        
         this.container.appendChild(this.renderer.domElement);
         
         this.setupWebGLContextHandling();
@@ -143,6 +147,9 @@ class SceneManager {
         this.setupGrid();
         this.setupControls();
         this.updateCameraPosition();
+        
+        console.log(`📹 Initial camera position: x=${this.camera.position.x.toFixed(2)}, y=${this.camera.position.y.toFixed(2)}, z=${this.camera.position.z.toFixed(2)}`);
+        
         this.startAnimationLoop();
     }
     
@@ -172,10 +179,13 @@ class SceneManager {
     setupControls() {
         const canvas = this.renderer.domElement;
         
+        console.log(`🔍 Setting up controls on canvas element:`, canvas.tagName, canvas.width, canvas.height);
+        
         canvas.addEventListener('mousedown', (e) => {
             this.controls.mouseDown = true;
             this.controls.mouseX = e.clientX;
             this.controls.mouseY = e.clientY;
+            console.log('🔄 Mouse down event triggered');
         });
         
         canvas.addEventListener('mousemove', (e) => {
@@ -276,13 +286,17 @@ class SceneManager {
             
             this.scene.add(this.currentMesh);
             
+            // Verify mesh was added to scene
+            console.log(`🔍 Scene children count: ${this.scene.children.length}`);
+            console.log(`🔍 Mesh position: x=${this.currentMesh.position.x.toFixed(2)}, y=${this.currentMesh.position.y.toFixed(2)}, z=${this.currentMesh.position.z.toFixed(2)}`);
+            
             // Adjust camera to fit model
             const size = geometry.boundingBox.getSize(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z);
             this.controls.cameraDistance = maxDim * 2;
             this.updateCameraPosition();
             
-            console.log(`✅ STL loaded: ${vertices.length / 3} vertices`);
+            console.log(`✅ STL loaded: ${vertices.length / 3} vertices, camera distance: ${this.controls.cameraDistance}`);
             return true;
             
         } catch (error) {
@@ -359,10 +373,16 @@ export function render({ model, el }) {
     try {
         statusElement.textContent = "Setting up 3D scene...";
         
-        // Initialize scene manager
+        // Initialize scene manager with validation
         sceneManager = new SceneManager(container);
         
+        // Verify scene was created successfully
+        if (!sceneManager.scene || !sceneManager.renderer) {
+            throw new Error('Failed to initialize 3D scene');
+        }
+        
         statusElement.textContent = "Ready - waiting for model data...";
+        console.log('✅ 3D scene initialized successfully');
         
         // Handle model data changes
         function handleModelDataChange() {
@@ -384,7 +404,13 @@ export function render({ model, el }) {
                 }
                 
                 const success = sceneManager.loadSTLData(bytes.buffer);
-                statusElement.textContent = success ? "Model loaded" : "Error loading model";
+                if (success) {
+                    statusElement.textContent = `Model loaded (${sceneManager.scene.children.length} objects in scene)`;
+                    statusElement.style.backgroundColor = 'rgba(76, 175, 80, 0.8)';
+                } else {
+                    statusElement.textContent = "Error loading model";
+                    statusElement.style.backgroundColor = 'rgba(244, 67, 54, 0.8)';
+                }
                 
             } catch (error) {
                 console.error('Error loading model:', error);
