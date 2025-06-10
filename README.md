@@ -84,6 +84,12 @@ Three.js BufferGeometry → WebGL Rendering → anywidget → Marimo Reactive Ce
 - Modern browser with WebGL support
 - OpenSCAD binary accessible in system PATH or `/Applications/OpenSCAD.app/` (macOS)
 
+### Development Dependencies (Optional)
+For frontend widget development only:
+- **Node.js 18+** and **npm** 
+- Used for JavaScript testing, linting, and bundling
+- **Not required** for end users installing via PyPI
+
 ## 🎨 Examples
 
 ### Mechanical Bracket

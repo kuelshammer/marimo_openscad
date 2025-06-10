@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marimo-OpenSCAD Widget Development</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .widget-demo {
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .controls {
+            padding: 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .info {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Marimo-OpenSCAD Widget Development</h1>
+        
+        <div class="info">
+            <strong>Frontend Development Environment</strong><br>
+            This page provides a development environment for testing the JavaScript widget 
+            independently from the Python backend.
+        </div>
+        
+        <div class="widget-demo">
+            <div class="controls">
+                <button onclick="loadTestData()">Load Test STL</button>
+                <button onclick="loadError()">Test Error State</button>
+                <button onclick="loadEmpty()">Clear Model</button>
+                <button onclick="toggleLoading()">Toggle Loading</button>
+            </div>
+            <div id="widget-container"></div>
+        </div>
+        
+        <div class="info">
+            <strong>Development Commands:</strong><br>
+            <code>npm run dev</code> - Start development server<br>
+            <code>npm run test</code> - Run tests<br>
+            <code>npm run build</code> - Build for production<br>
+            <code>npm run lint</code> - Run ESLint
+        </div>
+    </div>
+
+    <script type="module">
+        import { render } from '/src/js/widget.js';
+        
+        // Mock model for testing
+        const mockModel = {
+            data: {
+                stl_data: '',
+                error_message: '',
+                is_loading: false
+            },
+            listeners: new Map(),
+            
+            get(key) {
+                return this.data[key];
+            },
+            
+            set(key, value) {
+                const oldValue = this.data[key];
+                this.data[key] = value;
+                
+                // Trigger change listeners
+                const listeners = this.listeners.get(`change:${key}`) || [];
+                listeners.forEach(listener => listener(value, oldValue));
+            },
+            
+            on(event, callback) {
+                if (!this.listeners.has(event)) {
+                    this.listeners.set(event, []);
+                }
+                this.listeners.get(event).push(callback);
+            }
+        };
+        
+        // Initialize widget
+        const container = document.getElementById('widget-container');
+        const cleanup = render({ model: mockModel, el: container });
+        
+        // Test functions
+        window.loadTestData = () => {
+            // Create a simple test cube STL (minimal binary format)
+            const header = new ArrayBuffer(80);
+            const faceData = new ArrayBuffer(4); // Face count = 0 for simplicity
+            
+            const combined = new ArrayBuffer(84);
+            const view = new Uint8Array(combined);
+            view.set(new Uint8Array(header), 0);
+            view.set(new Uint8Array(faceData), 80);
+            
+            const binaryString = String.fromCharCode(...view);
+            const base64 = btoa(binaryString);
+            
+            mockModel.set('stl_data', base64);
+        };
+        
+        window.loadError = () => {
+            mockModel.set('error_message', 'Test error message');
+        };
+        
+        window.loadEmpty = () => {
+            mockModel.set('stl_data', '');
+            mockModel.set('error_message', '');
+        };
+        
+        window.toggleLoading = () => {
+            mockModel.set('is_loading', !mockModel.get('is_loading'));
+        };
+        
+        console.log('🚀 Widget development environment ready!');
+    </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "name": "marimo-openscad-frontend",
+  "version": "0.1.0",
+  "description": "Frontend development environment for Marimo-OpenSCAD widget",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest --watch",
+    "lint": "eslint src --ext .js,.ts --fix",
+    "format": "prettier --write src/**/*.{js,ts,css}"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0",
+    "@vitest/ui": "^1.0.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.0.0",
+    "@types/three": "^0.158.0",
+    "happy-dom": "^12.0.0"
+  },
+  "dependencies": {
+    "three": "^0.158.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "marimo",
+    "openscad",
+    "3d-viewer",
+    "anywidget",
+    "three.js"
+  ],
+  "author": "Marimo-OpenSCAD Team",
+  "license": "MIT"
+}
