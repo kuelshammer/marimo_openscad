@@ -16,6 +16,7 @@ import logging
 from typing import Optional, Literal, Union
 from .openscad_renderer import OpenSCADRenderer
 from .openscad_wasm_renderer import OpenSCADWASMRenderer, HybridOpenSCADRenderer
+from .renderer_config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -598,16 +599,22 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 return renderer
             
             elif renderer_type == "auto":
-                logger.info("Initializing hybrid renderer (auto-selection)")
-                renderer = HybridOpenSCADRenderer(
-                    prefer_wasm=True,
-                    fallback_to_local=True,
-                    openscad_path=openscad_path
-                )
+                logger.info("Initializing hybrid renderer with configuration")
+                config = get_config()
+                hybrid_config = config.get_hybrid_renderer_config()
+                
+                # Override with any provided path
+                if openscad_path:
+                    hybrid_config['openscad_path'] = openscad_path
+                
+                renderer = HybridOpenSCADRenderer(**hybrid_config)
                 self.renderer_status = "ready"
+                
                 # Check if WASM is actually being used
                 active_type = renderer.get_active_renderer_type()
                 self.wasm_supported = (active_type == "wasm")
+                
+                logger.info(f"Hybrid renderer initialized: active={active_type}, config={config.get_summary()}")
                 return renderer
             
             else:
@@ -751,29 +758,36 @@ class OpenSCADViewer(anywidget.AnyWidget):
             'stats': getattr(self.renderer, 'get_stats', lambda: {})()
         }
 
-def openscad_viewer(model, renderer_type: Literal["local", "wasm", "auto"] = "auto", **kwargs):
+def openscad_viewer(model, renderer_type: Optional[Literal["local", "wasm", "auto"]] = None, **kwargs):
     """
     Erstelle 3D-Viewer für SolidPython2-Objekte mit WASM/Local OpenSCAD support
     
     Args:
         model: SolidPython2-Objekt mit .as_scad() Methode
-        renderer_type: "local", "wasm", or "auto" (default: "auto")
+        renderer_type: "local", "wasm", or "auto" (default: from config)
         **kwargs: Additional arguments passed to OpenSCADViewer
         
     Returns:
         OpenSCADViewer Widget für Marimo
         
     Example:
+        import marimo_openscad as mo
         from solid2 import cube, sphere
         
-        # Auto-select best renderer (WASM preferred)
+        # Use global configuration preference
         model = cube([10, 10, 10]) + sphere(5).up(15)
-        viewer = openscad_viewer(model)
+        viewer = mo.openscad_viewer(model)
         
-        # Force WASM renderer
-        viewer_wasm = openscad_viewer(model, renderer_type="wasm")
+        # Override configuration for this viewer
+        viewer_wasm = mo.openscad_viewer(model, renderer_type="wasm")
         
-        # Force local renderer
-        viewer_local = openscad_viewer(model, renderer_type="local")
+        # Configure globally
+        mo.set_renderer_preference("wasm")
+        viewer_global = mo.openscad_viewer(model)  # Will use WASM
     """
+    # Use global config if not specified
+    if renderer_type is None:
+        config = get_config()
+        renderer_type = config.get_renderer_preference()
+    
     return OpenSCADViewer(model=model, renderer_type=renderer_type, **kwargs)
