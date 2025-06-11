@@ -17,15 +17,15 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.8.18", "3.9", "3.10", "3.11", "3.12"]
         exclude:
           # Reduce matrix size for faster CI
           - os: windows-latest
-            python-version: "3.8"
+            python-version: "3.8.18"
           - os: windows-latest  
             python-version: "3.9"
           - os: macos-latest
-            python-version: "3.8"
+            python-version: "3.8.18"
           - os: macos-latest
             python-version: "3.9"
 
@@ -51,10 +51,19 @@ jobs:
         echo "pyproject.toml exists: $(test -f pyproject.toml && echo 'YES' || echo 'NO')"
         uv sync --dev || {
           echo "❌ uv sync failed, trying alternative approach..."
-          pip install -e ".[dev]" || {
-            echo "❌ pip install also failed, creating minimal environment..."
-            pip install pytest pytest-cov solidpython2 marimo anywidget traitlets
-          }
+          if [[ "${{ matrix.python-version }}" == "3.8.18" ]]; then
+            echo "🔧 Python 3.8 specific workaround..."
+            pip install --upgrade pip setuptools wheel
+            pip install "typing-extensions>=4.0.0"
+            pip install pytest pytest-cov
+            pip install solidpython2 marimo anywidget traitlets
+            pip install -e . --no-deps
+          else
+            pip install -e ".[dev]" || {
+              echo "❌ pip install also failed, creating minimal environment..."
+              pip install pytest pytest-cov solidpython2 marimo anywidget traitlets
+            }
+          fi
         }
     
     - name: 🔥 CRITICAL - Cache Behavior Tests (LLM Regression Prevention)
