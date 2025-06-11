@@ -181,19 +181,11 @@ jobs:
         echo "🔍 Current working directory: $(pwd)"
         echo "🖥️ Operating System: ${{ matrix.os }}"
         echo "📁 All files in directory:"
-        if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-          dir /a
-          echo "📄 XML files specifically (Windows):"
-          dir *test-results.xml 2>nul || echo "❌ No XML files found with pattern *test-results.xml"
-          echo "🔍 All XML files (Windows):"
-          dir *.xml 2>nul || echo "❌ No XML files found at all"
-        else
-          ls -la
-          echo "📄 XML files specifically:"
-          ls -la *-test-results.xml 2>/dev/null || echo "❌ No XML files found with pattern *-test-results.xml"
-          echo "🔍 All XML files:"
-          find . -name "*.xml" -type f 2>/dev/null || echo "❌ No XML files found at all"
-        fi
+        ls -la
+        echo "📄 XML files specifically:"
+        ls -la *-test-results.xml 2>/dev/null || echo "❌ No XML files found with pattern *-test-results.xml"
+        echo "🔍 All XML files:"
+        find . -name "*.xml" -type f 2>/dev/null || echo "❌ No XML files found at all"
     
     - name: Comment Test Results on PR
       uses: dorny/test-reporter@v1
