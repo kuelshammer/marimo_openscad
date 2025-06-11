@@ -62,7 +62,7 @@ jobs:
         echo "::endgroup::"
     
     - name: Upload Python Test Results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: python-test-results-${{ matrix.os }}-${{ matrix.python-version }}
@@ -122,7 +122,7 @@ jobs:
         echo "::endgroup::"
     
     - name: Upload Critical Test Results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: critical-regression-results
@@ -167,7 +167,7 @@ jobs:
         echo "::endgroup::"
     
     - name: Upload JavaScript Test Results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: javascript-test-results
