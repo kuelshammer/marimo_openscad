@@ -28,19 +28,23 @@ class SolidPythonBridge:
     - Intelligent re-rendering detection
     """
     
-    def __init__(self, openscad_path: Optional[str] = None):
+    def __init__(self, openscad_path: Optional[str] = None, renderer=None):
         """
         Initialize SolidPython2 bridge
         
         Args:
             openscad_path: Path to OpenSCAD executable (auto-detected if None)
+            renderer: Custom renderer instance (overrides openscad_path if provided)
         """
-        self.renderer = OpenSCADRenderer(openscad_path=openscad_path)
+        if renderer is not None:
+            self.renderer = renderer
+            logger.info("SolidPython bridge initialized with custom renderer")
+        else:
+            self.renderer = OpenSCADRenderer(openscad_path=openscad_path)
+            logger.info("SolidPython bridge initialized")
         
         # Cache for model rendering results
         self.model_cache = {}
-        
-        logger.info("SolidPython bridge initialized")
     
     def render_to_stl(self, model, use_cache: bool = True) -> bytes:
         """
