@@ -234,24 +234,28 @@ jobs:
       matrix:
         renderer-config:
           - name: "WASM-Only Mode"
+            id: "wasm-only"
             env:
               MARIMO_OPENSCAD_RENDERER: "wasm"
               MARIMO_OPENSCAD_ENABLE_WASM: "true"
               MARIMO_OPENSCAD_FORCE_LOCAL: "false"
               MARIMO_OPENSCAD_ENABLE_LOCAL_FALLBACK: "false"
           - name: "Local-Only Mode"  
+            id: "local-only"
             env:
               MARIMO_OPENSCAD_RENDERER: "local"
               MARIMO_OPENSCAD_ENABLE_WASM: "false"
               MARIMO_OPENSCAD_FORCE_LOCAL: "true"
               MARIMO_OPENSCAD_ENABLE_LOCAL_FALLBACK: "true"
           - name: "Auto-Hybrid Mode"
+            id: "auto-hybrid"
             env:
               MARIMO_OPENSCAD_RENDERER: "auto"
               MARIMO_OPENSCAD_ENABLE_WASM: "true"
               MARIMO_OPENSCAD_FORCE_LOCAL: "false"
               MARIMO_OPENSCAD_ENABLE_LOCAL_FALLBACK: "true"
           - name: "Performance Optimized"
+            id: "performance"
             env:
               MARIMO_OPENSCAD_RENDERER: "auto"
               MARIMO_OPENSCAD_ENABLE_WASM: "true"
@@ -259,6 +263,7 @@ jobs:
               MARIMO_OPENSCAD_MAX_COMPLEXITY: "5000"
               MARIMO_OPENSCAD_LOG_PERFORMANCE: "true"
           - name: "Debug Mode"
+            id: "debug"
             env:
               MARIMO_OPENSCAD_RENDERER: "auto"
               MARIMO_OPENSCAD_DEBUG_RENDERER: "true"
@@ -320,10 +325,22 @@ jobs:
         "
         
         # Run specific tests for this configuration
-        uv run pytest tests/test_hybrid_renderer_system.py -v --tb=short --junit-xml=config-${{ matrix.renderer-config.name }}-results.xml || {
+        echo "🧪 Running pytest for configuration ${{ matrix.renderer-config.name }}..."
+        uv run pytest tests/test_hybrid_renderer_system.py -v --tb=short --junit-xml=config-${{ matrix.renderer-config.id }}-results.xml
+        PYTEST_EXIT_CODE=$?
+        
+        echo "🔍 Pytest exit code: $PYTEST_EXIT_CODE"
+        
+        if [[ $PYTEST_EXIT_CODE -ne 0 ]]; then
           echo "❌ Configuration tests failed for ${{ matrix.renderer-config.name }}"
-          echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="config-tests" tests="0" failures="0" errors="1"><testcase name="config-test-failed"><error message="${{ matrix.renderer-config.name }} configuration test failed">Configuration test failed</error></testcase></testsuite></testsuites>' > config-${{ matrix.renderer-config.name }}-results.xml
-        }
+          # Only create fallback XML if pytest didn't create one
+          if [[ ! -f "config-${{ matrix.renderer-config.id }}-results.xml" ]]; then
+            echo "📝 Creating fallback XML file..."
+            echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="config-tests" tests="0" failures="0" errors="1"><testcase name="config-test-failed"><error message="${{ matrix.renderer-config.name }} configuration test failed">Configuration test failed</error></testcase></testsuite></testsuites>' > config-${{ matrix.renderer-config.id }}-results.xml
+          fi
+        else
+          echo "✅ Configuration tests passed for ${{ matrix.renderer-config.name }}"
+        fi
         echo "::endgroup::"
     
     - name: 🧪 API Integration Tests for ${{ matrix.renderer-config.name }}
@@ -361,20 +378,61 @@ jobs:
             raise
         "
         echo "::endgroup::"
+        
+        # Debug: Show what files were created
+        echo "🔍 Debug: Files in current directory:"
+        ls -la
+        echo "🔍 Debug: XML files specifically:"
+        ls -la *.xml 2>/dev/null || echo "No XML files found"
+    
+    - name: 🔧 Ensure XML files exist for test reporter
+      if: always()
+      shell: bash
+      run: |
+        echo "🔧 Ensuring XML files exist for test reporter..."
+        
+        # Create minimal XML file if it doesn't exist
+        XML_FILE="config-${{ matrix.renderer-config.id }}-results.xml"
+        
+        if [[ ! -f "$XML_FILE" ]]; then
+          echo "📝 Creating missing $XML_FILE..."
+          cat > "$XML_FILE" << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+  <testsuite name="renderer-config-${{ matrix.renderer-config.id }}" tests="1" failures="0" errors="1" time="0">
+    <testcase name="test-configuration-${{ matrix.renderer-config.id }}">
+      <error message="Test step failed to complete in CI environment">Test step failed to complete in CI environment</error>
+    </testcase>
+  </testsuite>
+</testsuites>
+EOF
+        else
+          echo "✅ $XML_FILE already exists"
+        fi
+        
+        # Verify file exists and has content
+        if [[ -f "$XML_FILE" && -s "$XML_FILE" ]]; then
+          echo "✅ XML file verified: $(wc -c < "$XML_FILE") bytes"
+          echo "📄 First few lines:"
+          head -3 "$XML_FILE"
+        else
+          echo "❌ XML file missing or empty"
+          ls -la config-*-results.xml 2>/dev/null || echo "No config XML files found"
+        fi
     
     - name: Upload Configuration Test Results
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: renderer-config-results-${{ matrix.renderer-config.name }}
-        path: config-*-results.xml
+        name: renderer-config-results-${{ matrix.renderer-config.id }}
+        path: config-${{ matrix.renderer-config.id }}-results.xml
     
     - name: Comment Configuration Test Results on PR
       uses: dorny/test-reporter@v1
-      if: success() || failure()
+      if: always()
       with:
         name: Renderer Config Tests (${{ matrix.renderer-config.name }})
-        path: 'config-*-results.xml'
+        path: 'config-${{ matrix.renderer-config.id }}-results.xml'
         reporter: java-junit
         fail-on-error: false
         token: ${{ secrets.GITHUB_TOKEN }}
