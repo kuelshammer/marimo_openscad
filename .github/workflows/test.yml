@@ -44,7 +44,18 @@ jobs:
     
     - name: Install dependencies
       run: |
-        uv sync --dev
+        echo "🔍 Debug: Installing dependencies with uv..."
+        echo "Python version: $(python --version)"
+        echo "uv version: $(uv --version)"
+        echo "Current directory: $(pwd)"
+        echo "pyproject.toml exists: $(test -f pyproject.toml && echo 'YES' || echo 'NO')"
+        uv sync --dev || {
+          echo "❌ uv sync failed, trying alternative approach..."
+          pip install -e ".[dev]" || {
+            echo "❌ pip install also failed, creating minimal environment..."
+            pip install pytest pytest-cov solidpython2 marimo anywidget traitlets
+          }
+        }
     
     - name: 🔥 CRITICAL - Cache Behavior Tests (LLM Regression Prevention)
       run: |
@@ -103,6 +114,16 @@ jobs:
         path: |
           *-test-results.xml
           coverage.xml
+    
+    - name: 🐛 Debug - List files before test reporter
+      run: |
+        echo "🔍 Current working directory: $(pwd)"
+        echo "📁 All files in directory:"
+        ls -la
+        echo "📄 XML files specifically:"
+        ls -la *-test-results.xml 2>/dev/null || echo "❌ No XML files found with pattern *-test-results.xml"
+        echo "🔍 All XML files:"
+        find . -name "*.xml" -type f 2>/dev/null || echo "❌ No XML files found at all"
     
     - name: Comment Test Results on PR
       uses: dorny/test-reporter@v1
