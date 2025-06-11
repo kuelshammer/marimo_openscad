@@ -2,8 +2,10 @@
  * OpenSCAD WASM Loader Utility
  * 
  * Provides a centralized loader for OpenSCAD WebAssembly module
- * with error handling, caching, and lifecycle management.
+ * with error handling, advanced caching, and lifecycle management.
  */
+
+import { wasmCacheManager } from './wasm-cache-manager.js';
 
 class OpenSCADWASMLoader {
     constructor() {
@@ -97,13 +99,16 @@ class OpenSCADWASMLoader {
     }
 
     /**
-     * Load the main OpenSCAD module
+     * Load the main OpenSCAD module with caching
      * @private
      */
     async _loadOpenSCADModule(basePath) {
         try {
-            // First try to load the wrapper module
-            const response = await fetch(basePath + 'openscad.js');
+            // Initialize cache manager
+            await wasmCacheManager.initialize();
+            
+            // Load the wrapper module with caching
+            const response = await wasmCacheManager.fetchWithCache(basePath + 'openscad.js');
             if (!response.ok) {
                 throw new Error(`Failed to fetch openscad.js: ${response.status}`);
             }
@@ -120,6 +125,7 @@ class OpenSCADWASMLoader {
             // Clean up the blob URL
             URL.revokeObjectURL(moduleUrl);
             
+            console.log('OpenSCAD module loaded successfully (with caching)');
             return module.default || module;
         } catch (error) {
             console.error('Failed to load OpenSCAD module:', error);
@@ -128,12 +134,12 @@ class OpenSCADWASMLoader {
     }
 
     /**
-     * Load fonts library
+     * Load fonts library with caching
      * @private
      */
     async _loadFonts(instance, basePath) {
         try {
-            const response = await fetch(basePath + 'openscad.fonts.js');
+            const response = await wasmCacheManager.fetchWithCache(basePath + 'openscad.fonts.js');
             if (!response.ok) {
                 console.warn('Fonts library not available, continuing without fonts');
                 return;
@@ -148,7 +154,7 @@ class OpenSCADWASMLoader {
             
             if (fontsModule.addFonts) {
                 await fontsModule.addFonts(instance);
-                console.log('Fonts loaded successfully');
+                console.log('Fonts loaded successfully (cached)');
             }
         } catch (error) {
             console.warn('Failed to load fonts, continuing without:', error.message);
@@ -156,12 +162,12 @@ class OpenSCADWASMLoader {
     }
 
     /**
-     * Load MCAD library
+     * Load MCAD library with caching
      * @private
      */
     async _loadMCAD(instance, basePath) {
         try {
-            const response = await fetch(basePath + 'openscad.mcad.js');
+            const response = await wasmCacheManager.fetchWithCache(basePath + 'openscad.mcad.js');
             if (!response.ok) {
                 console.warn('MCAD library not available, continuing without MCAD');
                 return;
@@ -176,7 +182,7 @@ class OpenSCADWASMLoader {
             
             if (mcadModule.addMCAD) {
                 await mcadModule.addMCAD(instance);
-                console.log('MCAD library loaded successfully');
+                console.log('MCAD library loaded successfully (cached)');
             }
         } catch (error) {
             console.warn('Failed to load MCAD library, continuing without:', error.message);
@@ -210,15 +216,48 @@ class OpenSCADWASMLoader {
     }
 
     /**
-     * Get initialization status
+     * Get initialization status including cache information
      * @returns {Object} Status information
      */
-    getStatus() {
+    async getStatus() {
+        const cacheStats = await wasmCacheManager.getCacheStats();
+        
         return {
             isInitialized: this.isInitialized,
             isInitializing: this.isInitializing,
-            hasInstance: this.instance !== null
+            hasInstance: this.instance !== null,
+            cache: cacheStats
         };
+    }
+
+    /**
+     * Preload WASM resources for faster initialization
+     * @returns {Promise<void>}
+     */
+    async preloadResources() {
+        const resources = [
+            'openscad.js',
+            'openscad.wasm.js',
+            'openscad.wasm',
+            'openscad.fonts.js',
+            'openscad.mcad.js'
+        ];
+
+        const basePath = this.wasmBasePath;
+        const urls = resources.map(resource => basePath + resource);
+        
+        console.log('Preloading WASM resources for faster initialization...');
+        await wasmCacheManager.preloadResources(urls);
+        console.log('WASM resources preloaded successfully');
+    }
+
+    /**
+     * Clear WASM cache
+     * @returns {Promise<void>}
+     */
+    async clearCache() {
+        await wasmCacheManager.clearCache();
+        console.log('WASM cache cleared');
     }
 }
 
