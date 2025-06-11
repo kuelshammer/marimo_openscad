@@ -149,7 +149,35 @@ jobs:
           *-test-results.xml
           coverage.xml
     
+    - name: 🔧 Ensure XML files exist for test reporter
+      if: always()
+      shell: bash
+      run: |
+        echo "🔧 Ensuring XML files exist for test reporter..."
+        
+        # Create minimal XML files if they don't exist
+        XML_FILES=("cache-test-results.xml" "llm-test-results.xml" "integration-test-results.xml" "python-test-results.xml")
+        
+        for xml_file in "${XML_FILES[@]}"; do
+          if [[ ! -f "$xml_file" ]]; then
+            echo "📝 Creating missing $xml_file..."
+            cat > "$xml_file" << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+  <testsuite name="fallback-tests" tests="1" failures="0" errors="1" time="0">
+    <testcase name="test-environment-failure">
+      <error message="Test step failed to complete in CI environment">Test step failed to complete in CI environment</error>
+    </testcase>
+  </testsuite>
+</testsuites>
+EOF
+          else
+            echo "✅ $xml_file already exists"
+          fi
+        done
+    
     - name: 🐛 Debug - List files before test reporter
+      if: always()
       shell: bash
       run: |
         echo "🔍 Current working directory: $(pwd)"
