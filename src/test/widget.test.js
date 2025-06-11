@@ -110,6 +110,42 @@ describe('Marimo-OpenSCAD Widget', () => {
 });
 
 describe('STL Parser', () => {
+    let mockModel;
+    let mockEl;
+    
+    beforeEach(() => {
+        // Mock the anywidget model
+        mockModel = {
+            data: {
+                stl_data: '',
+                error_message: '',
+                is_loading: false
+            },
+            get: vi.fn((key) => mockModel.data[key]),
+            on: vi.fn(),
+            listeners: new Map()
+        };
+        
+        // Mock DOM element
+        mockEl = {
+            innerHTML: '',
+            querySelector: vi.fn((selector) => {
+                if (selector === '#container') {
+                    return {
+                        getBoundingClientRect: () => ({ width: 600, height: 400 }),
+                        appendChild: vi.fn()
+                    };
+                }
+                if (selector === '#status') {
+                    return {
+                        textContent: ''
+                    };
+                }
+                return null;
+            })
+        };
+    });
+    
     // Note: STLParser is not exported, but we can test it indirectly
     // through the widget functionality
     
@@ -142,6 +178,42 @@ describe('STL Parser', () => {
 });
 
 describe('Scene Manager', () => {
+    let mockModel;
+    let mockEl;
+    
+    beforeEach(() => {
+        // Mock the anywidget model
+        mockModel = {
+            data: {
+                stl_data: '',
+                error_message: '',
+                is_loading: false
+            },
+            get: vi.fn((key) => mockModel.data[key]),
+            on: vi.fn(),
+            listeners: new Map()
+        };
+        
+        // Mock DOM element
+        mockEl = {
+            innerHTML: '',
+            querySelector: vi.fn((selector) => {
+                if (selector === '#container') {
+                    return {
+                        getBoundingClientRect: () => ({ width: 600, height: 400 }),
+                        appendChild: vi.fn()
+                    };
+                }
+                if (selector === '#status') {
+                    return {
+                        textContent: ''
+                    };
+                }
+                return null;
+            })
+        };
+    });
+    
     it('should handle resize events', () => {
         const cleanup = render({ model: mockModel, el: mockEl });
         

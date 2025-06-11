@@ -144,6 +144,30 @@ global.btoa = (str) => {
     return Buffer.from(str, 'binary').toString('base64');
 };
 
+// Mock missing DOM methods
+global.document = global.document || {};
+global.document.createElementNS = global.document.createElementNS || function(namespace, tagName) {
+    return global.document.createElement(tagName);
+};
+
+global.document.createElement = global.document.createElement || function(tagName) {
+    return {
+        style: {},
+        classList: {
+            add: () => {},
+            remove: () => {},
+            contains: () => false
+        },
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        appendChild: () => {},
+        removeChild: () => {},
+        getAttribute: () => null,
+        setAttribute: () => {},
+        getBoundingClientRect: () => ({ width: 600, height: 400, top: 0, left: 0 })
+    };
+};
+
 // Mock performance API
 global.performance = {
     now: () => Date.now()
