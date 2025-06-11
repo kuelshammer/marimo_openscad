@@ -37,33 +37,37 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -e ".[dev]"
+        uv sync --dev
     
     - name: 🔥 CRITICAL - Cache Behavior Tests (LLM Regression Prevention)
       run: |
         echo "::group::🔥 Critical Cache Behavior Tests"
-        pytest tests/test_cache_behavior.py -v -m "not slow" --tb=short --junit-xml=cache-test-results.xml
+        uv run pytest tests/test_cache_behavior.py -v -m "not slow" --tb=short --junit-xml=cache-test-results.xml
         echo "::endgroup::"
     
     - name: 🎯 LLM-Identified Issues Regression Tests
       run: |
         echo "::group::🎯 LLM Regression Tests"
-        pytest tests/test_llm_identified_issues.py -v --tb=long --junit-xml=llm-test-results.xml
+        uv run pytest tests/test_llm_identified_issues.py -v --tb=long --junit-xml=llm-test-results.xml
         echo "::endgroup::"
     
     - name: 🔗 Integration Tests
       run: |
         echo "::group::🔗 Integration Tests"
-        pytest tests/test_viewer_integration.py -v -m "not slow" --tb=short --junit-xml=integration-test-results.xml
+        uv run pytest tests/test_viewer_integration.py -v -m "not slow" --tb=short --junit-xml=integration-test-results.xml
         echo "::endgroup::"
     
     - name: 📊 All Python Tests with Coverage
       run: |
         echo "::group::📊 Complete Python Test Suite"
-        pytest tests/ --cov=marimo_openscad --cov-report=xml --cov-report=term-missing --junit-xml=python-test-results.xml
+        uv run pytest tests/ --cov=marimo_openscad --cov-report=xml --cov-report=term-missing --junit-xml=python-test-results.xml
         echo "::endgroup::"
     
     - name: Upload Python Test Results
@@ -103,28 +107,32 @@ jobs:
       with:
         python-version: 3.11
     
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -e ".[dev]"
+        uv sync --dev
     
     - name: 🚨 CRITICAL - Prevent LLM-Identified Cache Regression
       run: |
         echo "::error title=Critical Test::Testing LLM-identified cache regression prevention"
         echo "::group::🚨 Critical Regression Tests"
-        pytest tests/ -v -m "regression" --tb=long --junit-xml=regression-results.xml
+        uv run pytest tests/ -v -m "regression" --tb=long --junit-xml=regression-results.xml
         echo "::endgroup::"
         
     - name: 🔥 Cache-Specific Validation
       run: |
         echo "::group::🔥 Cache Behavior Validation"
-        pytest tests/ -v -m "cache" --tb=long --junit-xml=cache-results.xml
+        uv run pytest tests/ -v -m "cache" --tb=long --junit-xml=cache-results.xml
         echo "::endgroup::"
     
     - name: 🧪 End-to-End Cache Fix Validation
       run: |
         echo "::group::🧪 Complete Cache Fix Validation"
-        python test_cache_fix.py
+        uv run python test_cache_fix.py
         echo "::endgroup::"
     
     - name: Upload Critical Test Results
@@ -224,7 +232,7 @@ jobs:
       run: |
         echo "::group::🚀 WASM Module Validation"
         # Test WASM module loading and basic functionality
-        python -c "
+        uv run python -c "
         import sys
         try:
             from marimo_openscad import openscad_viewer
@@ -254,10 +262,10 @@ jobs:
       run: |
         echo "::group::🧪 WASM Performance Test Suite"
         # Run WASM-specific tests with mocking for CI environment
-        pytest tests/ -v -k "wasm" --tb=short --junit-xml=wasm-test-results.xml || true
+        uv run pytest tests/ -v -k "wasm" --tb=short --junit-xml=wasm-test-results.xml || true
         
         # Run the dedicated WASM performance test with CI adaptations
-        python -c "
+        uv run python -c "
         import sys, os
         sys.path.insert(0, '.')
         
@@ -302,7 +310,7 @@ jobs:
       run: |
         echo "::group::🌐 Browser Compatibility Testing"
         # Test browser compatibility matrix without actual browsers (CI-appropriate)
-        python -c "
+        uv run python -c "
         # Browser compatibility test infrastructure
         browsers = {
             'chrome': {'version': '69+', 'wasm': True, 'workers': True, 'cache': True},
@@ -324,7 +332,7 @@ jobs:
       run: |
         echo "::group::🗄️ Cache API Integration"
         # Test cache management without actual browser Cache API
-        python -c "
+        uv run python -c "
         import sys
         
         # Test cache management infrastructure
@@ -353,7 +361,7 @@ jobs:
       run: |
         echo "::group::⚡ Web Worker Integration"
         # Test Web Worker infrastructure without actual workers
-        python -c "
+        uv run python -c "
         import sys
         
         # Test worker management infrastructure
@@ -404,7 +412,7 @@ jobs:
     - name: 📊 Generate WASM Test Report
       run: |
         echo "::group::📊 WASM Test Summary"
-        python -c "
+        uv run python -c "
         import json
         from datetime import datetime
         
