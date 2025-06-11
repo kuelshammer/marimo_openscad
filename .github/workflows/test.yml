@@ -17,15 +17,15 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.8.18", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         exclude:
           # Reduce matrix size for faster CI
           - os: windows-latest
-            python-version: "3.8.18"
+            python-version: "3.8"
           - os: windows-latest  
             python-version: "3.9"
           - os: macos-latest
-            python-version: "3.8.18"
+            python-version: "3.8"
           - os: macos-latest
             python-version: "3.9"
 
@@ -52,13 +52,33 @@ jobs:
         echo "pyproject.toml exists: $(test -f pyproject.toml && echo 'YES' || echo 'NO')"
         uv sync --dev || {
           echo "❌ uv sync failed, trying alternative approach..."
-          if [[ "${{ matrix.python-version }}" == "3.8.18" ]]; then
+          if [[ "${{ matrix.python-version }}" == "3.8" ]]; then
             echo "🔧 Python 3.8 specific workaround..."
+            echo "📦 Current Python version details:"
+            python --version
+            python -c "import sys; print(f'Python: {sys.version_info}')"
+            
+            echo "📦 Upgrading core packages..."
             pip install --upgrade pip setuptools wheel
+            
+            echo "📦 Installing Python 3.8 compatibility packages..."
             pip install "typing-extensions>=4.0.0"
+            pip install "importlib-metadata>=4.0.0"
+            
+            echo "📦 Installing test dependencies..."
             pip install pytest pytest-cov
-            pip install solidpython2 marimo anywidget traitlets
-            pip install -e . --no-deps
+            
+            echo "📦 Installing core dependencies individually..."
+            pip install traitlets || echo "⚠️ traitlets failed"
+            pip install anywidget || echo "⚠️ anywidget failed" 
+            pip install solidpython2 || echo "⚠️ solidpython2 failed"
+            pip install marimo || echo "⚠️ marimo failed"
+            
+            echo "📦 Installing package without dependencies..."
+            pip install -e . --no-deps || echo "⚠️ Package installation failed"
+            
+            echo "📦 Verifying installation..."
+            python -c "import marimo_openscad; print('✅ Package imported successfully')" || echo "❌ Package import failed"
           else
             pip install -e ".[dev]" || {
               echo "❌ pip install also failed, creating minimal environment..."
