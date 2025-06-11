@@ -1,11 +1,15 @@
 /**
- * Marimo-OpenSCAD Widget
+ * Marimo-OpenSCAD Widget with WASM Integration
  * 
  * Modern 3D viewer for SolidPython2 objects using Three.js
- * Extracted from Python widget for better development workflow
+ * Enhanced with real-time WASM rendering capabilities
+ * 
+ * Phase 5.3.2: Widget Update für WASM Backend
  */
 
 import * as THREE from 'three';
+import { OpenSCADWASMRenderer } from './openscad-wasm-renderer.js';
+import wasmLoader from './wasm-loader.js';
 
 /**
  * STL Parser class for handling both binary and ASCII STL formats
@@ -89,7 +93,194 @@ class STLParser {
 }
 
 /**
- * 3D Scene Manager
+ * WASM Rendering Manager
+ */
+class WASMRenderingManager {
+    constructor() {
+        this.wasmRenderer = null;
+        this.isWasmSupported = false;
+        this.isWasmReady = false;
+        this.initializationPromise = null;
+        this.pendingRenders = new Map();
+        this.renderQueue = [];
+        this.isProcessingQueue = false;
+        
+        this.checkWasmSupport();
+    }
+    
+    /**
+     * Check if WASM is supported in this environment
+     */
+    checkWasmSupport() {
+        this.isWasmSupported = OpenSCADWASMRenderer.isSupported();
+        console.log(`🚀 WASM Support: ${this.isWasmSupported ? 'Enabled' : 'Disabled'}`);
+        
+        if (!this.isWasmSupported) {
+            console.warn('⚠️ WASM not supported, falling back to STL-only mode');
+        }
+    }
+    
+    /**
+     * Initialize WASM renderer if supported
+     */
+    async initializeWasm(options = {}) {
+        if (!this.isWasmSupported) {
+            console.log('🔄 WASM not supported, skipping initialization');
+            return false;
+        }
+        
+        if (this.initializationPromise) {
+            return this.initializationPromise;
+        }
+        
+        this.initializationPromise = this._doInitializeWasm(options);
+        return this.initializationPromise;
+    }
+    
+    async _doInitializeWasm(options) {
+        try {
+            console.log('🚀 Initializing WASM renderer...');
+            
+            this.wasmRenderer = new OpenSCADWASMRenderer({
+                enableManifold: true,
+                outputFormat: 'binstl',
+                timeout: 30000,
+                ...options
+            });
+            
+            await this.wasmRenderer.initialize();
+            this.isWasmReady = true;
+            
+            console.log('✅ WASM renderer initialized successfully');
+            return true;
+            
+        } catch (error) {
+            console.error('❌ Failed to initialize WASM renderer:', error);
+            this.isWasmReady = false;
+            return false;
+        }
+    }
+    
+    /**
+     * Render SCAD code to STL using WASM
+     */
+    async renderScadCode(scadCode, renderId = null) {
+        if (!this.isWasmReady) {
+            throw new Error('WASM renderer not ready');
+        }
+        
+        const requestId = renderId || `render_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        try {
+            console.log(`🔄 Starting WASM render: ${requestId}`);
+            
+            // Add to pending renders
+            const renderPromise = this.wasmRenderer.renderToSTL(scadCode);
+            this.pendingRenders.set(requestId, renderPromise);
+            
+            const stlData = await renderPromise;
+            
+            // Remove from pending
+            this.pendingRenders.delete(requestId);
+            
+            console.log(`✅ WASM render completed: ${requestId} (${stlData.length} bytes)`);
+            return {
+                success: true,
+                stlData,
+                metadata: {
+                    renderId: requestId,
+                    renderTime: Date.now(),
+                    size: stlData.length,
+                    renderer: 'wasm'
+                }
+            };
+            
+        } catch (error) {
+            this.pendingRenders.delete(requestId);
+            console.error(`❌ WASM render failed: ${requestId}`, error);
+            throw error;
+        }
+    }
+    
+    /**
+     * Queue a render request for processing
+     */
+    queueRender(scadCode, callback, priority = 'normal') {
+        const request = {
+            id: `queue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            scadCode,
+            callback,
+            priority,
+            timestamp: Date.now()
+        };
+        
+        this.renderQueue.push(request);
+        
+        // Sort by priority (high priority first)
+        this.renderQueue.sort((a, b) => {
+            const priorityOrder = { 'high': 0, 'normal': 1, 'low': 2 };
+            return priorityOrder[a.priority] - priorityOrder[b.priority];
+        });
+        
+        this.processRenderQueue();
+        return request.id;
+    }
+    
+    /**
+     * Process the render queue
+     */
+    async processRenderQueue() {
+        if (this.isProcessingQueue || this.renderQueue.length === 0) {
+            return;
+        }
+        
+        this.isProcessingQueue = true;
+        
+        while (this.renderQueue.length > 0) {
+            const request = this.renderQueue.shift();
+            
+            try {
+                const result = await this.renderScadCode(request.scadCode, request.id);
+                request.callback(null, result);
+            } catch (error) {
+                request.callback(error, null);
+            }
+        }
+        
+        this.isProcessingQueue = false;
+    }
+    
+    /**
+     * Cancel a pending render
+     */
+    cancelRender(renderId) {
+        // Remove from queue
+        this.renderQueue = this.renderQueue.filter(req => req.id !== renderId);
+        
+        // Note: Cannot easily cancel WASM renders in progress, but we can ignore results
+        if (this.pendingRenders.has(renderId)) {
+            console.log(`🚫 Cancelling render: ${renderId}`);
+            this.pendingRenders.delete(renderId);
+        }
+    }
+    
+    /**
+     * Get renderer status
+     */
+    getStatus() {
+        return {
+            wasmSupported: this.isWasmSupported,
+            wasmReady: this.isWasmReady,
+            pendingRenders: this.pendingRenders.size,
+            queueLength: this.renderQueue.length,
+            isProcessingQueue: this.isProcessingQueue,
+            capabilities: this.isWasmSupported ? OpenSCADWASMRenderer.getCapabilities() : null
+        };
+    }
+}
+
+/**
+ * 3D Scene Manager with WASM Integration
  */
 class SceneManager {
     constructor(container) {
@@ -98,6 +289,9 @@ class SceneManager {
         this.camera = null;
         this.renderer = null;
         this.currentMesh = null;
+        this.wasmManager = new WASMRenderingManager();
+        this.lastScadCode = null;
+        this.lastRenderId = null;
         this.controls = {
             mouseDown: false,
             mouseX: 0,
@@ -110,7 +304,7 @@ class SceneManager {
         this.init();
     }
     
-    init() {
+    async init() {
         // Scene setup
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0xf8f9fa);
@@ -150,6 +344,16 @@ class SceneManager {
         this.updateCameraPosition();
         
         console.log(`📹 Initial camera position: x=${this.camera.position.x.toFixed(2)}, y=${this.camera.position.y.toFixed(2)}, z=${this.camera.position.z.toFixed(2)}`);
+        
+        // Initialize WASM if supported
+        if (this.wasmManager.isWasmSupported) {
+            try {
+                await this.wasmManager.initializeWasm();
+                console.log('✅ WASM integration enabled');
+            } catch (error) {
+                console.warn('⚠️ WASM initialization failed, using STL-only mode:', error);
+            }
+        }
         
         this.startAnimationLoop();
     }
@@ -278,6 +482,58 @@ class SceneManager {
         animate();
     }
     
+    /**
+     * Render SCAD code using WASM (if available) or fallback to STL loading
+     */
+    async renderScadCode(scadCode, options = {}) {
+        if (!scadCode || typeof scadCode !== 'string') {
+            console.warn('⚠️ No SCAD code provided');
+            return false;
+        }
+        
+        // Cancel previous render if in progress
+        if (this.lastRenderId) {
+            this.wasmManager.cancelRender(this.lastRenderId);
+        }
+        
+        this.lastScadCode = scadCode;
+        
+        if (this.wasmManager.isWasmReady) {
+            try {
+                console.log('🚀 Using WASM renderer for real-time rendering');
+                
+                const result = await this.wasmManager.renderScadCode(scadCode);
+                this.lastRenderId = result.metadata.renderId;
+                
+                // Load the resulting STL data
+                const success = this.loadSTLData(result.stlData);
+                
+                if (success) {
+                    console.log(`✅ WASM render completed: ${result.metadata.size} bytes`);
+                    return {
+                        success: true,
+                        renderer: 'wasm',
+                        metadata: result.metadata
+                    };
+                }
+                
+            } catch (error) {
+                console.error('❌ WASM rendering failed:', error);
+                // Don't return false here, we'll continue to try STL fallback
+            }
+        }
+        
+        console.log('🔄 WASM not available, using STL-only mode');
+        return {
+            success: false,
+            renderer: 'stl_only',
+            message: 'WASM rendering not available'
+        };
+    }
+    
+    /**
+     * Load STL data with enhanced validation
+     */
     loadSTLData(stlData) {
         try {
             const { vertices, normals } = STLParser.parseSTL(stlData);
@@ -290,11 +546,13 @@ class SceneManager {
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
             geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
             
-            // Create material
+            // Create material with enhanced appearance
             const material = new THREE.MeshPhongMaterial({
                 color: 0x3498db,
                 shininess: 100,
-                side: THREE.DoubleSide
+                side: THREE.DoubleSide,
+                transparent: false,
+                opacity: 1.0
             });
             
             // Create mesh
@@ -350,7 +608,27 @@ class SceneManager {
         this.renderer.setSize(rect.width, rect.height);
     }
     
+    /**
+     * Get rendering capabilities and status
+     */
+    getRenderingStatus() {
+        return {
+            wasmStatus: this.wasmManager.getStatus(),
+            sceneStatus: {
+                meshLoaded: this.currentMesh !== null,
+                sceneChildren: this.scene ? this.scene.children.length : 0
+            },
+            lastScadCode: this.lastScadCode ? this.lastScadCode.length : 0,
+            lastRenderId: this.lastRenderId
+        };
+    }
+    
     dispose() {
+        // Cancel any pending renders
+        if (this.lastRenderId) {
+            this.wasmManager.cancelRender(this.lastRenderId);
+        }
+        
         this.clearMesh();
         
         // Remove event listeners
@@ -374,6 +652,7 @@ class SceneManager {
         }
         
         this.camera = null;
+        this.wasmManager = null;
     }
 }
 
@@ -389,7 +668,8 @@ export function render({ model, el }) {
                 Initializing 3D viewer...
             </div>
             <div id="controls" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 8px; border-radius: 4px; font-size: 11px;">
-                🖱️ Drag: Rotate | 🔍 Wheel: Zoom
+                🖱️ Drag: Rotate | 🔍 Wheel: Zoom<br>
+                <div id="wasm-status" style="margin-top: 4px; font-size: 10px; color: #666;">WASM: Checking...</div>
             </div>
         </div>
     `;
@@ -423,10 +703,13 @@ export function render({ model, el }) {
             console.log('✅ 3D scene initialized successfully');
         }
         
-        // Handle model data changes
+        // Handle model data changes (STL and SCAD code)
         function handleModelDataChange() {
             const stlData = model.get('stl_data');
-            if (!stlData) {
+            const scadCode = model.get('scad_code');
+            
+            // Clear existing model if no data
+            if (!stlData && !scadCode) {
                 if (sceneManager) {
                     sceneManager.clearMesh();
                 }
@@ -434,7 +717,61 @@ export function render({ model, el }) {
                 return;
             }
             
-            statusElement.textContent = "Loading model...";
+            statusElement.textContent = "Processing model...";
+            
+            // Handle SCAD code rendering (priority over STL)
+            if (scadCode && sceneManager && sceneManager.wasmManager.isWasmReady) {
+                console.log('🚀 Processing SCAD code for real-time rendering');
+                
+                statusElement.textContent = "Rendering SCAD code...";
+                
+                sceneManager.renderScadCode(scadCode)
+                    .then(result => {
+                        if (result.success) {
+                            statusElement.textContent = `WASM render completed (${result.metadata?.size || 'unknown'} bytes)`;
+                            if (statusElement.style) {
+                                statusElement.style.backgroundColor = 'rgba(76, 175, 80, 0.8)';
+                            }
+                        } else {
+                            statusElement.textContent = "WASM rendering not available, using STL mode";
+                            if (statusElement.style) {
+                                statusElement.style.backgroundColor = 'rgba(255, 193, 7, 0.8)';
+                            }
+                            // Fall back to STL handling if available
+                            if (stlData) {
+                                handleSTLData(stlData);
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('SCAD rendering failed:', error);
+                        statusElement.textContent = `SCAD render error: ${error.message}`;
+                        if (statusElement.style) {
+                            statusElement.style.backgroundColor = 'rgba(244, 67, 54, 0.8)';
+                        }
+                        // Fall back to STL handling if available
+                        if (stlData) {
+                            handleSTLData(stlData);
+                        }
+                    });
+                
+                return;
+            }
+            
+            // Handle STL data
+            if (stlData) {
+                handleSTLData(stlData);
+            } else if (scadCode) {
+                statusElement.textContent = "SCAD code provided but WASM not ready";
+                if (statusElement.style) {
+                    statusElement.style.backgroundColor = 'rgba(255, 193, 7, 0.8)';
+                }
+            }
+        }
+        
+        // Handle STL data loading
+        function handleSTLData(stlData) {
+            statusElement.textContent = "Loading STL model...";
             
             try {
                 // Decode base64 STL data
@@ -447,12 +784,12 @@ export function render({ model, el }) {
                 if (sceneManager) {
                     const success = sceneManager.loadSTLData(bytes.buffer);
                     if (success) {
-                        statusElement.textContent = `Model loaded (${sceneManager.scene.children.length} objects in scene)`;
+                        statusElement.textContent = `STL model loaded (${sceneManager.scene.children.length} objects in scene)`;
                         if (statusElement.style) {
                             statusElement.style.backgroundColor = 'rgba(76, 175, 80, 0.8)';
                         }
                     } else {
-                        statusElement.textContent = "Error loading model";
+                        statusElement.textContent = "Error loading STL model";
                         if (statusElement.style) {
                             statusElement.style.backgroundColor = 'rgba(244, 67, 54, 0.8)';
                         }
@@ -465,8 +802,11 @@ export function render({ model, el }) {
                 }
                 
             } catch (error) {
-                console.error('Error loading model:', error);
-                statusElement.textContent = "Error loading model";
+                console.error('Error loading STL model:', error);
+                statusElement.textContent = "Error loading STL model";
+                if (statusElement.style) {
+                    statusElement.style.backgroundColor = 'rgba(244, 67, 54, 0.8)';
+                }
             }
         }
         
@@ -486,10 +826,35 @@ export function render({ model, el }) {
             }
         }
         
-        // Watch for model changes
+        // Watch for model changes (enhanced for SCAD code support)
         model.on('change:stl_data', handleModelDataChange);
+        model.on('change:scad_code', handleModelDataChange);
         model.on('change:error_message', handleErrorMessage);
         model.on('change:is_loading', handleLoadingState);
+        
+        // Handle WASM status updates
+        function handleWasmStatusUpdate() {
+            if (sceneManager) {
+                const status = sceneManager.getRenderingStatus();
+                console.log('🔍 WASM Status Update:', status);
+                
+                // Update UI based on WASM availability
+                if (status.wasmStatus.wasmReady) {
+                    // Add WASM indicator to controls
+                    const controlsElement = el.querySelector('#controls');
+                    if (controlsElement && !controlsElement.querySelector('.wasm-indicator')) {
+                        const wasmIndicator = document.createElement('div');
+                        wasmIndicator.className = 'wasm-indicator';
+                        wasmIndicator.innerHTML = '🚀 WASM Ready';
+                        wasmIndicator.style.cssText = 'color: #4CAF50; font-weight: bold; margin-top: 4px;';
+                        controlsElement.appendChild(wasmIndicator);
+                    }
+                }
+            }
+        }
+        
+        // Monitor WASM status
+        model.on('change:wasm_enabled', handleWasmStatusUpdate);
         
         // Initial load
         handleModelDataChange();

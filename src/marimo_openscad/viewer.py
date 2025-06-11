@@ -32,6 +32,7 @@ class OpenSCADViewer(anywidget.AnyWidget):
     
     # Viewer state traits
     stl_data = traitlets.Unicode("").tag(sync=True)
+    scad_code = traitlets.Unicode("").tag(sync=True)  # Raw SCAD code for WASM rendering
     error_message = traitlets.Unicode("").tag(sync=True)
     is_loading = traitlets.Bool(False).tag(sync=True)
     
@@ -39,6 +40,7 @@ class OpenSCADViewer(anywidget.AnyWidget):
     renderer_type = traitlets.Unicode("auto").tag(sync=True)  # "local", "wasm", "auto"
     renderer_status = traitlets.Unicode("initializing").tag(sync=True)  # "ready", "error", "loading"
     wasm_supported = traitlets.Bool(True).tag(sync=True)  # Whether WASM is supported
+    wasm_enabled = traitlets.Bool(False).tag(sync=True)  # Whether WASM is actively enabled
     
     _esm = """
     async function render({ model, el }) {
@@ -557,6 +559,7 @@ class OpenSCADViewer(anywidget.AnyWidget):
                  renderer_type: Literal["local", "wasm", "auto"] = "auto",
                  openscad_path: Optional[str] = None,
                  wasm_options: Optional[dict] = None,
+                 enable_real_time_wasm: bool = True,
                  **kwargs):
         """
         Initialize OpenSCAD Viewer with renderer selection
@@ -566,11 +569,13 @@ class OpenSCADViewer(anywidget.AnyWidget):
             renderer_type: "local", "wasm", or "auto" (default: "auto")
             openscad_path: Path to local OpenSCAD executable (for local/auto)
             wasm_options: Options for WASM renderer initialization
+            enable_real_time_wasm: Whether to enable real-time WASM rendering (default: True)
             **kwargs: Additional anywidget arguments
         """
         # Set renderer type before calling super().__init__
         self.renderer_type = renderer_type
         self.renderer_status = "initializing"
+        self.enable_real_time_wasm = enable_real_time_wasm
         
         super().__init__(**kwargs)
         
@@ -634,13 +639,14 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 raise RuntimeError(f"All renderers failed. Primary: {e}, Fallback: {fallback_error}")
     
     def update_model(self, model, force_render: bool = False):
-        """Update mit SolidPython2-Objekt - echte STL-Pipeline"""
+        """Update with SolidPython2 object - enhanced STL/WASM pipeline"""
         try:
             self.is_loading = True
             self.error_message = ""
             
-            # Store previous STL for comparison
+            # Store previous data for comparison
             previous_stl = self.stl_data
+            previous_scad = self.scad_code
             
             # SolidPython2 → SCAD Code
             if hasattr(model, 'as_scad'):
@@ -652,18 +658,39 @@ class OpenSCADViewer(anywidget.AnyWidget):
             else:
                 raise ValueError("Model muss SolidPython2-Objekt mit .as_scad() Methode oder SCAD-String sein")
             
-            # SCAD → STL (with optional cache bypass)
+            # For WASM-enabled viewers, send SCAD code directly to frontend
+            if self.wasm_enabled and self.enable_real_time_wasm:
+                # Check if SCAD code actually changed
+                if scad_code == previous_scad and not force_render:
+                    logger.info("SCAD code unchanged, skipping WASM update")
+                    return
+                
+                self.scad_code = scad_code
+                logger.info(f"✅ SCAD code sent to WASM renderer: {len(scad_code)} chars")
+                logger.info(f"SCAD code changed: {scad_code != previous_scad}")
+                
+                # Clear STL data to prioritize WASM rendering
+                if self.stl_data:
+                    self.stl_data = ""
+                
+                return
+            
+            # Fallback: SCAD → STL (traditional pipeline)
             stl_data = self._render_stl(scad_code, force_render)
             
-            # STL → Base64 für Browser
+            # STL → Base64 for browser
             new_stl_base64 = base64.b64encode(stl_data).decode('utf-8')
             
             # Check if STL actually changed
             if new_stl_base64 == previous_stl and not force_render:
-                logger.info("Model unchanged, skipping update")
+                logger.info("STL unchanged, skipping update")
                 return
             
             self.stl_data = new_stl_base64
+            
+            # Clear SCAD code when using STL mode
+            if self.scad_code:
+                self.scad_code = ""
             
             logger.info(f"✅ STL rendered: {len(stl_data)} bytes")
             logger.info(f"STL data changed: {new_stl_base64 != previous_stl}")
@@ -674,31 +701,50 @@ class OpenSCADViewer(anywidget.AnyWidget):
         finally:
             self.is_loading = False
     
-    def update_scad_code(self, scad_code: str) -> None:
+    def update_scad_code(self, scad_code: str, use_wasm: bool = None) -> None:
         """
-        Update viewer with new SCAD code directly, bypassing caching
+        Update viewer with new SCAD code directly
         
         Args:
             scad_code: Raw OpenSCAD code as string
+            use_wasm: Whether to use WASM rendering (None = auto-detect)
         """
         try:
             self.is_loading = True
             self.error_message = ""
             
-            # Store previous STL for comparison
-            previous_stl = self.stl_data
+            # Auto-detect WASM usage if not specified
+            if use_wasm is None:
+                use_wasm = self.wasm_enabled and self.enable_real_time_wasm
             
-            # SCAD → STL (no caching for direct code updates)
-            stl_data = self._render_stl(scad_code, force_render=True)
-            
-            # STL → Base64 für Browser
-            new_stl_base64 = base64.b64encode(stl_data).decode('utf-8')
-            
-            # Always update for code changes
-            self.stl_data = new_stl_base64
-            
-            logger.info(f"✅ SCAD code updated: {len(stl_data)} bytes from {len(scad_code)} chars SCAD")
-            logger.info(f"STL data changed: {new_stl_base64 != previous_stl}")
+            if use_wasm:
+                # For WASM: send SCAD code directly to frontend
+                previous_scad = self.scad_code
+                self.scad_code = scad_code
+                
+                # Clear STL data to prioritize WASM rendering
+                if self.stl_data:
+                    self.stl_data = ""
+                
+                logger.info(f"✅ SCAD code sent to WASM: {len(scad_code)} chars")
+                logger.info(f"SCAD code changed: {scad_code != previous_scad}")
+            else:
+                # For local: render to STL
+                previous_stl = self.stl_data
+                
+                # SCAD → STL (no caching for direct code updates)
+                stl_data = self._render_stl(scad_code, force_render=True)
+                
+                # STL → Base64 for browser
+                new_stl_base64 = base64.b64encode(stl_data).decode('utf-8')
+                self.stl_data = new_stl_base64
+                
+                # Clear SCAD code when using STL mode
+                if self.scad_code:
+                    self.scad_code = ""
+                
+                logger.info(f"✅ SCAD code rendered to STL: {len(stl_data)} bytes from {len(scad_code)} chars")
+                logger.info(f"STL data changed: {new_stl_base64 != previous_stl}")
             
         except Exception as e:
             self.error_message = str(e)
@@ -754,8 +800,11 @@ class OpenSCADViewer(anywidget.AnyWidget):
             'type': self.renderer_type,
             'status': self.renderer_status,
             'wasm_supported': self.wasm_supported,
+            'wasm_enabled': self.wasm_enabled,
+            'real_time_wasm': self.enable_real_time_wasm,
             'active_renderer': getattr(self.renderer, 'get_active_renderer_type', lambda: self.renderer_type)(),
-            'stats': getattr(self.renderer, 'get_stats', lambda: {})()
+            'stats': getattr(self.renderer, 'get_stats', lambda: {})(),
+            'current_mode': 'wasm' if (self.scad_code and self.wasm_enabled) else 'stl'
         }
 
 def openscad_viewer(model, renderer_type: Optional[Literal["local", "wasm", "auto"]] = None, **kwargs):

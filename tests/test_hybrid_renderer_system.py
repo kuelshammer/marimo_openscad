@@ -54,21 +54,23 @@ class TestRendererConfig:
         """Test renderer preference decision logic"""
         from marimo_openscad.renderer_config import RendererConfig
         
-        config = RendererConfig()
-        
-        # Test WASM preference
-        config.force_local = False
-        config.enable_wasm = True
-        assert config.should_use_wasm() is True
-        
-        # Test local-only
-        config.force_local = True
-        assert config.should_use_wasm() is False
-        
-        # Test WASM disabled
-        config.force_local = False
-        config.enable_wasm = False
-        assert config.should_use_wasm() is False
+        # Use a fresh config that ignores CI environment variables
+        with patch.dict(os.environ, {}, clear=True):
+            config = RendererConfig()
+            
+            # Test WASM preference
+            config.force_local = False
+            config.enable_wasm = True
+            assert config.should_use_wasm() is True
+            
+            # Test local-only
+            config.force_local = True
+            assert config.should_use_wasm() is False
+            
+            # Test WASM disabled
+            config.force_local = False
+            config.enable_wasm = False
+            assert config.should_use_wasm() is False
     
     def test_configuration_summary(self):
         """Test configuration summary generation"""
@@ -93,11 +95,15 @@ class TestFeatureFlags:
         """Test WASM-only configuration"""
         from marimo_openscad.renderer_config import enable_wasm_only, get_config
         
-        enable_wasm_only()
-        config = get_config()
+        # Test with a clean environment to avoid CI interference
+        clean_env = {k: v for k, v in os.environ.items() if not k.startswith('MARIMO_OPENSCAD_')}
         
-        assert config.should_use_wasm() is True
-        assert config.should_fallback_to_local() is False
+        with patch.dict(os.environ, clean_env, clear=True):
+            enable_wasm_only()
+            config = get_config()
+            
+            assert config.should_use_wasm() is True
+            assert config.should_fallback_to_local() is False
     
     def test_local_only_mode(self):
         """Test local-only configuration"""
