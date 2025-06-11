@@ -396,16 +396,14 @@ jobs:
         
         if [[ ! -f "$XML_FILE" ]]; then
           echo "📝 Creating missing $XML_FILE..."
-          cat > "$XML_FILE" << 'EOF'
-<?xml version="1.0" encoding="utf-8"?>
-<testsuites>
-  <testsuite name="renderer-config-${{ matrix.renderer-config.id }}" tests="1" failures="0" errors="1" time="0">
-    <testcase name="test-configuration-${{ matrix.renderer-config.id }}">
-      <error message="Test step failed to complete in CI environment">Test step failed to complete in CI environment</error>
-    </testcase>
-  </testsuite>
-</testsuites>
-EOF
+          echo '<?xml version="1.0" encoding="utf-8"?>' > "$XML_FILE"
+          echo '<testsuites>' >> "$XML_FILE"
+          echo "  <testsuite name=\"renderer-config-${{ matrix.renderer-config.id }}\" tests=\"1\" failures=\"0\" errors=\"1\" time=\"0\">" >> "$XML_FILE"
+          echo "    <testcase name=\"test-configuration-${{ matrix.renderer-config.id }}\">" >> "$XML_FILE"
+          echo '      <error message="Test step failed to complete in CI environment">Test step failed to complete in CI environment</error>' >> "$XML_FILE"
+          echo '    </testcase>' >> "$XML_FILE"
+          echo '  </testsuite>' >> "$XML_FILE"
+          echo '</testsuites>' >> "$XML_FILE"
         else
           echo "✅ $XML_FILE already exists"
         fi
