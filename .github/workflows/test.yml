@@ -324,9 +324,9 @@ jobs:
         print('✅ All feature flags tested successfully')
         "
         
-        # Run specific tests for this configuration
-        echo "🧪 Running pytest for configuration ${{ matrix.renderer-config.name }}..."
-        uv run pytest tests/test_hybrid_renderer_system.py -v --tb=short --junit-xml=config-${{ matrix.renderer-config.id }}-results.xml
+        # Run CI-compatible tests for this configuration
+        echo "🧪 Running CI-compatible pytest for configuration ${{ matrix.renderer-config.name }}..."
+        uv run pytest tests/test_hybrid_renderer_ci_compatible.py -v --tb=short --junit-xml=config-${{ matrix.renderer-config.id }}-results.xml
         PYTEST_EXIT_CODE=$?
         
         echo "🔍 Pytest exit code: $PYTEST_EXIT_CODE"
