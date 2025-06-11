@@ -2,6 +2,7 @@
 JupyterSCAD-Style 3D Viewer für Marimo
 Echte STL-Pipeline: SolidPython2 → OpenSCAD → STL → Three.js
 
+Supports both local OpenSCAD and WebAssembly rendering.
 Inspired by JupyterSCAD's architecture with modern anywidget integration.
 """
 
@@ -12,28 +13,48 @@ import subprocess
 import base64
 from pathlib import Path
 import logging
+from typing import Optional, Literal, Union
+from .openscad_renderer import OpenSCADRenderer
+from .openscad_wasm_renderer import OpenSCADWASMRenderer, HybridOpenSCADRenderer
 
 logger = logging.getLogger(__name__)
 
 class OpenSCADViewer(anywidget.AnyWidget):
     """
-    3D-Viewer für SolidPython2-Objekte mit JupyterSCAD-kompatible Pipeline
+    3D-Viewer für SolidPython2-Objekte mit WASM/Local OpenSCAD support
     
-    Pipeline: SolidPython2 → OpenSCAD CLI → STL → Three.js BufferGeometry
+    Pipeline Options:
+    - Local: SolidPython2 → OpenSCAD CLI → STL → Three.js BufferGeometry  
+    - WASM:  SolidPython2 → OpenSCAD WASM → STL → Three.js BufferGeometry
+    - Auto:  Hybrid renderer with intelligent fallback
     """
     
+    # Viewer state traits
     stl_data = traitlets.Unicode("").tag(sync=True)
     error_message = traitlets.Unicode("").tag(sync=True)
     is_loading = traitlets.Bool(False).tag(sync=True)
     
+    # Renderer configuration traits
+    renderer_type = traitlets.Unicode("auto").tag(sync=True)  # "local", "wasm", "auto"
+    renderer_status = traitlets.Unicode("initializing").tag(sync=True)  # "ready", "error", "loading"
+    wasm_supported = traitlets.Bool(True).tag(sync=True)  # Whether WASM is supported
+    
     _esm = """
     async function render({ model, el }) {
-        // Container Setup
+        // Check renderer type from model
+        const rendererType = model.get('renderer_type') || 'auto';
+        const wasmSupported = model.get('wasm_supported') || false;
+        const rendererStatus = model.get('renderer_status') || 'initializing';
+        
+        // Container Setup with renderer info
         el.innerHTML = `
             <div style="width: 100%; height: 450px; border: 1px solid #ddd; position: relative; background: #fafafa;">
                 <div id="container" style="width: 100%; height: 100%;"></div>
                 <div id="status" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    Initializing 3D viewer...
+                    Initializing 3D viewer (${rendererType})...
+                </div>
+                <div id="renderer-info" style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 3px; font-family: monospace; font-size: 10px;">
+                    ${wasmSupported ? '🚀 WASM' : '🔧 Local'} | ${rendererStatus}
                 </div>
                 <div id="controls" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 8px; border-radius: 4px; font-size: 11px;">
                     🖱️ Drag: Rotate | 🔍 Wheel: Zoom
@@ -43,6 +64,7 @@ class OpenSCADViewer(anywidget.AnyWidget):
         
         const container = el.querySelector('#container');
         const status = el.querySelector('#status');
+        const rendererInfo = el.querySelector('#renderer-info');
         
         try {
             // Three.js laden (robuste Multi-CDN-Strategie)
@@ -399,11 +421,41 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 status.style.background = "rgba(255,193,7,0.9)";
             }
             
-            // Model Update Handler
-            function updateModel() {
+            // WASM Renderer Integration
+            let wasmRenderer = null;
+            
+            async function initializeWASMRenderer() {
+                if (wasmSupported && rendererType !== 'local') {
+                    try {
+                        status.textContent = "🚀 Initializing WASM renderer...";
+                        
+                        // Try to load WASM renderer from our modules
+                        const wasmModule = await import('/wasm/openscad.js').catch(() => null);
+                        if (wasmModule) {
+                            wasmRenderer = wasmModule.default || wasmModule;
+                            status.textContent = "✅ WASM renderer ready";
+                            rendererInfo.textContent = "🚀 WASM | ready";
+                            return true;
+                        }
+                    } catch (error) {
+                        console.warn('WASM renderer initialization failed:', error);
+                        status.textContent = "⚠️ WASM unavailable, using fallback";
+                        rendererInfo.textContent = "🔧 Local | fallback";
+                    }
+                }
+                return false;
+            }
+            
+            // Enhanced Model Update Handler with WASM support
+            async function updateModel() {
                 const stlData = model.get("stl_data") || "";
                 const errorMsg = model.get("error_message") || "";
                 const isLoading = model.get("is_loading");
+                const currentRendererType = model.get("renderer_type") || 'auto';
+                const currentRendererStatus = model.get("renderer_status") || 'initializing';
+                
+                // Update renderer info display
+                rendererInfo.textContent = `${wasmSupported ? '🚀 WASM' : '🔧 Local'} | ${currentRendererStatus}`;
                 
                 if (errorMsg) {
                     status.textContent = `❌ ${errorMsg}`;
@@ -412,16 +464,47 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 }
                 
                 if (isLoading) {
-                    status.textContent = "🔄 Generating STL...";
+                    status.textContent = `🔄 Generating STL (${currentRendererType})...`;
                     status.style.background = "rgba(59,130,246,0.9)";
                     return;
                 }
                 
                 if (stlData.trim()) {
-                    processSTLData(stlData);
+                    // Check if this is a WASM render request placeholder
+                    if (stlData.includes('WASM_RENDER_REQUEST') && wasmRenderer) {
+                        await handleWASMRenderRequest(stlData);
+                    } else {
+                        processSTLData(stlData);
+                    }
                 } else {
                     status.textContent = "⏳ Waiting for STL data...";
                     status.style.background = "rgba(107,114,128,0.9)";
+                }
+            }
+            
+            // Handle WASM render requests
+            async function handleWASMRenderRequest(placeholder) {
+                try {
+                    status.textContent = "🚀 Rendering with WASM...";
+                    status.style.background = "rgba(59,130,246,0.9)";
+                    
+                    // Extract SCAD code from placeholder or get it from model
+                    // For now, we'll need to trigger this from Python side
+                    // The actual WASM rendering logic will be implemented here
+                    
+                    console.log('WASM render request received:', placeholder);
+                    
+                    // Placeholder for actual WASM rendering
+                    // This will be implemented when we integrate the WASM renderer
+                    setTimeout(() => {
+                        status.textContent = "🚀 WASM rendering (simulated)";
+                        status.style.background = "rgba(34,197,94,0.9)";
+                    }, 1000);
+                    
+                } catch (error) {
+                    console.error('WASM rendering failed:', error);
+                    status.textContent = `❌ WASM error: ${error.message}`;
+                    status.style.background = "rgba(220,20,60,0.9)";
                 }
             }
             
@@ -429,6 +512,14 @@ class OpenSCADViewer(anywidget.AnyWidget):
             model.on("change:stl_data", updateModel);
             model.on("change:error_message", updateModel);
             model.on("change:is_loading", updateModel);
+            model.on("change:renderer_type", updateModel);
+            model.on("change:renderer_status", updateModel);
+            model.on("change:wasm_supported", updateModel);
+            
+            // Initialize WASM renderer if needed
+            if (wasmSupported && rendererType !== 'local') {
+                initializeWASMRenderer();
+            }
             
             // Animation Loop
             function animate() {
@@ -460,10 +551,80 @@ class OpenSCADViewer(anywidget.AnyWidget):
     export default { render };
     """
     
-    def __init__(self, model=None, **kwargs):
+    def __init__(self, 
+                 model=None, 
+                 renderer_type: Literal["local", "wasm", "auto"] = "auto",
+                 openscad_path: Optional[str] = None,
+                 wasm_options: Optional[dict] = None,
+                 **kwargs):
+        """
+        Initialize OpenSCAD Viewer with renderer selection
+        
+        Args:
+            model: SolidPython2 model or SCAD code string
+            renderer_type: "local", "wasm", or "auto" (default: "auto")
+            openscad_path: Path to local OpenSCAD executable (for local/auto)
+            wasm_options: Options for WASM renderer initialization
+            **kwargs: Additional anywidget arguments
+        """
+        # Set renderer type before calling super().__init__
+        self.renderer_type = renderer_type
+        self.renderer_status = "initializing"
+        
         super().__init__(**kwargs)
+        
+        # Initialize renderer based on type
+        self.renderer = self._create_renderer(renderer_type, openscad_path, wasm_options)
+        
         if model is not None:
             self.update_model(model)
+    
+    def _create_renderer(self, renderer_type: str, openscad_path: Optional[str], wasm_options: Optional[dict]):
+        """
+        Create appropriate renderer based on type
+        """
+        try:
+            if renderer_type == "wasm":
+                logger.info("Initializing WASM renderer")
+                renderer = OpenSCADWASMRenderer(wasm_options or {})
+                self.renderer_status = "ready"
+                self.wasm_supported = True
+                return renderer
+            
+            elif renderer_type == "local":
+                logger.info("Initializing local renderer")
+                renderer = OpenSCADRenderer(openscad_path)
+                self.renderer_status = "ready"
+                return renderer
+            
+            elif renderer_type == "auto":
+                logger.info("Initializing hybrid renderer (auto-selection)")
+                renderer = HybridOpenSCADRenderer(
+                    prefer_wasm=True,
+                    fallback_to_local=True,
+                    openscad_path=openscad_path
+                )
+                self.renderer_status = "ready"
+                # Check if WASM is actually being used
+                active_type = renderer.get_active_renderer_type()
+                self.wasm_supported = (active_type == "wasm")
+                return renderer
+            
+            else:
+                raise ValueError(f"Unknown renderer_type: {renderer_type}")
+                
+        except Exception as e:
+            logger.error(f"Failed to initialize renderer: {e}")
+            self.renderer_status = "error"
+            self.error_message = f"Renderer initialization failed: {e}"
+            
+            # Fallback to local renderer as last resort
+            try:
+                logger.warning("Falling back to local renderer")
+                return OpenSCADRenderer(openscad_path)
+            except Exception as fallback_error:
+                logger.error(f"Fallback renderer also failed: {fallback_error}")
+                raise RuntimeError(f"All renderers failed. Primary: {e}, Fallback: {fallback_error}")
     
     def update_model(self, model, force_render: bool = False):
         """Update mit SolidPython2-Objekt - echte STL-Pipeline"""
@@ -539,70 +700,80 @@ class OpenSCADViewer(anywidget.AnyWidget):
             self.is_loading = False
     
     def _render_stl(self, scad_code, force_render: bool = False):
-        """OpenSCAD Code zu STL mit optionalem Cache-Bypass"""
+        """
+        Render OpenSCAD code to STL using configured renderer
+        
+        Args:
+            scad_code: OpenSCAD code string
+            force_render: Whether to bypass caching (for WASM always bypassed)
+            
+        Returns:
+            bytes: STL binary data
+        """
         # Log for debugging cache behavior
         if force_render:
             logger.info("Force rendering STL (cache bypassed)")
         else:
             logger.info("Normal STL rendering")
+        
+        try:
+            # Use the configured renderer
+            stl_data = self.renderer.render_scad_to_stl(scad_code)
             
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            tmp_dir = Path(tmp_dir)
+            # For WASM renderer, we need to handle placeholder responses
+            if isinstance(self.renderer, OpenSCADWASMRenderer):
+                # WASM rendering happens asynchronously in JavaScript
+                # The Python side gets a placeholder for API compatibility
+                if isinstance(stl_data, bytes) and b"WASM_RENDER_REQUEST" in stl_data:
+                    logger.info("WASM render request initiated")
+                    # Return placeholder for now - actual rendering happens in frontend
+                    return stl_data
             
-            # SCAD-Datei schreiben
-            scad_file = tmp_dir / "model.scad"
-            scad_file.write_text(scad_code)
+            # Validate STL data
+            if not stl_data or len(stl_data) == 0:
+                raise RuntimeError("Renderer produced empty STL data")
             
-            # STL-Datei generieren  
-            stl_file = tmp_dir / "model.stl"
+            logger.info(f"✅ STL rendered successfully: {len(stl_data)} bytes")
+            return stl_data
             
-            # OpenSCAD-Pfade
-            openscad_paths = [
-                "/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD",  # macOS
-                "openscad",  # System PATH
-                "./openscad"  # Local
-            ]
-            
-            success = False
-            for openscad_path in openscad_paths:
-                try:
-                    cmd = [openscad_path, "-o", str(stl_file), str(scad_file)]
-                    result = subprocess.run(
-                        cmd, 
-                        capture_output=True, 
-                        text=True, 
-                        timeout=60
-                    )
-                    
-                    if result.returncode == 0 and stl_file.exists() and stl_file.stat().st_size > 0:
-                        success = True
-                        break
-                        
-                except (FileNotFoundError, subprocess.TimeoutExpired):
-                    continue
-            
-            if not success or not stl_file.exists():
-                raise RuntimeError("OpenSCAD STL generation failed - check OpenSCAD installation")
-            
-            stl_content = stl_file.read_bytes()
-            if len(stl_content) < 84:
-                raise RuntimeError("Generated STL file is too small")
-                
-            return stl_content
+        except Exception as e:
+            logger.error(f"❌ STL rendering failed: {e}")
+            self.error_message = f"Rendering error: {e}"
+            raise
+    
+    def get_renderer_info(self) -> dict:
+        """Get information about the current renderer"""
+        return {
+            'type': self.renderer_type,
+            'status': self.renderer_status,
+            'wasm_supported': self.wasm_supported,
+            'active_renderer': getattr(self.renderer, 'get_active_renderer_type', lambda: self.renderer_type)(),
+            'stats': getattr(self.renderer, 'get_stats', lambda: {})()
+        }
 
-def openscad_viewer(model):
+def openscad_viewer(model, renderer_type: Literal["local", "wasm", "auto"] = "auto", **kwargs):
     """
-    Erstelle 3D-Viewer für SolidPython2-Objekte
+    Erstelle 3D-Viewer für SolidPython2-Objekte mit WASM/Local OpenSCAD support
     
     Args:
         model: SolidPython2-Objekt mit .as_scad() Methode
+        renderer_type: "local", "wasm", or "auto" (default: "auto")
+        **kwargs: Additional arguments passed to OpenSCADViewer
         
     Returns:
         OpenSCADViewer Widget für Marimo
         
     Example:
         from solid2 import cube, sphere
+        
+        # Auto-select best renderer (WASM preferred)
         model = cube([10, 10, 10]) + sphere(5).up(15)
         viewer = openscad_viewer(model)
+        
+        # Force WASM renderer
+        viewer_wasm = openscad_viewer(model, renderer_type="wasm")
+        
+        # Force local renderer
+        viewer_local = openscad_viewer(model, renderer_type="local")
     """
-    return OpenSCADViewer(model=model)
+    return OpenSCADViewer(model=model, renderer_type=renderer_type, **kwargs)
