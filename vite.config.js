@@ -4,17 +4,9 @@ export default defineConfig({
   // Build configuration for JavaScript widget development with WASM support
   build: {
     lib: {
-      entry: {
-        widget: 'src/js/widget.js',
-        'wasm-loader': 'src/js/wasm-loader.js',
-        'wasm-renderer': 'src/js/openscad-wasm-renderer.js',
-        'worker-manager': 'src/js/worker-manager.js',
-        'memory-manager': 'src/js/memory-manager.js',
-        'cache-manager': 'src/js/wasm-cache-manager.js',
-        'openscad-worker': 'src/js/openscad-worker.js'
-      },
+      entry: 'src/js/widget.js', // Single entry point for UMD compatibility
       name: 'MarimoOpenSCADWidget',
-      fileName: (format, entryName) => `${entryName}.${format}.js`,
+      fileName: (format) => `widget.${format}.js`,
       formats: ['es', 'umd']
     },
     rollupOptions: {
@@ -23,8 +15,7 @@ export default defineConfig({
         globals: {
           three: 'THREE'
         },
-        // Preserve dynamic imports for WASM modules
-        preserveEntrySignatures: 'strict',
+        exports: 'auto', // Let Rollup determine the best export mode
         // Handle WASM files properly
         assetFileNames: (assetInfo) => {
           if (assetInfo.name.endsWith('.wasm')) {
@@ -65,7 +56,7 @@ export default defineConfig({
   // Worker configuration for WASM workers
   worker: {
     format: 'es',
-    plugins: []
+    plugins: () => []
   },
   
   // Optimizations for WASM development

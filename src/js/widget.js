@@ -516,6 +516,5 @@ export function render({ model, el }) {
     };
 }
 
-// Export for both named and default imports
-export { render };
+// Export for UMD compatibility
 export default { render };

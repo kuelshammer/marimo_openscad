@@ -3,7 +3,9 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render } from '../js/widget.js';
+import widget from '../js/widget.js';
+
+const { render } = widget;
 
 describe('Marimo-OpenSCAD Widget', () => {
     let mockModel;
