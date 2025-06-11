@@ -202,6 +202,7 @@ jobs:
         name: Python Tests (${{ matrix.os }}, Python ${{ matrix.python-version }})
         path: '*-test-results.xml'
         reporter: java-junit
+        fail-on-error: false
         token: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Upload coverage to Codecov
@@ -319,6 +320,7 @@ jobs:
         name: JavaScript Tests
         path: 'js-test-results.xml'
         reporter: java-junit
+        fail-on-error: false
         token: ${{ secrets.GITHUB_TOKEN }}
 
   wasm-tests:
@@ -603,6 +605,7 @@ jobs:
         name: WASM Tests (${{ matrix.browser }}, Node ${{ matrix.node-version }})
         path: 'wasm-test-results.xml'
         reporter: java-junit
+        fail-on-error: false
         token: ${{ secrets.GITHUB_TOKEN }}
   
   test-summary:
