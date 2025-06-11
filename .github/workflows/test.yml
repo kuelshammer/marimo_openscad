@@ -161,16 +161,14 @@ jobs:
         for xml_file in "${XML_FILES[@]}"; do
           if [[ ! -f "$xml_file" ]]; then
             echo "📝 Creating missing $xml_file..."
-            cat > "$xml_file" << 'EOF'
-<?xml version="1.0" encoding="utf-8"?>
-<testsuites>
-  <testsuite name="fallback-tests" tests="1" failures="0" errors="1" time="0">
-    <testcase name="test-environment-failure">
-      <error message="Test step failed to complete in CI environment">Test step failed to complete in CI environment</error>
-    </testcase>
-  </testsuite>
-</testsuites>
-EOF
+            echo '<?xml version="1.0" encoding="utf-8"?>' > "$xml_file"
+            echo '<testsuites>' >> "$xml_file"
+            echo '  <testsuite name="fallback-tests" tests="1" failures="0" errors="1" time="0">' >> "$xml_file"
+            echo '    <testcase name="test-environment-failure">' >> "$xml_file"
+            echo '      <error message="Test step failed to complete in CI environment">Test step failed to complete in CI environment</error>' >> "$xml_file"
+            echo '    </testcase>' >> "$xml_file"
+            echo '  </testsuite>' >> "$xml_file"
+            echo '</testsuites>' >> "$xml_file"
           else
             echo "✅ $xml_file already exists"
           fi
