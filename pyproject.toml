@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "marimo-openscad"
 description = "Interactive 3D CAD modeling in Marimo notebooks using SolidPython2 and OpenSCAD"
 readme = "README.md"
-license = "MIT"
+license = {text = "MIT"}
 authors = [
     {name = "Max Külshammer", email = "max.kuelshammer@gmail.com"},
 ]
