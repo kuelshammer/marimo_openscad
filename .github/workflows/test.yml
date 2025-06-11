@@ -49,7 +49,22 @@ jobs:
     - name: 🔥 CRITICAL - Cache Behavior Tests (LLM Regression Prevention)
       run: |
         echo "::group::🔥 Critical Cache Behavior Tests"
-        uv run pytest tests/test_cache_behavior.py -v -m "not slow" --tb=short --junit-xml=cache-test-results.xml
+        echo "🔍 Testing uv and pytest availability..."
+        uv --version
+        uv run python --version
+        echo "📂 Current directory: $(pwd)"
+        echo "📋 Python packages installed:"
+        uv run pip list | head -20
+        echo "🧪 Running cache behavior tests..."
+        uv run pytest tests/test_cache_behavior.py -v -m "not slow" --tb=short --junit-xml=cache-test-results.xml || {
+          echo "❌ Cache tests failed, but continuing..."
+          echo "📁 Files in current directory:"
+          ls -la
+          exit 1
+        }
+        echo "✅ Cache tests completed"
+        echo "📄 Generated files:"
+        ls -la *-test-results.xml 2>/dev/null || echo "No XML files found"
         echo "::endgroup::"
     
     - name: 🎯 LLM-Identified Issues Regression Tests
@@ -217,10 +232,14 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
     - name: Install Python dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -e ".[dev]"
+        uv sync --dev
     
     - name: Install JavaScript dependencies
       run: |
@@ -262,7 +281,11 @@ jobs:
       run: |
         echo "::group::🧪 WASM Performance Test Suite"
         # Run WASM-specific tests with mocking for CI environment
-        uv run pytest tests/ -v -k "wasm" --tb=short --junit-xml=wasm-test-results.xml || true
+        uv run pytest tests/ -v -k "wasm" --tb=short --junit-xml=wasm-test-results.xml || {
+          echo "⚠️ WASM tests failed, but continuing with infrastructure validation..."
+          # Create empty XML file if tests failed
+          echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="wasm-tests" tests="0" failures="0" errors="1"><testcase name="wasm-tests-failed"><error message="WASM tests failed in CI environment">WASM tests failed in CI environment</error></testcase></testsuite></testsuites>' > wasm-test-results.xml
+        }
         
         # Run the dedicated WASM performance test with CI adaptations
         uv run python -c "
