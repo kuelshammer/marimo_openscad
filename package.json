@@ -6,14 +6,24 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:wasm": "npm run build && npm run wasm:optimize",
+    "build:production": "NODE_ENV=production npm run build:wasm",
     "preview": "vite preview",
     "test": "vitest run",
     "test:ci": "vitest run --reporter=junit --outputFile=js-test-results.xml",
     "test:ui": "vitest --ui",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
+    "test:wasm": "vitest run --config vitest.wasm.config.js",
     "lint": "eslint src --ext .js,.ts --fix",
-    "format": "prettier --write src/**/*.{js,ts,css}"
+    "format": "prettier --write src/**/*.{js,ts,css}",
+    "wasm:download": "node scripts/download-wasm-modules.js",
+    "wasm:optimize": "node scripts/optimize-wasm-assets.js",
+    "wasm:verify": "node scripts/verify-wasm-build.js",
+    "assets:copy": "cp -r public/wasm dist/ 2>/dev/null || true",
+    "assets:compress": "gzip -k dist/**/*.{js,wasm} 2>/dev/null || true",
+    "clean": "rm -rf dist node_modules/.vite",
+    "prepack": "npm run build:production"
   },
   "devDependencies": {
     "vite": "^5.0.0",

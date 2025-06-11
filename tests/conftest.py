@@ -248,3 +248,4 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "slow: mark test as slow running")
     config.addinivalue_line("markers", "wasm: mark test as WASM-related")
     config.addinivalue_line("markers", "performance: mark test as performance-related")
+    config.addinivalue_line("markers", "ci_compatible: mark test as CI environment compatible")
