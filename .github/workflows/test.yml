@@ -43,6 +43,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
+      shell: bash
       run: |
         echo "🔍 Debug: Installing dependencies with uv..."
         echo "Python version: $(python --version)"
@@ -67,6 +68,7 @@ jobs:
         }
     
     - name: 🔥 CRITICAL - Cache Behavior Tests (LLM Regression Prevention)
+      shell: bash
       run: |
         echo "::group::🔥 Critical Cache Behavior Tests"
         echo "🔍 Testing uv and pytest availability..."
@@ -89,6 +91,7 @@ jobs:
         echo "::endgroup::"
     
     - name: 🎯 LLM-Identified Issues Regression Tests
+      shell: bash
       run: |
         echo "::group::🎯 LLM Regression Tests"
         uv run pytest tests/test_llm_identified_issues.py -v --tb=long --junit-xml=llm-test-results.xml || {
@@ -98,6 +101,7 @@ jobs:
         echo "::endgroup::"
     
     - name: 🔗 Integration Tests
+      shell: bash
       run: |
         echo "::group::🔗 Integration Tests"
         uv run pytest tests/test_viewer_integration.py -v -m "not slow" --tb=short --junit-xml=integration-test-results.xml || {
@@ -107,6 +111,7 @@ jobs:
         echo "::endgroup::"
     
     - name: 📊 All Python Tests with Coverage
+      shell: bash
       run: |
         echo "::group::📊 Complete Python Test Suite"
         uv run pytest tests/ --cov=marimo_openscad --cov-report=xml --cov-report=term-missing --junit-xml=python-test-results.xml || {
@@ -125,14 +130,24 @@ jobs:
           coverage.xml
     
     - name: 🐛 Debug - List files before test reporter
+      shell: bash
       run: |
         echo "🔍 Current working directory: $(pwd)"
+        echo "🖥️ Operating System: ${{ matrix.os }}"
         echo "📁 All files in directory:"
-        ls -la
-        echo "📄 XML files specifically:"
-        ls -la *-test-results.xml 2>/dev/null || echo "❌ No XML files found with pattern *-test-results.xml"
-        echo "🔍 All XML files:"
-        find . -name "*.xml" -type f 2>/dev/null || echo "❌ No XML files found at all"
+        if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+          dir /a
+          echo "📄 XML files specifically (Windows):"
+          dir *test-results.xml 2>nul || echo "❌ No XML files found with pattern *test-results.xml"
+          echo "🔍 All XML files (Windows):"
+          dir *.xml 2>nul || echo "❌ No XML files found at all"
+        else
+          ls -la
+          echo "📄 XML files specifically:"
+          ls -la *-test-results.xml 2>/dev/null || echo "❌ No XML files found with pattern *-test-results.xml"
+          echo "🔍 All XML files:"
+          find . -name "*.xml" -type f 2>/dev/null || echo "❌ No XML files found at all"
+        fi
     
     - name: Comment Test Results on PR
       uses: dorny/test-reporter@v1
