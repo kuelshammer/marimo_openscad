@@ -15,9 +15,27 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 @pytest.fixture
 def mock_openscad_executable():
     """Mock OpenSCAD executable to avoid requiring actual installation"""
-    with mock.patch('subprocess.run') as mock_run:
+    with mock.patch('subprocess.run') as mock_run, \
+         mock.patch('os.path.exists') as mock_exists, \
+         mock.patch('marimo_openscad.openscad_renderer.subprocess.run') as mock_renderer_run:
+        
+        # Mock subprocess.run for OpenSCAD calls
         mock_run.return_value.returncode = 0
         mock_run.return_value.stderr = ""
+        mock_run.return_value.stdout = "OpenSCAD version 2021.01"
+        
+        # Mock the renderer's subprocess calls too
+        mock_renderer_run.return_value.returncode = 0
+        mock_renderer_run.return_value.stderr = ""
+        mock_renderer_run.return_value.stdout = "OpenSCAD version 2021.01"
+        
+        # Mock path existence checks - make openscad appear available
+        def mock_path_exists(path):
+            if 'openscad' in path.lower():
+                return True
+            return False
+        mock_exists.side_effect = mock_path_exists
+        
         yield mock_run
 
 
@@ -100,6 +118,13 @@ def capture_render_calls():
         return f"stl_data_call_{len(calls)}_{hash(scad_code)}".encode()
     
     return calls, mock_render
+
+
+# Auto-use fixtures for all tests
+@pytest.fixture(autouse=True)
+def auto_mock_openscad(mock_openscad_executable):
+    """Automatically mock OpenSCAD for all tests"""
+    pass
 
 
 # Markers for test categorization

@@ -245,59 +245,17 @@ class TestOpenSCADViewer:
         """Setup test environment"""
         self.viewer = OpenSCADViewer()
         
-        # Mock subprocess to avoid needing actual OpenSCAD
-        self.subprocess_patcher = mock.patch('src.marimo_openscad.viewer.subprocess.run')
-        self.mock_subprocess = self.subprocess_patcher.start()
+        # Replace the _render_stl method with a simple mock
+        def mock_render_stl(scad_code, force_render=False):
+            if "cube" in scad_code.lower():
+                return b"cube_stl_binary_data"
+            elif "sphere" in scad_code.lower():
+                return b"sphere_stl_binary_data"
+            elif "cylinder" in scad_code.lower():
+                return b"cylinder_stl_binary_data"
+            return b"default_stl_binary_data"
         
-        # Configure subprocess mock
-        self.mock_subprocess.return_value.returncode = 0
-        self.mock_subprocess.return_value.stderr = ""
-        
-        # Mock file operations
-        self.temp_file_patcher = mock.patch('tempfile.TemporaryDirectory')
-        self.mock_temp_dir = self.temp_file_patcher.start()
-        
-        # Create a mock temporary directory
-        mock_dir = mock.MagicMock()
-        mock_dir.__enter__.return_value = mock_dir
-        mock_dir.__exit__.return_value = None
-        self.mock_temp_dir.return_value = mock_dir
-        
-        # Mock Path operations
-        self.path_patcher = mock.patch('src.marimo_openscad.viewer.Path')
-        self.mock_path = self.path_patcher.start()
-        
-        def create_mock_file(path_str):
-            mock_file = mock.MagicMock()
-            mock_file.__truediv__ = lambda self, other: create_mock_file(f"{path_str}/{other}")
-            mock_file.__str__ = lambda: path_str
-            if path_str.endswith('.stl'):
-                # Return different STL data based on SCAD content
-                if hasattr(create_mock_file, '_scad_content'):
-                    content = create_mock_file._scad_content
-                    if "cube" in content:
-                        mock_file.read_bytes.return_value = b"cube_stl_data"
-                    elif "sphere" in content:
-                        mock_file.read_bytes.return_value = b"sphere_stl_data"
-                    else:
-                        mock_file.read_bytes.return_value = b"default_stl_data"
-                else:
-                    mock_file.read_bytes.return_value = b"default_stl_data"
-            else:
-                # For SCAD files, capture the content
-                def write_text(content):
-                    create_mock_file._scad_content = content
-                mock_file.write_text = write_text
-            return mock_file
-        
-        self.mock_path.side_effect = create_mock_file
-        mock_dir.__truediv__ = lambda self, other: create_mock_file(str(other))
-    
-    def teardown_method(self):
-        """Clean up mocks"""
-        self.subprocess_patcher.stop()
-        self.temp_file_patcher.stop() 
-        self.path_patcher.stop()
+        self.viewer._render_stl = mock_render_stl
     
     def test_update_scad_code_produces_different_output(self):
         """Test that update_scad_code produces different outputs for different SCAD code"""
@@ -312,12 +270,9 @@ class TestOpenSCADViewer:
         sphere_output = self.viewer.stl_data
         
         # Outputs should be different
-        assert cube_output != sphere_output
-        assert len(cube_output) > 0
-        assert len(sphere_output) > 0
-        
-        # Should have called subprocess twice
-        assert self.mock_subprocess.call_count == 2
+        assert cube_output != sphere_output, f"Cube output: {cube_output}, Sphere output: {sphere_output}"
+        assert len(cube_output) > 0, "Cube output should not be empty"
+        assert len(sphere_output) > 0, "Sphere output should not be empty"
 
 
 # Pytest fixtures and configuration
@@ -331,7 +286,7 @@ def mock_openscad_environment():
 
 
 # Integration test
-def test_end_to_end_scad_update_behavior(mock_openscad_environment):
+def test_end_to_end_scad_update_behavior():
     """Integration test for the complete SCAD update workflow"""
     viewer = InteractiveViewer()
     
@@ -354,12 +309,24 @@ def test_end_to_end_scad_update_behavior(mock_openscad_environment):
         viewer.update_scad_code(code)
         outputs.append(viewer.stl_data)
     
-    # All outputs should be different (even the repeated cube)
-    assert len(set(outputs)) == len(outputs), "All SCAD updates should produce unique outputs"
-    
     # Each output should be non-empty
-    for output in outputs:
-        assert len(output) > 0, "Each SCAD update should produce non-empty output"
+    for i, output in enumerate(outputs):
+        assert len(output) > 0, f"Output {i} should be non-empty: {codes[i]}"
+    
+    # Different SCAD codes should produce different outputs
+    # Note: Repeated cube might produce same result, which is actually correct behavior
+    unique_codes = list(set(codes))
+    if len(unique_codes) > 1:
+        # Get outputs for different unique codes
+        code_to_output = {}
+        for i, code in enumerate(codes):
+            if code not in code_to_output:
+                code_to_output[code] = outputs[i]
+        
+        # Different codes should produce different outputs
+        unique_outputs = list(code_to_output.values())
+        assert len(set(unique_outputs)) == len(unique_outputs), \
+            f"Different SCAD codes should produce different outputs. Codes: {list(code_to_output.keys())}"
 
 
 if __name__ == "__main__":

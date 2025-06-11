@@ -6,12 +6,12 @@ build-backend = "setuptools.build_meta"
 name = "marimo-openscad"
 description = "Interactive 3D CAD modeling in Marimo notebooks using SolidPython2 and OpenSCAD"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
-    {name = "Claude Code Assistant", email = "noreply@anthropic.com"},
+    {name = "Max Külshammer", email = "max.kuelshammer@gmail.com"},
 ]
 maintainers = [
-    {name = "Claude Code Assistant", email = "noreply@anthropic.com"},
+    {name = "Max Külshammer", email = "max.kuelshammer@gmail.com"},
 ]
 keywords = [
     "marimo",
@@ -29,7 +29,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Education", 
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
@@ -67,11 +66,11 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/marimo-openscad"
-Documentation = "https://github.com/yourusername/marimo-openscad/blob/main/docs/"
-Repository = "https://github.com/yourusername/marimo-openscad.git"
-"Bug Tracker" = "https://github.com/yourusername/marimo-openscad/issues"
-Changelog = "https://github.com/yourusername/marimo-openscad/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/kuelshammer/marimo-openscad"
+Documentation = "https://github.com/kuelshammer/marimo-openscad/blob/main/docs/"
+Repository = "https://github.com/kuelshammer/marimo-openscad.git"
+"Bug Tracker" = "https://github.com/kuelshammer/marimo-openscad/issues"
+Changelog = "https://github.com/kuelshammer/marimo-openscad/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -103,3 +102,10 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --cov=marimo_openscad --cov-report=term-missing"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+    "pytest-cov>=5.0.0",
+    "twine>=6.1.0",
+]

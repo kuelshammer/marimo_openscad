@@ -39,44 +39,44 @@ install-dev:
 # Run all Python tests
 test-python:
 	@echo "🐍 Running all Python backend tests..."
-	pytest tests/ -v
+	uv run python -m pytest tests/ -v
 
 # 🔥 CRITICAL: Run cache-specific tests (addresses LLM-identified issue)
 test-cache:
 	@echo "🔥 CRITICAL: Running cache behavior tests (LLM regression prevention)..."
-	pytest tests/ -v -m "cache" --tb=long
+	uv run python -m pytest tests/ -v -m "cache" --tb=long
 
 # 🎯 Run regression tests for the cache fix
 test-regression:
 	@echo "🎯 Running LLM regression tests..."
-	pytest tests/ -v -m "regression" --tb=long
+	uv run python -m pytest tests/ -v -m "regression" --tb=long
 
 # 🔗 Run integration tests
 test-integration:
 	@echo "🔗 Running integration tests..."
-	pytest tests/ -v -m "integration" --tb=short
+	uv run python -m pytest tests/ -v -m "integration" --tb=short
 
 # 🚨 Run LLM-identified issue tests specifically
 test-llm-issues:
 	@echo "🚨 Running specific LLM-identified issue tests..."
-	pytest tests/test_llm_identified_issues.py -v --tb=long
+	uv run python -m pytest tests/test_llm_identified_issues.py -v --tb=long
 
 # 📊 Run tests with coverage
 test-coverage:
 	@echo "📊 Running Python tests with coverage..."
-	pytest tests/ --cov=marimo_openscad --cov-report=html --cov-report=term-missing
+	uv run python -m pytest tests/ --cov=marimo_openscad --cov-report=html --cov-report=term-missing
 
 # Run cache behavior tests (critical for preventing regression)
 test-cache-behavior:
-	pytest tests/test_cache_behavior.py -v --tb=long
+	uv run python -m pytest tests/test_cache_behavior.py -v --tb=long
 
 # Run viewer integration tests
 test-viewer:
-	pytest tests/test_viewer_integration.py -v --tb=short
+	uv run python -m pytest tests/test_viewer_integration.py -v --tb=short
 
 # Quick test for CI (fast subset)
 test-quick:
-	pytest tests/ -v -m "not slow" --tb=short
+	uv run python -m pytest tests/ -v -m "not slow" --tb=short
 
 # Format code
 format:
