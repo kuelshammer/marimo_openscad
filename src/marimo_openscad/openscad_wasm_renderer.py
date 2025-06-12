@@ -103,9 +103,9 @@ class OpenSCADWASMRenderer:
         This can be used by the JavaScript frontend to load WASM modules
         from the correct package location.
         """
-        # In a real deployment, this might be served by the web server
-        # For now, we return the package path information
-        return str(self.wasm_path)
+        # For anywidget in Marimo, we use the file:// protocol
+        # This allows direct access to the bundled WASM files
+        return f"file://{self.wasm_path}"
     
     def get_wasm_files(self) -> Dict[str, str]:
         """Get paths to all WASM-related files"""
