@@ -568,15 +568,36 @@ class OpenSCADViewer(anywidget.AnyWidget):
                         console.error('❌ This explains why only one cube is visible!');
                     }
                 
-                // Try real WASM OpenSCAD rendering first
+                // Try real WASM OpenSCAD rendering first (Phase 2)
                 let stlResult = await tryWASMOpenSCADRender(scadCode);
                 if (stlResult) {
-                    console.log('✅ Real WASM OpenSCAD succeeded!');
+                    console.log('✅ Phase 2: Real WASM OpenSCAD succeeded!');
                     processSTLData(stlResult);
                     return;
                 }
                 
-                console.log('⚠️ Real WASM unavailable, using geometric interpretation...');
+                console.log('⚠️ Phase 2 WASM unavailable, falling back to Phase 1 wireframe...');
+                
+                // Phase 1 Fallback: Try SCAD-aware geometry generation
+                try {
+                    console.log('🔄 Attempting Phase 1 fallback rendering...');
+                    const phase1Fallback = new window.OpenSCADPhase1Fallback();
+                    const phase1STL = await phase1Fallback.render(scadCode);
+                    
+                    if (phase1STL && phase1STL.length > 0) {
+                        console.log('✅ Phase 1 fallback succeeded!');
+                        processSTLData(phase1STL);
+                        
+                        // Update status to show fallback mode
+                        status.textContent = '⚠️ Phase 1 Fallback: Wireframe CSG (WASM unavailable)';
+                        status.style.background = "rgba(255,193,7,0.9)"; // Orange for fallback
+                        return;
+                    }
+                } catch (phase1Error) {
+                    console.error('❌ Phase 1 fallback also failed:', phase1Error);
+                }
+                
+                console.log('⚠️ Both Phase 2 and Phase 1 failed, using basic geometric interpretation...');
                 
                 // Safely clean up existing mesh
                 if (currentMesh && currentMesh !== null) {
@@ -1060,16 +1081,16 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 // Smart status text based on rendering mode
                 if (scadLower.includes('union') && scadLower.includes('cube')) {
                     const cubeCount = (scadCode.match(/cube\\s*\\(/g) || []).length;
-                    status.textContent = `✅ Phase 1: Union Preview (${cubeCount} cubes, wireframe-optimized)`;
+                    status.textContent = `🚀 Phase 2: WASM Union (${cubeCount} cubes, real CSG)`;
                 } else if (scadLower.includes('difference') && scadLower.includes('cube')) {
                     const cubeCount = (scadCode.match(/cube\\s*\\(/g) || []).length;
-                    status.textContent = `✅ Phase 1: Difference Preview (${cubeCount} cubes, hollow visualization)`;
+                    status.textContent = `🚀 Phase 2: WASM Difference (${cubeCount} cubes, real CSG)`;
                 } else {
-                    status.textContent = '✅ SCAD rendered (wireframe mode)';
+                    status.textContent = '🚀 Phase 2: WASM rendered (real OpenSCAD)';
                 }
                 status.style.background = "rgba(34,197,94,0.9)";
                 
-                console.log('✅ Phase 1 wireframe rendering completed');
+                console.log('✅ Phase 2 WASM rendering completed');
                 
                 } catch (wasmRenderError) {
                     console.error('❌ WASM rendering failed:', wasmRenderError);
@@ -1102,10 +1123,10 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 }
             }
             
-            // Real WASM OpenSCAD renderer function
+            // Real WASM OpenSCAD renderer function  
             async function tryWASMOpenSCADRender(scadCode) {
                 try {
-                    console.log('🚀 Attempting real WASM OpenSCAD rendering...');
+                    console.log('🚀 Phase 2: Attempting real WASM OpenSCAD rendering...');
                     
                     // Get WASM base URL from Python model
                     const wasmBaseUrl = model.get("wasm_base_url") || "";
@@ -1115,33 +1136,160 @@ class OpenSCADViewer(anywidget.AnyWidget):
                         return null;
                     }
                     
-                    // Load OpenSCAD WASM module if not loaded
-                    if (!window.OpenSCAD) {
-                        console.log('📦 Loading OpenSCAD WASM module...');
-                        
-                        // Convert file:// path to actual files and load them
-                        const actualPath = wasmBaseUrl.replace('file://', '');
+                    console.log('🔍 WASM Base URL:', wasmBaseUrl);
+                    
+                    // Initialize WASM OpenSCAD if not loaded
+                    if (!window.OpenSCADWASM || !window.OpenSCADWASM.initialized) {
+                        console.log('📦 Loading real OpenSCAD WASM module...');
                         
                         try {
-                            // For anywidget, we'll try a direct approach with fetch
-                            // This won't work due to CORS, but let's try a simpler approach
-                            console.log('🔧 Trying simplified WASM approach...');
+                            // Load OpenSCAD WASM module
+                            await loadOpenSCADWASMModule(wasmBaseUrl);
+                            console.log('✅ OpenSCAD WASM module loaded successfully');
+                        } catch (loadError) {
+                            console.error('❌ Failed to load WASM module:', loadError);
+                            return null;
+                        }
+                    }
+                    
+                    // Render SCAD code using real WASM
+                    console.log('🔧 Rendering SCAD with real OpenSCAD WASM...');
+                    const startTime = performance.now();
+                    
+                    const stlResult = await window.OpenSCADWASM.render(scadCode, {
+                        outputFormat: 'binstl',
+                        enableManifold: true,
+                        timeout: 15000
+                    });
+                    
+                    const endTime = performance.now();
+                    console.log(`✅ WASM rendering completed in ${(endTime - startTime).toFixed(2)}ms`);
+                    console.log('📊 STL result size:', stlResult ? stlResult.length : 'null', 'bytes');
+                    
+                    return stlResult;
+                    
+                } catch (error) {
+                    console.error('❌ WASM OpenSCAD rendering failed:', error);
+                    return null;
+                }
+            }
+            
+            // Load OpenSCAD WASM Module
+            async function loadOpenSCADWASMModule(baseUrl) {
+                try {
+                    console.log('🔧 Loading OpenSCAD WASM from:', baseUrl);
+                    
+                    // Convert file:// URL to proper path
+                    const basePath = baseUrl.replace('file://', '');
+                    
+                    // Load the main OpenSCAD JavaScript module first
+                    const jsModuleUrl = `${basePath}/openscad.js`;
+                    console.log('📦 Loading JS module from:', jsModuleUrl);
+                    
+                    // Create script element to load OpenSCAD JS module
+                    const script = document.createElement('script');
+                    script.src = jsModuleUrl;
+                    
+                    // Wait for script to load
+                    await new Promise((resolve, reject) => {
+                        script.onload = () => {
+                            console.log('✅ OpenSCAD JS module loaded');
+                            resolve();
+                        };
+                        script.onerror = (error) => {
+                            console.error('❌ Failed to load OpenSCAD JS module:', error);
+                            reject(error);
+                        };
+                        document.head.appendChild(script);
+                        
+                        // Timeout after 10 seconds
+                        setTimeout(() => reject(new Error('Script loading timeout')), 10000);
+                    });
+                    
+                    // Initialize OpenSCAD WASM module
+                    if (typeof window.OpenSCAD !== 'function') {
+                        throw new Error('OpenSCAD constructor not found after loading JS module');
+                    }
+                    
+                    console.log('🔧 Initializing OpenSCAD WASM instance...');
+                    
+                    // Create OpenSCAD instance with proper path configuration
+                    const openscadInstance = await window.OpenSCAD({
+                        locateFile: (path, prefix) => {
+                            console.log('🔍 Locating file:', path, 'with prefix:', prefix);
+                            if (path.endsWith('.wasm')) {
+                                const wasmPath = `${basePath}/${path}`;
+                                console.log('📦 WASM file path:', wasmPath);
+                                return wasmPath;
+                            }
+                            return prefix + path;
+                        },
+                        onRuntimeInitialized: () => {
+                            console.log('✅ OpenSCAD runtime initialized');
+                        }
+                    });
+                    
+                    // Create wrapper for easier usage
+                    window.OpenSCADWASM = {
+                        instance: openscadInstance,
+                        initialized: true,
+                        
+                        async render(scadCode, options = {}) {
+                            const {
+                                outputFormat = 'binstl',
+                                enableManifold = true,
+                                timeout = 15000
+                            } = options;
                             
-                            // Create a minimal OpenSCAD WASM wrapper
-                            window.OpenSCAD = class {
-                                constructor() {
-                                    this.ready = false;
+                            console.log('🔧 WASM render called with options:', { outputFormat, enableManifold, timeout });
+                            console.log('📄 SCAD code length:', scadCode.length);
+                            
+                            try {
+                                // Use the OpenSCAD WASM instance to render
+                                const result = openscadInstance.renderSTL(scadCode, {
+                                    format: outputFormat,
+                                    manifold: enableManifold
+                                });
+                                
+                                if (result && result.length > 0) {
+                                    console.log('✅ WASM STL generated:', result.length, 'bytes');
+                                    return result;
+                                } else {
+                                    console.warn('⚠️ WASM returned empty result');
+                                    return null;
                                 }
                                 
-                                async render(scadCode, options = {}) {
-                                    console.log('🔧 SCAD-aware WASM render called with:', scadCode.length, 'chars');
-                                    console.log('🔧 SCAD Code to process:', scadCode);
-                                    
-                                    // Parse SCAD code and generate appropriate STL
-                                    const stl = this.parseScadAndGenerateSTL(scadCode);
-                                    console.log('🔧 Generated SCAD-specific STL:', stl.length, 'bytes');
-                                    return stl;
-                                }
+                            } catch (renderError) {
+                                console.error('❌ WASM render error:', renderError);
+                                throw renderError;
+                            }
+                        }
+                    };
+                    
+                    console.log('✅ OpenSCAD WASM wrapper created successfully');
+                    return window.OpenSCADWASM;
+                    
+                } catch (error) {
+                    console.error('❌ Failed to load OpenSCAD WASM module:', error);
+                    throw new Error(`OpenSCAD WASM loading failed: ${error.message}`);
+                }
+            }
+            
+            // Legacy fallback: Phase 1 SCAD-aware geometry generator
+            window.OpenSCADPhase1Fallback = class {
+                constructor() {
+                    this.ready = true;
+                }
+                
+                async render(scadCode, options = {}) {
+                    console.log('🔧 Phase 1 Fallback: SCAD-aware render called with:', scadCode.length, 'chars');
+                    console.log('🔧 SCAD Code to process:', scadCode);
+                    
+                    // Parse SCAD code and generate appropriate STL
+                    const stl = this.parseScadAndGenerateSTL(scadCode);
+                    console.log('🔧 Generated SCAD-specific STL:', stl.length, 'bytes');
+                    return stl;
+                }
                                 
                                 parseScadAndGenerateSTL(scadCode) {
                                     console.log('🔧 Parsing SCAD code for geometry generation...');
