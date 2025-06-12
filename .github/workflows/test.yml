@@ -620,6 +620,26 @@ jobs:
           # Create empty XML file if tests failed
           echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="wasm-tests" tests="0" failures="0" errors="1"><testcase name="wasm-tests-failed"><error message="WASM tests failed in CI environment">WASM tests failed in CI environment</error></testcase></testsuite></testsuites>' > wasm-test-results.xml
         }
+    
+    - name: 🔥 Real WASM Integration Tests (No Mocking)
+      run: |
+        echo "::group::🔥 Real WASM Integration Tests"
+        # Run new real WASM tests that use actual bundled files
+        uv run pytest tests/test_wasm_real_integration.py -v --tb=short --junit-xml=wasm-real-test-results.xml || {
+          echo "⚠️ Real WASM tests failed in CI..."
+          echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="wasm-real-tests" tests="0" failures="0" errors="1"><testcase name="wasm-real-tests-failed"><error message="Real WASM tests failed in CI environment">Real WASM tests failed in CI environment</error></testcase></testsuite></testsuites>' > wasm-real-test-results.xml
+        }
+        echo "::endgroup::"
+    
+    - name: 🚀 CI-Optimized WASM Tests  
+      run: |
+        echo "::group::🚀 CI-Optimized WASM Tests"
+        # Run CI-specific WASM tests with environment detection
+        uv run pytest tests/test_wasm_ci_optimized.py -v -m "ci_compatibility" --tb=short --junit-xml=wasm-ci-test-results.xml || {
+          echo "⚠️ CI-optimized WASM tests failed..."
+          echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="wasm-ci-tests" tests="0" failures="0" errors="1"><testcase name="wasm-ci-tests-failed"><error message="CI-optimized WASM tests failed in CI environment">CI-optimized WASM tests failed in CI environment</error></testcase></testsuite></testsuites>' > wasm-ci-test-results.xml
+        }
+        echo "::endgroup::"
         
         # Run the dedicated WASM performance test with CI adaptations
         uv run python -c "
@@ -818,6 +838,8 @@ jobs:
         name: wasm-test-results-${{ matrix.browser }}-node${{ matrix.node-version }}
         path: |
           wasm-test-results.xml
+          wasm-real-test-results.xml
+          wasm-ci-test-results.xml
           wasm-test-report.json
     
     - name: Comment WASM Test Results on PR

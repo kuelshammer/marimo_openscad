@@ -79,6 +79,14 @@ package-dir = {"" = "src"}
 where = ["src"]
 include = ["marimo_openscad*"]
 
+[tool.setuptools.package-data]
+marimo_openscad = [
+    "wasm/*.wasm",
+    "wasm/*.js", 
+    "wasm/*.d.ts",
+    "js/*.js"
+]
+
 [tool.setuptools_scm]
 write_to = "src/marimo_openscad/_version.py"
 

@@ -41,6 +41,7 @@ class OpenSCADViewer(anywidget.AnyWidget):
     renderer_status = traitlets.Unicode("initializing").tag(sync=True)  # "ready", "error", "loading"
     wasm_supported = traitlets.Bool(True).tag(sync=True)  # Whether WASM is supported
     wasm_enabled = traitlets.Bool(False).tag(sync=True)  # Whether WASM is actively enabled
+    wasm_base_url = traitlets.Unicode("").tag(sync=True)  # Base URL for WASM assets
     
     _esm = """
     async function render({ model, el }) {
@@ -582,6 +583,9 @@ class OpenSCADViewer(anywidget.AnyWidget):
         # Initialize renderer based on type
         self.renderer = self._create_renderer(renderer_type, openscad_path, wasm_options)
         
+        # Set WASM base URL if WASM renderer is available
+        self._setup_wasm_urls()
+        
         if model is not None:
             self.update_model(model)
     
@@ -637,6 +641,32 @@ class OpenSCADViewer(anywidget.AnyWidget):
             except Exception as fallback_error:
                 logger.error(f"Fallback renderer also failed: {fallback_error}")
                 raise RuntimeError(f"All renderers failed. Primary: {e}, Fallback: {fallback_error}")
+    
+    def _setup_wasm_urls(self):
+        """Setup WASM URLs for JavaScript access"""
+        try:
+            # Check if we have a WASM renderer (directly or in hybrid)
+            wasm_renderer = None
+            
+            if isinstance(self.renderer, OpenSCADWASMRenderer):
+                wasm_renderer = self.renderer
+            elif isinstance(self.renderer, HybridOpenSCADRenderer):
+                if hasattr(self.renderer, 'wasm_renderer') and self.renderer.wasm_renderer:
+                    wasm_renderer = self.renderer.wasm_renderer
+            
+            if wasm_renderer and wasm_renderer.is_available:
+                self.wasm_base_url = wasm_renderer.get_wasm_url_base()
+                self.wasm_enabled = True
+                logger.info(f"WASM URLs configured: {self.wasm_base_url}")
+            else:
+                self.wasm_enabled = False
+                self.wasm_base_url = ""
+                logger.info("WASM not available or enabled")
+                
+        except Exception as e:
+            logger.warning(f"Failed to setup WASM URLs: {e}")
+            self.wasm_enabled = False
+            self.wasm_base_url = ""
     
     def update_model(self, model, force_render: bool = False):
         """Update with SolidPython2 object - enhanced STL/WASM pipeline"""

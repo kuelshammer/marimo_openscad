@@ -6,6 +6,8 @@ Provides the same interface as the local OpenSCAD renderer but uses WASM.
 """
 
 import logging
+import os
+from pathlib import Path
 from typing import Optional, Dict, Any
 from .openscad_renderer import OpenSCADRenderer, OpenSCADError
 
@@ -28,10 +30,23 @@ class OpenSCADWASMRenderer:
             wasm_options: Configuration options for WASM module
         """
         self.wasm_options = wasm_options or {}
-        self.is_available = True  # WASM is always "available" if browser supports it
         self.render_count = 0
+        self.wasm_path = self._get_wasm_path()
+        self.is_available = self._check_wasm_availability()
         
-        logger.info("OpenSCAD WASM Renderer initialized")
+        logger.info(f"OpenSCAD WASM Renderer initialized (available: {self.is_available})")
+    
+    def _get_wasm_path(self) -> Path:
+        """Get path to bundled WASM files"""
+        package_dir = Path(__file__).parent
+        wasm_dir = package_dir / "wasm"
+        return wasm_dir
+    
+    def _check_wasm_availability(self) -> bool:
+        """Check if WASM files are available"""
+        wasm_file = self.wasm_path / "openscad.wasm"
+        js_file = self.wasm_path / "openscad.js"
+        return wasm_file.exists() and js_file.exists()
     
     def render_scad_to_stl(self, scad_code: str) -> bytes:
         """
@@ -81,12 +96,43 @@ class OpenSCADWASMRenderer:
         """Get OpenSCAD WASM version information"""
         return "OpenSCAD WASM 2022.03.20"
     
+    def get_wasm_url_base(self) -> str:
+        """
+        Get the URL base path for WASM assets
+        
+        This can be used by the JavaScript frontend to load WASM modules
+        from the correct package location.
+        """
+        # In a real deployment, this might be served by the web server
+        # For now, we return the package path information
+        return str(self.wasm_path)
+    
+    def get_wasm_files(self) -> Dict[str, str]:
+        """Get paths to all WASM-related files"""
+        files = {}
+        wasm_files = [
+            "openscad.wasm",
+            "openscad.js", 
+            "openscad.d.ts",
+            "openscad.fonts.js",
+            "openscad.mcad.js"
+        ]
+        
+        for filename in wasm_files:
+            file_path = self.wasm_path / filename
+            if file_path.exists():
+                files[filename] = str(file_path)
+        
+        return files
+    
     def get_stats(self) -> Dict[str, Any]:
         """Get renderer statistics"""
         return {
             'renderer_type': 'wasm',
             'render_count': self.render_count,
             'is_available': self.is_available,
+            'wasm_path': str(self.wasm_path),
+            'wasm_files': self.get_wasm_files(),
             'wasm_options': self.wasm_options,
             'capabilities': {
                 'supports_manifold': True,
