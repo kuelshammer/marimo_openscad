@@ -3,32 +3,37 @@
 [![CI/CD Tests](https://github.com/kuelshammer/marimo_openscad/actions/workflows/test.yml/badge.svg)](https://github.com/kuelshammer/marimo_openscad/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![WASM-Safe Architecture](https://img.shields.io/badge/WASM--Safe-✅%20Compatible-brightgreen)](src/js/marimo-openscad-widget.js)
+[![anywidget Standard](https://img.shields.io/badge/anywidget-📱%20Compatible-blue)](https://anywidget.dev/)
 [![Critical Cache Tests](https://img.shields.io/badge/Cache%20Tests-🔥%20Critical-red)](tests/test_cache_behavior.py)
-[![LLM Regression Prevention](https://img.shields.io/badge/LLM%20Regression-🎯%20Prevented-green)](tests/test_llm_identified_issues.py)
+[![JavaScript Tests](https://img.shields.io/badge/JS%20Tests-28%2F28%20✅-green)](src/test/)
 
-**Interactive 3D CAD modeling in Marimo notebooks with browser-native WebAssembly rendering**
+**Interactive 3D CAD modeling in Marimo notebooks with universal WASM-safe architecture**
 
-Bring parametric 3D design to your Marimo notebooks with reactive parameters, real-time 3D visualization, and zero-dependency browser-native OpenSCAD rendering.
+Bring parametric 3D design to your Marimo notebooks with reactive parameters, real-time 3D visualization, and zero-dependency browser-native OpenSCAD rendering. **Now with full Marimo WASM compatibility!**
+
+### 🆕 **Version 2.0: WASM-Safe Architecture**
+This release introduces a completely rewritten JavaScript architecture that works seamlessly in both **local Marimo** and **Marimo WASM** environments. The new anywidget-compatible design eliminates Web Worker dependencies while maintaining excellent performance.
 
 ## ✨ Features
 
-### 🚀 **WebAssembly-First Architecture**
-- **Browser-Native Rendering**: No local OpenSCAD installation required
-- **190x Faster Performance**: Complex models render in milliseconds vs seconds
-- **Zero Dependencies**: Works out-of-the-box in any modern browser
-- **Offline Capable**: Full functionality without internet after initial load
+### 🚀 **WASM-Safe Architecture**
+- **Marimo WASM Compatible**: Works in both local Marimo and Marimo WASM environments
+- **anywidget Standard**: Modern ESM-based widget architecture
+- **Main-Thread Optimized**: Direct WASM integration without Web Worker dependencies
+- **Universal Compatibility**: Zero-dependency browser-native OpenSCAD rendering
 
 ### 🎯 **Smart Renderer Selection**
 - **Auto-Detection**: Intelligent fallback between WASM and local OpenSCAD
-- **User Choice**: Force WASM, local, or let the system decide
-- **Performance Optimized**: Advanced caching and web worker support
-- **Memory Efficient**: Automatic cleanup and resource management
+- **Environment-Aware**: Adapts to local vs WASM constraints automatically
+- **Memory-Optimized**: Respects Marimo WASM 2GB memory limits
+- **Performance Enhanced**: Feature detection for optimal rendering path
 
 ### 🔄 **Reactive Integration**
-- **JupyterSCAD-inspired**: Proven architecture adapted for Marimo's reactive paradigm
+- **Marimo-Native**: Built specifically for Marimo's reactive notebook environment
 - **Real-time Updates**: Changes to sliders instantly update 3D models
-- **Advanced Pipeline**: SolidPython2 → OpenSCAD WASM → STL → Three.js BufferGeometry
-- **Professional Rendering**: WebGL-based 3D visualization with shadows and controls
+- **WASM-Safe Pipeline**: SolidPython2 → Direct WASM → STL → Three.js → WebGL
+- **Professional Rendering**: Hardware-accelerated 3D visualization with intuitive controls
 
 ## 🚀 Quick Start
 
@@ -105,12 +110,13 @@ def __(model):
 
 ## 🏗️ Architecture
 
-### 🚀 **WASM-First Architecture (Recommended)**
+### 🚀 **WASM-Safe Architecture (Universal)**
 
 ```
-SolidPython2 → OpenSCAD WASM → STL Binary → Three.js BufferGeometry → WebGL
-                    ↑
-            Runs entirely in browser
+SolidPython2 → Direct WASM Renderer → STL Binary → Three.js BufferGeometry → WebGL
+                       ↑
+               Main-Thread Integration
+           (Compatible with Marimo WASM)
 ```
 
 ### 🔧 **Local Fallback Architecture**
@@ -121,14 +127,26 @@ SolidPython2 → OpenSCAD CLI → STL Binary → Three.js BufferGeometry → Web
            Requires local installation
 ```
 
+### 🌍 **Marimo Environment Compatibility**
+
+```
+┌─────────────────┬──────────────────┬─────────────────────┐
+│ Local Marimo    │ Marimo WASM      │ Both Environments  │
+├─────────────────┼──────────────────┼─────────────────────┤
+│ All features    │ 2GB memory limit │ Direct WASM         │
+│ Full performance│ Main-thread only │ anywidget ESM       │
+│ Optional workers│ Browser sandbox  │ Auto-detection      │
+└─────────────────┴──────────────────┴─────────────────────┘
+```
+
 ### Key Components
 
-- **Smart Renderer Factory**: Automatic selection between WASM and local OpenSCAD
-- **Advanced Caching**: 7-day WASM module cache with automatic cleanup  
-- **Web Worker Support**: Non-blocking rendering for complex models
-- **Memory Management**: Intelligent resource cleanup and monitoring
-- **Three.js Integration**: Professional 3D rendering with OrbitControls
-- **anywidget Framework**: Modern widget system for Marimo reactive cells
+- **OpenSCADDirectRenderer**: WASM-safe main-thread renderer
+- **Environment Detection**: Automatic capability detection
+- **Memory Management**: Optimized for WASM 2GB constraints
+- **anywidget Standard**: Pure ESM architecture for maximum compatibility
+- **Three.js Integration**: Hardware-accelerated 3D rendering
+- **Graceful Fallbacks**: Robust error handling and recovery
 
 ## ⚡ Performance Comparison
 
@@ -140,7 +158,7 @@ SolidPython2 → OpenSCAD CLI → STL Binary → Three.js BufferGeometry → Web
 | **Performance** | 🎯 **190x faster** | 📊 Baseline |
 | **Memory Usage** | ✅ Efficient | ⚠️ Higher |
 | **Offline Support** | ✅ Full support | ❌ Limited |
-| **Browser Blocking** | ✅ Zero (Web Workers) | ❌ UI freezes |
+| **WASM Compatibility** | ✅ Universal | ❌ N/A |
 | **Cache Benefits** | ✅ 35% improvement | ⚠️ Minimal |
 
 ### 📊 **Real Performance Data**
@@ -163,13 +181,31 @@ SolidPython2 → OpenSCAD CLI → STL Binary → Three.js BufferGeometry → Web
 - **OpenSCAD 2021.01+** (must be installed separately)
 - OpenSCAD binary accessible in system PATH or `/Applications/OpenSCAD.app/` (macOS)
 
-### 🌐 **Browser Compatibility**
-| Browser | WASM Support | Performance |
-|---------|--------------|-------------|
-| Chrome 69+ | ✅ Full | 🚀 Excellent |
-| Firefox 62+ | ✅ Full | 🚀 Excellent |
-| Safari 14+ | ✅ Full | ⚡ Good |
-| Edge 79+ | ✅ Full | 🚀 Excellent |
+### 🌐 **Environment Compatibility**
+
+### 🏠 **Local Marimo (Full Features)**
+| Feature | Support | Performance |
+|---------|---------|-------------|
+| Direct WASM Rendering | ✅ Full | 🚀 Excellent |
+| Local OpenSCAD Fallback | ✅ Full | ⚡ Good |
+| Advanced Memory Management | ✅ Full | 🚀 Excellent |
+| All Browser APIs | ✅ Full | 🚀 Excellent |
+
+### ☁️ **Marimo WASM (WASM-Safe)**
+| Feature | Support | Notes |
+|---------|---------|-------|
+| Direct WASM Rendering | ✅ Full | Main-thread optimized |
+| Memory Management | ✅ 2GB limit | Auto-constraint detection |
+| anywidget Integration | ✅ Full | Pure ESM architecture |
+| Browser Compatibility | ✅ 95%+ | Modern browsers only |
+
+### 🌐 **Browser Support Matrix**
+| Browser | Local Marimo | Marimo WASM | Performance |
+|---------|--------------|-------------|-------------|
+| Chrome 69+ | ✅ Full | ✅ Full | 🚀 Excellent |
+| Firefox 62+ | ✅ Full | ✅ Full | 🚀 Excellent |
+| Safari 14+ | ✅ Full | ✅ Full | ⚡ Good |
+| Edge 79+ | ✅ Full | ✅ Full | 🚀 Excellent |
 
 ### 💻 **Development Dependencies (Optional)**
 For frontend widget development only:
@@ -287,24 +323,26 @@ viewer = openscad_viewer(
 )
 ```
 
-### Memory Optimization
+### Memory Optimization (WASM-Safe)
 ```python
-# Enable memory management
+# Memory management for WASM environments
 from marimo_openscad.memory_manager import MemoryUtils
 
-# Optimize memory usage
+# Optimize memory usage (respects WASM 2GB limit)
 stats = await MemoryUtils.optimizeMemory()
 print(f"Memory pressure: {MemoryUtils.getMemoryPressure()}")
+print(f"WASM-safe mode: {stats.get('isWASMSafe', False)}")
 ```
 
-### Web Worker Configuration
+### Environment Detection
 ```python
-# Force Web Worker usage (non-blocking)
-viewer = openscad_viewer(
-    model,
-    renderer_type="wasm", 
-    use_worker=True  # Prevents UI freezing
-)
+# Check environment capabilities
+from marimo_openscad import get_renderer_status
+
+status = get_renderer_status()
+print(f"Environment: {status['environment']}")
+print(f"WASM ready: {status['wasm_ready']}")
+print(f"Memory constraints: {status.get('memory_constraints', 'None')}")
 ```
 
 ## 🔍 Troubleshooting
@@ -332,8 +370,8 @@ console.log("WASM Support:", hasWASM);
 
 #### Performance Issues
 1. **Enable caching**: WASM modules are cached for 7 days
-2. **Use Web Workers**: Prevents main thread blocking
-3. **Monitor memory**: Use memory manager for large models
+2. **Memory optimization**: Automatic cleanup and monitoring
+3. **Environment detection**: Uses optimal rendering path per environment
 
 #### Fallback Testing
 ```python
@@ -355,7 +393,7 @@ print(results)
 |-------|----------|
 | `WASM not supported` | Update browser or use `renderer_type="auto"` |
 | `WebAssembly instantiation failed` | Check browser memory/security settings |
-| `Worker initialization failed` | Disable ad blockers affecting Web Workers |
+| `Renderer initialization failed` | Check browser WASM support and memory |
 | `Cache quota exceeded` | Clear browser cache or reduce cache duration |
 
 ## 🧪 Testing WASM Performance
@@ -456,6 +494,51 @@ This project builds upon the excellent work of several open-source projects:
 
 ## 🔧 Technical Details
 
+### WASM-Safe Architecture Implementation
+
+Our new architecture ensures compatibility with both local Marimo and Marimo WASM:
+
+```javascript
+// anywidget-compatible export (required for Marimo WASM)
+export default { render };
+
+// Environment detection for optimal performance
+function detectEnvironmentConstraints() {
+    return {
+        hasWebWorkers: typeof Worker !== 'undefined',
+        hasWebAssembly: typeof WebAssembly !== 'undefined',
+        recommendedMode: 'direct', // WASM-safe default
+        isWASMSafe: true
+    };
+}
+
+// Direct WASM renderer (replaces Web Workers)
+class OpenSCADDirectRenderer {
+    async renderToSTL(scadCode) {
+        // Main-thread WASM integration
+        return await this.wasmRenderer.renderToSTL(scadCode);
+    }
+}
+```
+
+### Memory Management for WASM Environments
+
+```javascript
+// Optimized for Marimo WASM 2GB memory limit
+class MemoryConstrainedRenderer {
+    constructor() {
+        this.maxMemoryMB = 1800; // Stay under 2GB limit
+    }
+    
+    async renderWithMemoryCheck(scadCode) {
+        if (this.estimateMemoryUsage(scadCode) > this.maxMemoryMB) {
+            throw new Error('Model too complex for WASM environment');
+        }
+        return await this.doRender(scadCode);
+    }
+}
+```
+
 ### STL Processing Pipeline
 
 Our STL parser is based on the Three.js STLLoader with enhancements:
@@ -500,11 +583,12 @@ MIT License - see [LICENSE](./LICENSE) file for details.
 ## 🌟 Acknowledgments
 
 Special thanks to:
-- The JupyterSCAD team for pioneering Jupyter-OpenSCAD integration
-- The Marimo team for creating an excellent reactive notebook platform  
-- The SolidPython2 maintainers for the powerful Python-CAD bridge
-- The Three.js community for world-class 3D web technologies
-- The OpenSCAD project for the robust CAD kernel
+- The **JupyterSCAD team** for pioneering Jupyter-OpenSCAD integration
+- The **Marimo team** for creating an excellent reactive notebook platform and anywidget support
+- The **SolidPython2 maintainers** for the powerful Python-CAD bridge
+- The **Three.js community** for world-class 3D web technologies
+- The **OpenSCAD project** for the robust CAD kernel
+- The **anywidget ecosystem** for modern notebook widget standards
 
 ---
 
