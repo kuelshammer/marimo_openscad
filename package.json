@@ -15,7 +15,7 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
     "test:wasm": "vitest run --config vitest.wasm.config.js",
-    "lint": "eslint src --ext .js,.ts --fix",
+    "lint": "eslint src/**/*.js --fix",
     "format": "prettier --write src/**/*.{js,ts,css}",
     "wasm:download": "node scripts/download-wasm-modules.js",
     "wasm:optimize": "node scripts/optimize-wasm-assets.js",
