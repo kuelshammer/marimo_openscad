@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Marimo-OpenSCAD is an interactive 3D CAD modeling widget for Marimo notebooks that enables parametric 3D design with WebAssembly-powered browser-native rendering. It integrates SolidPython2 with OpenSCAD through a dual-renderer system (WASM + local fallback).
 
+## Memories
+
+- Beachte die Planungsdatei: `CSG_RENDERING_ROADMAP.md`
+
 ## Development Commands
 
 ### Python Testing
