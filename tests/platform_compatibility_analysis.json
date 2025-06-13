@@ -1,0 +1,17 @@
+{
+  "platform": "Darwin",
+  "architecture": "arm64",
+  "path_handling_patterns": [
+    "split(",
+    "/"
+  ],
+  "platform_indicators": [
+    "/"
+  ],
+  "path_resolution_success": true,
+  "accessible_paths": [
+    "/Users/max/Python/marimo_openscad/src/marimo_openscad/wasm",
+    "/Users/max/Python/marimo_openscad/src/marimo_openscad/static"
+  ],
+  "platform_compatible": true
+}

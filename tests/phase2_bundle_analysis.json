@@ -1,0 +1,13 @@
+{
+  "timestamp": 1749830711.2499998,
+  "bundle_size": 39487,
+  "creation_time": 0.0009539169841445982,
+  "phase2_indicators": [
+    "Phase 2",
+    "detectWASMBasePath",
+    "loadWASMWithFallbacks",
+    "anywidget context"
+  ],
+  "esm_size": 44401,
+  "bundle_loading_successful": true
+}

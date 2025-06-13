@@ -1,0 +1,17 @@
+{
+  "size": 39487,
+  "minified": true,
+  "source_maps": false,
+  "debug_info": true,
+  "environment": "mixed",
+  "dev_indicators": [
+    "console.log",
+    "console.warn",
+    "console.error",
+    "development",
+    "dev"
+  ],
+  "production_optimized": true,
+  "avg_load_time": 0.0006721113265181581,
+  "performance_acceptable": true
+}

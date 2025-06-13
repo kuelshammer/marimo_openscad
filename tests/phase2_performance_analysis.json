@@ -1,0 +1,40 @@
+{
+  "timestamp": 1749830711.268953,
+  "performance_results": {
+    "cold_start_time": 0.0006319580134004354,
+    "avg_warm_time": 0.0005553164053708314,
+    "bundle_size": 39487,
+    "esm_size": 44401,
+    "loading_efficiency": 62483581.44479981,
+    "warm_start_times": [
+      0.0005912079941481352,
+      0.0005673330160789192,
+      0.0005606249906122684,
+      0.0005327500402927399,
+      0.0005246659857220948
+    ]
+  },
+  "performance_targets": {
+    "cold_start_max": 3.0,
+    "warm_start_max": 1.0,
+    "bundle_size_max": 200000,
+    "loading_efficiency_min": 50000
+  },
+  "performance_evaluation": {
+    "bundle_size_max": {
+      "target": 200000,
+      "actual": 39487,
+      "passed": true,
+      "margin": 160513
+    },
+    "loading_efficiency_min": {
+      "target": 50000,
+      "actual": 62483581.44479981,
+      "passed": true,
+      "margin": 62433581.44479981
+    }
+  },
+  "performance_score": 2,
+  "performance_percentage": 100.0,
+  "ready_for_phase3": true
+}

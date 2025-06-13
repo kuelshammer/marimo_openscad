@@ -1,0 +1,53 @@
+{
+  "marimo_detection_indicators": [
+    "window.anywidget",
+    "anywidget",
+    "marimo",
+    "typeof window",
+    "window.location"
+  ],
+  "wasm_environment_indicators": [
+    "WebAssembly",
+    "wasm",
+    "memory",
+    "limit"
+  ],
+  "local_environment_indicators": [
+    "fetch"
+  ],
+  "anywidget_compatibility": {
+    "has_esm": true,
+    "has_css": true,
+    "esm_size": 44401,
+    "css_size": 261
+  },
+  "memory_constraint_awareness": [
+    "memory",
+    "limit",
+    "size"
+  ],
+  "renderer_selection_patterns": [
+    "wasm",
+    "renderer",
+    "fallback",
+    "detect"
+  ],
+  "renderer_tests": {
+    "auto": {
+      "success": true,
+      "creation_time": 0.0005772500298917294,
+      "has_stl_data": true
+    },
+    "wasm": {
+      "success": true,
+      "creation_time": 0.0005307079991325736,
+      "has_stl_data": true
+    },
+    "local": {
+      "success": true,
+      "creation_time": 0.0005767919938080013,
+      "has_stl_data": true
+    }
+  },
+  "marimo_compatible": true
+}

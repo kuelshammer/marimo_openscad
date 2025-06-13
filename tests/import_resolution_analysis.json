@@ -1,0 +1,11 @@
+{
+  "timestamp": 1749830711.252209,
+  "problematic_imports_eliminated": true,
+  "problematic_imports_found": [],
+  "bundled_content_present": true,
+  "good_import_patterns": [
+    "from \"three\""
+  ],
+  "viewer_usage_successful": true,
+  "esm_size": 44401
+}

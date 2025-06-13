@@ -62,6 +62,19 @@ class OpenSCADViewerPhase2(anywidget.AnyWidget):
                 raise FileNotFoundError("No JavaScript bundle found. Run 'npm run build' first.")
     
     @property 
+    def _css(self):
+        """Basic CSS styling for Phase 2 widget"""
+        return """
+        .marimo-openscad-phase2 {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        }
+        .marimo-openscad-phase2 .status-badge {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        """
+    
+    @property 
     def _esm(self):
         """Dynamically load bundled JavaScript for anywidget"""
         try:
