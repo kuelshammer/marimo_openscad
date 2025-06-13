@@ -1,0 +1,1029 @@
+import * as c from "three";
+class b {
+  constructor() {
+    this.cache = null, this.cacheEnabled = this._checkCacheSupport(), this.cacheName = "openscad-wasm-v1", this.maxCacheAge = 7 * 24 * 60 * 60 * 1e3, this.initPromise = null;
+  }
+  /**
+   * Check if caching is supported in the current environment
+   * @private
+   */
+  _checkCacheSupport() {
+    return typeof caches < "u" && typeof Cache < "u" && typeof Request < "u";
+  }
+  /**
+   * Initialize the cache manager
+   * @returns {Promise<void>}
+   */
+  async initialize() {
+    return this.initPromise ? this.initPromise : (this.initPromise = this._doInitialize(), this.initPromise);
+  }
+  /**
+   * Internal initialization logic
+   * @private
+   */
+  async _doInitialize() {
+    if (!this.cacheEnabled) {
+      console.warn("WASM Cache: Cache API not supported, caching disabled");
+      return;
+    }
+    try {
+      this.cache = await caches.open(this.cacheName), console.log("WASM Cache: Cache initialized successfully"), await this._cleanupExpiredEntries();
+    } catch (e) {
+      console.warn("WASM Cache: Failed to initialize cache:", e), this.cacheEnabled = !1;
+    }
+  }
+  /**
+   * Cache a WASM resource
+   * @param {string} url - URL of the resource to cache
+   * @param {Response} response - Response to cache
+   * @returns {Promise<void>}
+   */
+  async cacheResource(e, i) {
+    if (!(!this.cacheEnabled || !this.cache))
+      try {
+        const t = i.clone(), n = new Response(t.body, {
+          status: t.status,
+          statusText: t.statusText,
+          headers: {
+            ...Object.fromEntries(t.headers.entries()),
+            "x-wasm-cache-timestamp": Date.now().toString(),
+            "x-wasm-cache-url": e
+          }
+        });
+        await this.cache.put(e, n), console.log(`WASM Cache: Cached resource ${e}`);
+      } catch (t) {
+        console.warn(`WASM Cache: Failed to cache ${e}:`, t);
+      }
+  }
+  /**
+   * Retrieve a cached resource
+   * @param {string} url - URL of the resource to retrieve
+   * @returns {Promise<Response|null>} Cached response or null if not found
+   */
+  async getCachedResource(e) {
+    if (!this.cacheEnabled || !this.cache)
+      return null;
+    try {
+      const i = await this.cache.match(e);
+      if (!i)
+        return null;
+      const t = i.headers.get("x-wasm-cache-timestamp");
+      return t && Date.now() - parseInt(t) > this.maxCacheAge ? (console.log(`WASM Cache: Cache entry expired for ${e}, removing`), await this.cache.delete(e), null) : (console.log(`WASM Cache: Retrieved cached resource ${e}`), i);
+    } catch (i) {
+      return console.warn(`WASM Cache: Failed to retrieve cached ${e}:`, i), null;
+    }
+  }
+  /**
+   * Fetch a resource with caching
+   * @param {string} url - URL to fetch
+   * @param {RequestInit} options - Fetch options
+   * @returns {Promise<Response>} Response from cache or network
+   */
+  async fetchWithCache(e, i = {}) {
+    await this.initialize();
+    const t = await this.getCachedResource(e);
+    if (t)
+      return t.clone();
+    try {
+      console.log(`WASM Cache: Fetching ${e} from network`);
+      const n = await fetch(e, i);
+      return n.ok ? (await this.cacheResource(e, n), n.clone()) : n;
+    } catch (n) {
+      throw console.error(`WASM Cache: Network fetch failed for ${e}:`, n), n;
+    }
+  }
+  /**
+   * Preload critical WASM resources
+   * @param {string[]} urls - URLs to preload
+   * @returns {Promise<void>}
+   */
+  async preloadResources(e) {
+    console.log("WASM Cache: Preloading resources:", e);
+    const i = e.map(async (t) => {
+      try {
+        await this.fetchWithCache(t), console.log(`WASM Cache: Preloaded ${t}`);
+      } catch (n) {
+        console.warn(`WASM Cache: Failed to preload ${t}:`, n);
+      }
+    });
+    await Promise.allSettled(i);
+  }
+  /**
+   * Clean up expired cache entries
+   * @private
+   */
+  async _cleanupExpiredEntries() {
+    if (this.cache)
+      try {
+        const e = await this.cache.keys(), i = Date.now();
+        for (const t of e) {
+          const n = await this.cache.match(t);
+          if (n) {
+            const s = n.headers.get("x-wasm-cache-timestamp");
+            s && i - parseInt(s) > this.maxCacheAge && (await this.cache.delete(t), console.log(`WASM Cache: Cleaned up expired entry ${t.url}`));
+          }
+        }
+      } catch (e) {
+        console.warn("WASM Cache: Cleanup failed:", e);
+      }
+  }
+  /**
+   * Clear all cached resources
+   * @returns {Promise<void>}
+   */
+  async clearCache() {
+    if (this.cacheEnabled)
+      try {
+        await caches.delete(this.cacheName), this.cache = await caches.open(this.cacheName), console.log("WASM Cache: Cache cleared successfully");
+      } catch (e) {
+        console.warn("WASM Cache: Failed to clear cache:", e);
+      }
+  }
+  /**
+   * Get cache statistics
+   * @returns {Promise<Object>} Cache statistics
+   */
+  async getCacheStats() {
+    if (!this.cache)
+      return {
+        enabled: !1,
+        entries: 0,
+        totalSize: 0
+      };
+    try {
+      const e = await this.cache.keys();
+      let i = 0, t = 0;
+      const n = Date.now();
+      for (const s of e) {
+        const r = await this.cache.match(s);
+        if (r) {
+          const a = r.headers.get("x-wasm-cache-timestamp");
+          if (a && n - parseInt(a) <= this.maxCacheAge) {
+            t++;
+            const p = r.headers.get("content-length");
+            p && (i += parseInt(p));
+          }
+        }
+      }
+      return {
+        enabled: this.cacheEnabled,
+        entries: t,
+        totalSize: i,
+        maxAge: this.maxCacheAge,
+        cacheName: this.cacheName
+      };
+    } catch (e) {
+      return console.warn("WASM Cache: Failed to get stats:", e), {
+        enabled: this.cacheEnabled,
+        entries: 0,
+        totalSize: 0,
+        error: e.message
+      };
+    }
+  }
+  /**
+   * Check if a resource is cached
+   * @param {string} url - URL to check
+   * @returns {Promise<boolean>} True if cached and valid
+   */
+  async isCached(e) {
+    return await this.getCachedResource(e) !== null;
+  }
+}
+const g = new b();
+class A {
+  constructor() {
+    this.instance = null, this.isInitialized = !1, this.isInitializing = !1, this.initializationPromise = null, this.wasmBasePath = this.detectWASMBasePath();
+  }
+  /**
+   * Detect appropriate WASM base path based on environment
+   * @private
+   */
+  detectWASMBasePath() {
+    return typeof window < "u" && window.anywidget ? (console.log("🔍 Phase 2: anywidget context detected"), "/static/wasm/") : typeof window < "u" && window.location.href.includes("marimo") ? (console.log("🔍 Phase 2: Marimo environment detected"), "./wasm/") : typeof window < "u" && window.location.protocol === "file:" ? (console.log("🔍 Phase 2: Local file development detected"), "./wasm/") : (console.log("🔍 Phase 2: Using default WASM path"), "/wasm/");
+  }
+  /**
+   * Load WASM module with fallback paths
+   * @param {string} filename - WASM filename
+   * @returns {Promise<ArrayBuffer>} WASM module bytes
+   * @private
+   */
+  async loadWASMWithFallbacks(e) {
+    const i = [
+      `${this.wasmBasePath}${e}`,
+      // Primary detected path
+      `/static/wasm/${e}`,
+      // Package static
+      `./wasm/${e}`,
+      // Relative
+      `../src/marimo_openscad/wasm/${e}`,
+      // Development
+      `./dist/wasm/${e}`,
+      // Build output
+      `/dist/wasm/${e}`
+      // Deployed build
+    ];
+    for (const t of i)
+      try {
+        console.log(`🔍 Phase 2: Trying WASM path: ${t}`);
+        const n = await fetch(t);
+        if (n.ok) {
+          const s = await n.arrayBuffer();
+          return console.log(`✅ Phase 2: WASM loaded from: ${t} (${s.byteLength} bytes)`), s;
+        }
+      } catch (n) {
+        console.warn(`❌ Phase 2: WASM path failed: ${t} - ${n.message}`);
+        continue;
+      }
+    throw new Error(`Phase 2: All WASM loading paths failed for ${e}`);
+  }
+  /**
+   * Initialize the OpenSCAD WASM module
+   * @param {Object} options - Configuration options
+   * @param {string} options.basePath - Base path for WASM files
+   * @param {boolean} options.includeFonts - Whether to load fonts
+   * @param {boolean} options.includeMCAD - Whether to load MCAD library
+   * @returns {Promise<Object>} The initialized OpenSCAD instance
+   */
+  async initialize(e = {}) {
+    if (this.isInitializing)
+      return this.initializationPromise;
+    if (this.isInitialized && this.instance)
+      return this.instance;
+    this.isInitializing = !0, this.initializationPromise = this._doInitialize(e);
+    try {
+      const i = await this.initializationPromise;
+      return this.instance = i, this.isInitialized = !0, this.isInitializing = !1, i;
+    } catch (i) {
+      throw this.isInitializing = !1, this.initializationPromise = null, i;
+    }
+  }
+  /**
+   * Internal initialization logic
+   * @private
+   */
+  async _doInitialize(e) {
+    const {
+      basePath: i = this.wasmBasePath,
+      includeFonts: t = !0,
+      includeMCAD: n = !0
+    } = e;
+    try {
+      const s = await this._loadOpenSCADModule(i);
+      console.log("Initializing OpenSCAD WASM instance...");
+      const r = await s({
+        noInitialRun: !0,
+        locateFile: (a, u) => a.endsWith(".wasm") ? i + a : u + a
+      });
+      return t && await this._loadFonts(r, i), n && await this._loadMCAD(r, i), console.log("OpenSCAD WASM instance initialized successfully"), r;
+    } catch (s) {
+      throw console.error("Failed to initialize OpenSCAD WASM:", s), new Error(`OpenSCAD WASM initialization failed: ${s.message}`);
+    }
+  }
+  /**
+   * Load the main OpenSCAD module with caching
+   * @private
+   */
+  async _loadOpenSCADModule(e) {
+    try {
+      await g.initialize();
+      const i = await g.fetchWithCache(e + "openscad.js");
+      if (!i.ok)
+        throw new Error(`Failed to fetch openscad.js: ${i.status}`);
+      const t = await i.text(), n = new Blob([t], { type: "application/javascript" }), s = URL.createObjectURL(n), r = await import(s);
+      return URL.revokeObjectURL(s), console.log("OpenSCAD module loaded successfully (with caching)"), r.default || r;
+    } catch (i) {
+      throw console.error("Failed to load OpenSCAD module:", i), i;
+    }
+  }
+  /**
+   * Load fonts library with caching
+   * @private
+   */
+  async _loadFonts(e, i) {
+    try {
+      const t = await g.fetchWithCache(i + "openscad.fonts.js");
+      if (!t.ok) {
+        console.warn("Fonts library not available, continuing without fonts");
+        return;
+      }
+      const n = await t.text(), s = new Blob([n], { type: "application/javascript" }), r = URL.createObjectURL(s), a = await import(r);
+      URL.revokeObjectURL(r), a.addFonts && (await a.addFonts(e), console.log("Fonts loaded successfully (cached)"));
+    } catch (t) {
+      console.warn("Failed to load fonts, continuing without:", t.message);
+    }
+  }
+  /**
+   * Load MCAD library with caching
+   * @private
+   */
+  async _loadMCAD(e, i) {
+    try {
+      const t = await g.fetchWithCache(i + "openscad.mcad.js");
+      if (!t.ok) {
+        console.warn("MCAD library not available, continuing without MCAD");
+        return;
+      }
+      const n = await t.text(), s = new Blob([n], { type: "application/javascript" }), r = URL.createObjectURL(s), a = await import(r);
+      URL.revokeObjectURL(r), a.addMCAD && (await a.addMCAD(e), console.log("MCAD library loaded successfully (cached)"));
+    } catch (t) {
+      console.warn("Failed to load MCAD library, continuing without:", t.message);
+    }
+  }
+  /**
+   * Get the current instance (if initialized)
+   * @returns {Object|null} The OpenSCAD instance or null
+   */
+  getInstance() {
+    return this.instance;
+  }
+  /**
+   * Check if the loader is initialized
+   * @returns {boolean} True if initialized
+   */
+  isReady() {
+    return this.isInitialized && this.instance !== null;
+  }
+  /**
+   * Reset the loader (for testing or re-initialization)
+   */
+  reset() {
+    this.instance = null, this.isInitialized = !1, this.isInitializing = !1, this.initializationPromise = null;
+  }
+  /**
+   * Get initialization status including cache information
+   * @returns {Object} Status information
+   */
+  async getStatus() {
+    const e = await g.getCacheStats();
+    return {
+      isInitialized: this.isInitialized,
+      isInitializing: this.isInitializing,
+      hasInstance: this.instance !== null,
+      cache: e
+    };
+  }
+  /**
+   * Preload WASM resources for faster initialization
+   * @returns {Promise<void>}
+   */
+  async preloadResources() {
+    const e = [
+      "openscad.js",
+      "openscad.wasm.js",
+      "openscad.wasm",
+      "openscad.fonts.js",
+      "openscad.mcad.js"
+    ], i = this.wasmBasePath, t = e.map((n) => i + n);
+    console.log("Preloading WASM resources for faster initialization..."), await g.preloadResources(t), console.log("WASM resources preloaded successfully");
+  }
+  /**
+   * Clear WASM cache
+   * @returns {Promise<void>}
+   */
+  async clearCache() {
+    await g.clearCache(), console.log("WASM cache cleared");
+  }
+}
+const C = new A();
+class f {
+  constructor(e = {}) {
+    this.options = {
+      enableManifold: !0,
+      outputFormat: "binstl",
+      timeout: 3e4,
+      // 30 seconds default timeout
+      ...e
+    }, this.isReady = !1, this.renderCount = 0;
+  }
+  /**
+   * Initialize the renderer
+   * @param {Object} wasmOptions - Options for WASM loader
+   * @returns {Promise<void>}
+   */
+  async initialize(e = {}) {
+    try {
+      await C.initialize(e), this.isReady = !0, console.log("OpenSCAD WASM Renderer initialized");
+    } catch (i) {
+      throw console.error("Failed to initialize WASM renderer:", i), i;
+    }
+  }
+  /**
+   * Render OpenSCAD code to STL binary data
+   * @param {string} scadCode - The OpenSCAD code to render
+   * @param {Object} options - Rendering options
+   * @returns {Promise<Uint8Array>} The STL binary data
+   */
+  async renderToSTL(e, i = {}) {
+    if (!this.isReady)
+      throw new Error("Renderer not initialized. Call initialize() first.");
+    const t = C.getInstance();
+    if (!t)
+      throw new Error("WASM instance not available");
+    const n = { ...this.options, ...i }, s = this._createRenderContext();
+    try {
+      console.log(`Starting WASM render ${s.id}...`);
+      const r = s.inputPath, a = s.outputPath;
+      t.FS.writeFile(r, e), console.log(`Written SCAD code to ${r}`);
+      const u = this._buildCommandArgs(r, a, n);
+      console.log("Executing OpenSCAD with args:", u);
+      const p = performance.now(), w = new Promise((m, S) => {
+        setTimeout(() => S(new Error("Rendering timeout")), n.timeout);
+      }), o = new Promise((m, S) => {
+        try {
+          const y = t.callMain(u);
+          y !== 0 ? S(new Error(`OpenSCAD exited with code ${y}`)) : m();
+        } catch (y) {
+          S(y);
+        }
+      });
+      await Promise.race([o, w]);
+      const l = performance.now() - p;
+      console.log(`Rendering completed in ${l.toFixed(2)}ms`);
+      let d;
+      try {
+        d = t.FS.readFile(a), console.log(`Read output file: ${d.length} bytes`);
+      } catch (m) {
+        throw new Error(`Failed to read output file: ${m.message}`);
+      }
+      if (this._cleanupRenderContext(t, s), !d || d.length === 0)
+        throw new Error("Rendering produced empty output");
+      return this.renderCount++, console.log(`WASM render ${s.id} completed successfully`), d;
+    } catch (r) {
+      throw console.error(`WASM render ${s.id} failed:`, r), this._cleanupRenderContext(t, s), new Error(`OpenSCAD WASM rendering failed: ${r.message}`);
+    }
+  }
+  /**
+   * Create a unique render context
+   * @private
+   */
+  _createRenderContext() {
+    const e = Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+    return {
+      id: e,
+      inputPath: `/tmp/input_${e}.scad`,
+      outputPath: `/tmp/output_${e}.stl`
+    };
+  }
+  /**
+   * Build command line arguments for OpenSCAD
+   * @private
+   */
+  _buildCommandArgs(e, i, t) {
+    const n = [e];
+    return t.enableManifold && n.push("--enable=manifold"), t.outputFormat === "binstl" && n.push("--export-format=binstl"), n.push("-o", i), n;
+  }
+  /**
+   * Clean up temporary files
+   * @private
+   */
+  _cleanupRenderContext(e, i) {
+    try {
+      if (e.FS) {
+        try {
+          e.FS.unlink(i.inputPath);
+        } catch {
+        }
+        try {
+          e.FS.unlink(i.outputPath);
+        } catch {
+        }
+      }
+    } catch (t) {
+      console.warn("Failed to cleanup render context:", t);
+    }
+  }
+  /**
+   * Get renderer statistics
+   * @returns {Object} Renderer statistics
+   */
+  getStats() {
+    return {
+      isReady: this.isReady,
+      renderCount: this.renderCount,
+      wasmStatus: C.getStatus()
+    };
+  }
+  /**
+   * Reset the renderer
+   */
+  reset() {
+    this.isReady = !1, this.renderCount = 0, C.reset();
+  }
+  /**
+   * Check if WASM rendering is supported in this environment
+   * @static
+   * @returns {boolean} True if WASM is supported
+   */
+  static isSupported() {
+    try {
+      return typeof WebAssembly < "u" && typeof WebAssembly.instantiate == "function" && typeof fetch < "u";
+    } catch {
+      return !1;
+    }
+  }
+  /**
+   * Get capabilities of the WASM renderer
+   * @static
+   * @returns {Object} Capabilities information
+   */
+  static getCapabilities() {
+    return {
+      supportsWASM: f.isSupported(),
+      supportsFonts: !0,
+      supportsMCAD: !0,
+      supportsManifold: !0,
+      outputFormats: ["binstl"],
+      maxFileSize: 50 * 1024 * 1024,
+      // 50MB limit for WASM
+      supportsWebWorkers: typeof Worker < "u"
+    };
+  }
+}
+class M {
+  constructor(e = {}) {
+    this.options = {
+      enableManifold: !0,
+      outputFormat: "binstl",
+      timeout: 3e4,
+      ...e
+    }, this.isInitialized = !1, this.wasmRenderer = null, this.initializationPromise = null, this.renderCount = 0;
+  }
+  /**
+   * Initialize the WASM renderer directly in main thread
+   */
+  async initialize() {
+    return this.initializationPromise ? this.initializationPromise : (this.initializationPromise = this._doInitialize(), this.initializationPromise);
+  }
+  /**
+   * Internal initialization logic
+   */
+  async _doInitialize() {
+    try {
+      return console.log("🚀 Initializing Direct WASM Renderer..."), this.wasmRenderer = new f(this.options), await this.wasmRenderer.initialize(), this.isInitialized = !0, console.log("✅ Direct WASM Renderer initialized successfully"), {
+        success: !0,
+        message: "Direct WASM renderer initialized",
+        capabilities: f.getCapabilities()
+      };
+    } catch (e) {
+      throw console.error("❌ Failed to initialize Direct WASM Renderer:", e), this.isInitialized = !1, new Error(`Direct WASM initialization failed: ${e.message}`);
+    }
+  }
+  /**
+   * Render OpenSCAD code to STL in main thread
+   */
+  async renderToSTL(e, i = {}) {
+    if (!this.isInitialized || !this.wasmRenderer)
+      throw new Error("Direct renderer not initialized");
+    try {
+      console.log("🔄 Starting direct WASM rendering...");
+      const t = performance.now(), n = { ...this.options, ...i }, s = await this.wasmRenderer.renderToSTL(e, n), r = performance.now() - t;
+      return this.renderCount++, console.log(`✅ Direct rendering completed in ${r.toFixed(2)}ms`), {
+        success: !0,
+        stlData: s,
+        renderTime: r,
+        size: s.length,
+        renderCount: this.renderCount,
+        renderer: "direct-wasm"
+      };
+    } catch (t) {
+      throw console.error("❌ Direct rendering failed:", t), new Error(`Direct WASM rendering failed: ${t.message}`);
+    }
+  }
+  /**
+   * Get renderer status and statistics
+   */
+  getStatus() {
+    return {
+      isInitialized: this.isInitialized,
+      hasRenderer: this.wasmRenderer !== null,
+      renderCount: this.renderCount,
+      rendererStats: this.wasmRenderer ? this.wasmRenderer.getStats() : null,
+      capabilities: this.isInitialized ? f.getCapabilities() : null,
+      memoryUsage: this._getMemoryUsage(),
+      mode: "direct-main-thread"
+    };
+  }
+  /**
+   * Get memory usage information (if available)
+   */
+  _getMemoryUsage() {
+    return typeof performance < "u" && performance.memory ? {
+      used: performance.memory.usedJSHeapSize,
+      total: performance.memory.totalJSHeapSize,
+      limit: performance.memory.jsHeapSizeLimit,
+      percentage: performance.memory.usedJSHeapSize / performance.memory.jsHeapSizeLimit * 100
+    } : null;
+  }
+  /**
+   * Reset the renderer
+   */
+  async reset() {
+    try {
+      return this.wasmRenderer && this.wasmRenderer.reset(), this.isInitialized = !1, this.renderCount = 0, this.initializationPromise = null, console.log("🔄 Direct renderer reset completed"), { success: !0 };
+    } catch (e) {
+      return console.error("❌ Direct renderer reset failed:", e), {
+        success: !1,
+        error: e.message
+      };
+    }
+  }
+  /**
+   * Check if direct rendering is supported
+   */
+  static isSupported() {
+    return f.isSupported();
+  }
+  /**
+   * Get renderer capabilities
+   */
+  static getCapabilities() {
+    return {
+      ...f.getCapabilities(),
+      supportsWorkers: !1,
+      // Explicitly disabled for WASM compatibility
+      mode: "direct-main-thread",
+      environment: "wasm-safe"
+    };
+  }
+}
+async function R(h = {}) {
+  console.log("🏭 Creating optimal WASM-safe renderer...");
+  const e = new M(h);
+  return await e.initialize(), console.log("✅ Direct renderer created and initialized"), e;
+}
+class W {
+  static parseSTL(e) {
+    return e instanceof ArrayBuffer ? this.parseBinary(e) : this.parseASCII(e);
+  }
+  static parseBinary(e) {
+    const i = new DataView(e), t = i.getUint32(80, !0);
+    console.log(`📦 Parsing binary STL: ${t} faces`);
+    const n = [], s = [];
+    for (let r = 0; r < t; r++) {
+      const a = 84 + r * 50, u = i.getFloat32(a, !0), p = i.getFloat32(a + 4, !0), w = i.getFloat32(a + 8, !0);
+      for (let o = 0; o < 3; o++) {
+        const l = a + 12 + o * 12;
+        n.push(
+          i.getFloat32(l, !0),
+          i.getFloat32(l + 4, !0),
+          i.getFloat32(l + 8, !0)
+        ), s.push(u, p, w);
+      }
+    }
+    return { vertices: n, normals: s };
+  }
+  static parseASCII(e) {
+    console.log("📄 Parsing ASCII STL");
+    const i = [], t = [], n = e.split(`
+`);
+    let s = null;
+    for (const r of n) {
+      const a = r.trim().split(/\s+/);
+      a[0] === "facet" && a[1] === "normal" ? s = [
+        parseFloat(a[2]),
+        parseFloat(a[3]),
+        parseFloat(a[4])
+      ] : a[0] === "vertex" && (i.push(
+        parseFloat(a[1]),
+        parseFloat(a[2]),
+        parseFloat(a[3])
+      ), s && t.push(...s));
+    }
+    return { vertices: i, normals: t };
+  }
+}
+class z {
+  constructor() {
+    this.directRenderer = null, this.isWasmSupported = !1, this.isWasmReady = !1, this.initializationPromise = null, this.activeRender = null, this.checkWasmSupport();
+  }
+  /**
+   * Check if WASM is supported in this environment
+   */
+  checkWasmSupport() {
+    this.isWasmSupported = M.isSupported(), console.log(`🚀 WASM Support (Direct): ${this.isWasmSupported ? "Enabled" : "Disabled"}`), this.isWasmSupported || console.warn("⚠️ WASM not supported, falling back to STL-only mode");
+  }
+  /**
+   * Initialize Direct WASM renderer if supported
+   */
+  async initializeWasm(e = {}) {
+    return this.isWasmSupported ? this.initializationPromise ? this.initializationPromise : (this.initializationPromise = this._doInitializeWasm(e), this.initializationPromise) : (console.log("🔄 WASM not supported, skipping initialization"), !1);
+  }
+  async _doInitializeWasm(e) {
+    try {
+      return console.log("🚀 Initializing Direct WASM renderer..."), this.directRenderer = await R({
+        enableManifold: !0,
+        outputFormat: "binstl",
+        timeout: 3e4,
+        ...e
+      }), this.isWasmReady = !0, console.log("✅ Direct WASM renderer initialized successfully"), !0;
+    } catch (i) {
+      return console.error("❌ Failed to initialize Direct WASM renderer:", i), this.isWasmReady = !1, !1;
+    }
+  }
+  /**
+   * Render SCAD code to STL using WASM (Main Thread)
+   */
+  async renderScadCode(e, i = null) {
+    if (!this.isWasmReady)
+      throw new Error("WASM renderer not ready");
+    this.activeRender && (console.log("🚫 Cancelling previous render for new request"), this.activeRender = null);
+    const t = i || `render_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    try {
+      console.log(`🔄 Starting WASM render: ${t}`);
+      const n = this.directRenderer.renderToSTL(e);
+      this.activeRender = { id: t, promise: n };
+      const s = await n;
+      return this.activeRender = null, console.log(`✅ WASM render completed: ${t} (${s.length} bytes)`), {
+        success: !0,
+        stlData: s,
+        metadata: {
+          renderId: t,
+          renderTime: Date.now(),
+          size: s.length,
+          renderer: "wasm"
+        }
+      };
+    } catch (n) {
+      throw this.activeRender = null, console.error(`❌ WASM render failed: ${t}`, n), n;
+    }
+  }
+  /**
+   * Simple render method for main thread execution
+   */
+  async renderWithCallback(e, i) {
+    try {
+      const t = await this.renderScadCode(e);
+      i(null, t);
+    } catch (t) {
+      i(t, null);
+    }
+  }
+  /**
+   * Cancel the current active render
+   */
+  cancelRender(e) {
+    this.activeRender && this.activeRender.id === e && (console.log(`🚫 Cancelling render: ${e}`), this.activeRender = null);
+  }
+  /**
+   * Get renderer status
+   */
+  getStatus() {
+    return {
+      wasmSupported: this.isWasmSupported,
+      wasmReady: this.isWasmReady,
+      activeRender: this.activeRender ? this.activeRender.id : null,
+      directRenderer: this.directRenderer ? this.directRenderer.getStatus() : null,
+      capabilities: this.isWasmSupported ? M.getCapabilities() : null
+    };
+  }
+}
+class x {
+  constructor(e) {
+    this.container = e, this.scene = null, this.camera = null, this.renderer = null, this.currentMesh = null, this.wasmManager = new z(), this.lastScadCode = null, this.lastRenderId = null, this.controls = {
+      mouseDown: !1,
+      mouseX: 0,
+      mouseY: 0,
+      cameraDistance: 50,
+      cameraTheta: Math.PI / 4,
+      cameraPhi: Math.PI / 4
+    }, this.init();
+  }
+  async init() {
+    this.scene = new c.Scene(), this.scene.background = new c.Color(16316922);
+    const e = this.container.getBoundingClientRect();
+    if (this.camera = new c.PerspectiveCamera(45, e.width / e.height, 0.1, 1e3), this.renderer = new c.WebGLRenderer({
+      antialias: !0,
+      alpha: !0,
+      powerPreference: "high-performance",
+      precision: "highp",
+      stencil: !1,
+      depth: !0
+    }), this.renderer.setSize(e.width, e.height), this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)), this.renderer.shadowMap.enabled = !0, this.renderer.shadowMap.type = c.PCFSoftShadowMap, this.renderer.sortObjects = !0, this.renderer.toneMapping = c.LinearToneMapping, this.renderer.domElement.style.cursor = "grab", this.renderer.domElement.style.userSelect = "none", this.container.appendChild(this.renderer.domElement), this.setupWebGLContextHandling(), this.setupLighting(), this.setupGrid(), this.addTestCube(), this.setupControls(), this.updateCameraPosition(), console.log(`📹 Initial camera position: x=${this.camera.position.x.toFixed(2)}, y=${this.camera.position.y.toFixed(2)}, z=${this.camera.position.z.toFixed(2)}`), this.wasmManager.isWasmSupported)
+      try {
+        await this.wasmManager.initializeWasm(), console.log("✅ WASM integration enabled");
+      } catch (i) {
+        console.warn("⚠️ WASM initialization failed, using STL-only mode:", i);
+      }
+    this.startAnimationLoop();
+  }
+  setupLighting() {
+    const e = new c.AmbientLight(4210752, 0.5);
+    this.scene.add(e);
+    const i = new c.DirectionalLight(16777215, 0.7);
+    i.position.set(10, 10, 5), i.castShadow = !0, this.scene.add(i);
+    const t = new c.DirectionalLight(16777215, 0.3);
+    t.position.set(-5, -5, -5), this.scene.add(t);
+  }
+  setupGrid() {
+    const e = new c.GridHelper(50, 50, 8947848, 13421772);
+    e.position.y = -0.5, this.scene.add(e);
+  }
+  addTestCube() {
+    const e = new c.BoxGeometry(1, 1, 1), i = new c.MeshPhongMaterial({
+      color: 16739179,
+      transparent: !0,
+      opacity: 0.7
+    }), t = new c.Mesh(e, i);
+    t.position.set(0, 1, 0), t.name = "testCube", this.scene.add(t), console.log("🧪 Test cube added to verify 3D scene functionality");
+  }
+  setupControls() {
+    const e = this.renderer.domElement;
+    if (!e || e.tagName !== "CANVAS")
+      throw console.error("❌ CRITICAL ERROR: Controls not attached to canvas element!"), new Error("Controls must be attached to canvas element");
+    console.log("🔍 Setting up controls on canvas element:", e.tagName, e.width, e.height), console.log("✅ VERIFIED: Controls correctly attached to canvas element"), e.addEventListener("mousedown", (i) => {
+      this.controls.mouseDown = !0, this.controls.mouseX = i.clientX, this.controls.mouseY = i.clientY, console.log("🔄 Mouse down event triggered");
+    }), e.addEventListener("mousemove", (i) => {
+      if (!this.controls.mouseDown) return;
+      const t = i.clientX - this.controls.mouseX, n = i.clientY - this.controls.mouseY;
+      this.controls.cameraTheta += t * 0.01, this.controls.cameraPhi = Math.max(
+        0.1,
+        Math.min(Math.PI - 0.1, this.controls.cameraPhi + n * 0.01)
+      ), this.updateCameraPosition(), this.controls.mouseX = i.clientX, this.controls.mouseY = i.clientY;
+    }), e.addEventListener("mouseup", () => {
+      this.controls.mouseDown = !1;
+    }), e.addEventListener("wheel", (i) => {
+      i.preventDefault(), this.controls.cameraDistance = Math.max(
+        5,
+        Math.min(200, this.controls.cameraDistance + i.deltaY * 0.05)
+      ), this.updateCameraPosition();
+    });
+  }
+  updateCameraPosition() {
+    const { cameraDistance: e, cameraTheta: i, cameraPhi: t } = this.controls;
+    this.camera.position.x = e * Math.sin(t) * Math.cos(i), this.camera.position.y = e * Math.cos(t), this.camera.position.z = e * Math.sin(t) * Math.sin(i), this.camera.lookAt(0, 0, 0);
+  }
+  setupWebGLContextHandling() {
+    !this.renderer || !this.renderer.domElement || (this.renderer.domElement.addEventListener("webglcontextlost", (e) => {
+      e.preventDefault(), console.warn("⚠️ WebGL context lost");
+    }), this.renderer.domElement.addEventListener("webglcontextrestored", () => {
+      if (console.log("✅ WebGL context restored"), this.setupLighting(), this.setupGrid(), this.currentMesh) {
+        const e = this.currentMesh.geometry, i = this.currentMesh.material;
+        this.scene.add(new c.Mesh(e, i));
+      }
+    }));
+  }
+  startAnimationLoop() {
+    const e = () => {
+      requestAnimationFrame(e), this.renderer.render(this.scene, this.camera);
+    };
+    e();
+  }
+  /**
+   * Render SCAD code using WASM (if available) or fallback to STL loading
+   */
+  async renderScadCode(e, i = {}) {
+    if (!e || typeof e != "string")
+      return console.warn("⚠️ No SCAD code provided"), !1;
+    if (this.lastRenderId && this.wasmManager.cancelRender(this.lastRenderId), this.lastScadCode = e, this.wasmManager.isWasmReady)
+      try {
+        console.log("🚀 Using WASM renderer for real-time rendering");
+        const t = await this.wasmManager.renderScadCode(e);
+        if (this.lastRenderId = t.metadata.renderId, this.loadSTLData(t.stlData))
+          return console.log(`✅ WASM render completed: ${t.metadata.size} bytes`), {
+            success: !0,
+            renderer: "wasm",
+            metadata: t.metadata
+          };
+      } catch (t) {
+        console.error("❌ WASM rendering failed:", t);
+      }
+    return console.log("🔄 WASM not available, using STL-only mode"), {
+      success: !1,
+      renderer: "stl_only",
+      message: "WASM rendering not available"
+    };
+  }
+  /**
+   * Load STL data with enhanced validation
+   */
+  loadSTLData(e) {
+    try {
+      const { vertices: i, normals: t } = W.parseSTL(e);
+      this.clearMesh();
+      const n = new c.BufferGeometry();
+      n.setAttribute("position", new c.Float32BufferAttribute(i, 3)), n.setAttribute("normal", new c.Float32BufferAttribute(t, 3));
+      const s = new c.MeshPhongMaterial({
+        color: 3447003,
+        shininess: 100,
+        side: c.DoubleSide,
+        transparent: !1,
+        opacity: 1
+      });
+      this.currentMesh = new c.Mesh(n, s), this.currentMesh.castShadow = !0, this.currentMesh.receiveShadow = !0, n.computeBoundingBox();
+      const r = n.boundingBox.getCenter(new c.Vector3());
+      if (this.currentMesh.position.copy(r.negate()), this.scene.add(this.currentMesh), !this.scene.children.includes(this.currentMesh))
+        throw console.error("❌ CRITICAL ERROR: Mesh was not added to scene!"), new Error("Mesh was not added to scene");
+      console.log(`🔍 Scene children count: ${this.scene.children.length}`), console.log(`🔍 Mesh position: x=${this.currentMesh.position.x.toFixed(2)}, y=${this.currentMesh.position.y.toFixed(2)}, z=${this.currentMesh.position.z.toFixed(2)}`), console.log("✅ VERIFIED: Mesh successfully added to scene and is visible");
+      const a = n.boundingBox.getSize(new c.Vector3()), u = Math.max(a.x, a.y, a.z);
+      return this.controls.cameraDistance = u * 2, this.updateCameraPosition(), console.log(`✅ STL loaded: ${i.length / 3} vertices, camera distance: ${this.controls.cameraDistance}`), !0;
+    } catch (i) {
+      return console.error("Error loading STL:", i), !1;
+    }
+  }
+  clearMesh() {
+    this.currentMesh && (this.scene.remove(this.currentMesh), this.currentMesh.geometry.dispose(), this.currentMesh.material.dispose(), this.currentMesh = null);
+  }
+  resize() {
+    const e = this.container.getBoundingClientRect();
+    this.camera.aspect = e.width / e.height, this.camera.updateProjectionMatrix(), this.renderer.setSize(e.width, e.height);
+  }
+  /**
+   * Get rendering capabilities and status
+   */
+  getRenderingStatus() {
+    return {
+      wasmStatus: this.wasmManager.getStatus(),
+      sceneStatus: {
+        meshLoaded: this.currentMesh !== null,
+        sceneChildren: this.scene ? this.scene.children.length : 0
+      },
+      lastScadCode: this.lastScadCode ? this.lastScadCode.length : 0,
+      lastRenderId: this.lastRenderId
+    };
+  }
+  dispose() {
+    this.lastRenderId && this.wasmManager.cancelRender(this.lastRenderId), this.clearMesh(), this.renderer && this.renderer.domElement && (this.renderer.domElement.removeEventListener("webglcontextlost", null), this.renderer.domElement.removeEventListener("webglcontextrestored", null), this.renderer.domElement.removeEventListener("mousedown", null), this.renderer.domElement.removeEventListener("mousemove", null), this.renderer.domElement.removeEventListener("mouseup", null), this.renderer.domElement.removeEventListener("wheel", null)), this.renderer && (this.renderer.dispose(), this.renderer = null), this.scene && (this.scene.clear(), this.scene = null), this.camera = null, this.wasmManager = null;
+  }
+}
+function D({ model: h, el: e }) {
+  e.innerHTML = `
+        <div style="width: 100%; height: 450px; border: 1px solid #ddd; position: relative; background: #fafafa;">
+            <div id="container" style="width: 100%; height: 100%;"></div>
+            <div id="status" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 4px; font-family: monospace; font-size: 12px;">
+                Initializing 3D viewer...
+            </div>
+            <div id="controls" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 8px; border-radius: 4px; font-size: 11px;">
+                🖱️ Drag: Rotate | 🔍 Wheel: Zoom<br>
+                <div id="wasm-status" style="margin-top: 4px; font-size: 10px; color: #666;">WASM: Checking...</div>
+            </div>
+        </div>
+    `;
+  const i = e.querySelector("#container"), t = e.querySelector("#status");
+  let n = null;
+  try {
+    let r = function() {
+      const o = h.get("stl_data"), l = h.get("scad_code");
+      if (!o && !l) {
+        n && n.clearMesh(), t.textContent = "No model data";
+        return;
+      }
+      if (t.textContent = "Processing model...", l && n && n.wasmManager.isWasmReady) {
+        console.log("🚀 Processing SCAD code for real-time rendering"), t.textContent = "Rendering SCAD code...", n.renderScadCode(l).then((d) => {
+          d.success ? (t.textContent = `WASM render completed (${d.metadata?.size || "unknown"} bytes)`, t.style && (t.style.backgroundColor = "rgba(76, 175, 80, 0.8)")) : (t.textContent = "WASM rendering not available, using STL mode", t.style && (t.style.backgroundColor = "rgba(255, 193, 7, 0.8)"), o && a(o));
+        }).catch((d) => {
+          console.error("SCAD rendering failed:", d), t.textContent = `SCAD render error: ${d.message}`, t.style && (t.style.backgroundColor = "rgba(244, 67, 54, 0.8)"), o && a(o);
+        });
+        return;
+      }
+      o ? a(o) : l && (t.textContent = "SCAD code provided but WASM not ready", t.style && (t.style.backgroundColor = "rgba(255, 193, 7, 0.8)"));
+    }, a = function(o) {
+      t.textContent = "Loading STL model...";
+      try {
+        const l = atob(o), d = new Uint8Array(l.length);
+        for (let m = 0; m < l.length; m++)
+          d[m] = l.charCodeAt(m);
+        n ? n.loadSTLData(d.buffer) ? (t.textContent = `STL model loaded (${n.scene.children.length} objects in scene)`, t.style && (t.style.backgroundColor = "rgba(76, 175, 80, 0.8)")) : (t.textContent = "Error loading STL model", t.style && (t.style.backgroundColor = "rgba(244, 67, 54, 0.8)")) : (t.textContent = "Test mode - STL data received", t.style && (t.style.backgroundColor = "rgba(156, 39, 176, 0.8)"));
+      } catch (l) {
+        console.error("Error loading STL model:", l), t.textContent = "Error loading STL model", t.style && (t.style.backgroundColor = "rgba(244, 67, 54, 0.8)");
+      }
+    }, u = function() {
+      const o = h.get("error_message");
+      o && (t.textContent = `Error: ${o}`);
+    }, p = function() {
+      h.get("is_loading") && (t.textContent = "Loading...");
+    }, w = function() {
+      if (n) {
+        const o = n.getRenderingStatus();
+        if (console.log("🔍 WASM Status Update:", o), o.wasmStatus.wasmReady) {
+          const l = e.querySelector("#controls");
+          if (l && !l.querySelector(".wasm-indicator")) {
+            const d = document.createElement("div");
+            d.className = "wasm-indicator", d.innerHTML = "🚀 WASM Ready", d.style.cssText = "color: #4CAF50; font-weight: bold; margin-top: 4px;", l.appendChild(d);
+          }
+        }
+      }
+    };
+    if (typeof process < "u" && process.env?.NODE_ENV === "test" || typeof window < "u" && window.happyDOM || typeof global < "u" && global.happyDOM)
+      t.textContent = "Test mode - 3D rendering disabled", console.log("🧪 Running in test mode, skipping 3D initialization");
+    else {
+      if (t.textContent = "Setting up 3D scene...", n = new x(i), !n.scene || !n.renderer)
+        throw new Error("Failed to initialize 3D scene");
+      t.textContent = "Ready - waiting for model data...", console.log("✅ 3D scene initialized successfully");
+    }
+    h.on("change:stl_data", r), h.on("change:scad_code", r), h.on("change:error_message", u), h.on("change:is_loading", p), h.on("change:wasm_enabled", w), r(), u(), p(), window.addEventListener("resize", () => {
+      n && n.resize();
+    });
+  } catch (s) {
+    console.error("Widget initialization error:", s), t.textContent = `Initialization error: ${s.message}`;
+  }
+  return () => {
+    n && n.dispose();
+  };
+}
+const v = { render: D };
+export {
+  v as default,
+  D as render
+};
+//# sourceMappingURL=widget.es.js.map

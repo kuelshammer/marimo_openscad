@@ -13,7 +13,71 @@ class OpenSCADWASMLoader {
         this.isInitialized = false;
         this.isInitializing = false;
         this.initializationPromise = null;
-        this.wasmBasePath = '/wasm/';
+        this.wasmBasePath = this.detectWASMBasePath();
+    }
+
+    /**
+     * Detect appropriate WASM base path based on environment
+     * @private
+     */
+    detectWASMBasePath() {
+        // Phase 2: Enhanced path detection for anywidget compatibility
+        
+        // Check if running in anywidget context
+        if (typeof window !== 'undefined' && window.anywidget) {
+            console.log('🔍 Phase 2: anywidget context detected');
+            return '/static/wasm/';  // Package static path
+        }
+        
+        // Check if running in marimo WASM environment
+        if (typeof window !== 'undefined' && window.location.href.includes('marimo')) {
+            console.log('🔍 Phase 2: Marimo environment detected');
+            return './wasm/';  // Relative to marimo
+        }
+        
+        // Check for file:// protocol (development)
+        if (typeof window !== 'undefined' && window.location.protocol === 'file:') {
+            console.log('🔍 Phase 2: Local file development detected');
+            return './wasm/';  // Relative to HTML
+        }
+        
+        // Default fallback
+        console.log('🔍 Phase 2: Using default WASM path');
+        return '/wasm/';
+    }
+    
+    /**
+     * Load WASM module with fallback paths
+     * @param {string} filename - WASM filename
+     * @returns {Promise<ArrayBuffer>} WASM module bytes
+     * @private
+     */
+    async loadWASMWithFallbacks(filename) {
+        const fallbackPaths = [
+            `${this.wasmBasePath}${filename}`,           // Primary detected path
+            `/static/wasm/${filename}`,                  // Package static
+            `./wasm/${filename}`,                        // Relative
+            `../src/marimo_openscad/wasm/${filename}`,   // Development
+            `./dist/wasm/${filename}`,                   // Build output
+            `/dist/wasm/${filename}`                     // Deployed build
+        ];
+        
+        for (const path of fallbackPaths) {
+            try {
+                console.log(`🔍 Phase 2: Trying WASM path: ${path}`);
+                const response = await fetch(path);
+                if (response.ok) {
+                    const wasmBytes = await response.arrayBuffer();
+                    console.log(`✅ Phase 2: WASM loaded from: ${path} (${wasmBytes.byteLength} bytes)`);
+                    return wasmBytes;
+                }
+            } catch (error) {
+                console.warn(`❌ Phase 2: WASM path failed: ${path} - ${error.message}`);
+                continue;
+            }
+        }
+        
+        throw new Error(`Phase 2: All WASM loading paths failed for ${filename}`);
     }
 
     /**
