@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="28" failures="0" errors="0" time="0.379">
+    <testsuite name="src/test/marimo-widget.test.js" timestamp="2025-06-12T21:28:30.702Z" hostname="Mac" tests="20" failures="0" errors="0" skipped="0" time="0.006">
+        <testcase classname="src/test/marimo-widget.test.js" name="Environment Detection &gt; should detect environment constraints" time="0.001">
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="OpenSCADDirectRenderer &gt; should create renderer with correct mode" time="0.001">
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="OpenSCADDirectRenderer &gt; should report correct capabilities" time="0">
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="OpenSCADDirectRenderer &gt; should provide status information" time="0">
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="OpenSCADDirectRenderer &gt; should support WASM detection" time="0">
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="Marimo OpenSCAD Widget &gt; should initialize widget in test mode" time="0.001">
+            <system-out>
+🎯 Initializing Marimo OpenSCAD Widget (WASM-safe)
+🧪 Running in test mode, skipping 3D initialization
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="Marimo OpenSCAD Widget &gt; should set up model change listeners" time="0.001">
+            <system-out>
+🎯 Initializing Marimo OpenSCAD Widget (WASM-safe)
+🧪 Running in test mode, skipping 3D initialization
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="Marimo OpenSCAD Widget &gt; should handle empty model data" time="0">
+            <system-out>
+🎯 Initializing Marimo OpenSCAD Widget (WASM-safe)
+🧪 Running in test mode, skipping 3D initialization
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="Marimo OpenSCAD Widget &gt; should handle STL data" time="0.001">
+            <system-out>
+🎯 Initializing Marimo OpenSCAD Widget (WASM-safe)
+🧪 Running in test mode, skipping 3D initialization
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="Marimo OpenSCAD Widget &gt; should handle SCAD code" time="0">
+            <system-out>
+🎯 Initializing Marimo OpenSCAD Widget (WASM-safe)
+🧪 Running in test mode, skipping 3D initialization
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="Marimo OpenSCAD Widget &gt; should handle error states" time="0">
+            <system-out>
+🎯 Initializing Marimo OpenSCAD Widget (WASM-safe)
+🧪 Running in test mode, skipping 3D initialization
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="Marimo OpenSCAD Widget &gt; should handle loading states" time="0">
+            <system-out>
+🎯 Initializing Marimo OpenSCAD Widget (WASM-safe)
+🧪 Running in test mode, skipping 3D initialization
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="WASM Compatibility &gt; should work without Web Workers" time="0">
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="WASM Compatibility &gt; should work without advanced memory API" time="0">
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="WASM Compatibility &gt; should prioritize WASM-safe operations" time="0">
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="Performance and Memory &gt; should track render count" time="0">
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="Performance and Memory &gt; should provide memory information when available" time="0.001">
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="Performance and Memory &gt; should support renderer reset" time="0">
+            <system-out>
+🔄 Direct renderer reset completed
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="Error Handling &gt; should handle renderer initialization failure gracefully" time="0">
+        </testcase>
+        <testcase classname="src/test/marimo-widget.test.js" name="Error Handling &gt; should handle render requests before initialization" time="0">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/widget.test.js" timestamp="2025-06-12T21:28:30.704Z" hostname="Mac" tests="8" failures="0" errors="0" skipped="0" time="0.005">
+        <testcase classname="src/test/widget.test.js" name="Marimo-OpenSCAD Widget &gt; should initialize widget container" time="0.001">
+            <system-out>
+🧪 Running in test mode, skipping 3D initialization
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/test/widget.test.js" name="Marimo-OpenSCAD Widget &gt; should handle model data changes" time="0.002">
+            <system-out>
+🧪 Running in test mode, skipping 3D initialization
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/test/widget.test.js" name="Marimo-OpenSCAD Widget &gt; should return cleanup function" time="0">
+            <system-out>
+🧪 Running in test mode, skipping 3D initialization
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/test/widget.test.js" name="Marimo-OpenSCAD Widget &gt; should handle empty STL data" time="0">
+            <system-out>
+🧪 Running in test mode, skipping 3D initialization
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/test/widget.test.js" name="Marimo-OpenSCAD Widget &gt; should handle error states" time="0">
+            <system-out>
+🧪 Running in test mode, skipping 3D initialization
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/test/widget.test.js" name="Marimo-OpenSCAD Widget &gt; should handle loading states" time="0">
+            <system-out>
+🧪 Running in test mode, skipping 3D initialization
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/test/widget.test.js" name="STL Parser &gt; should handle base64 encoded STL data" time="0">
+            <system-out>
+🧪 Running in test mode, skipping 3D initialization
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/test/widget.test.js" name="Scene Manager &gt; should handle resize events" time="0.001">
+            <system-out>
+🧪 Running in test mode, skipping 3D initialization
+
+            </system-out>
+        </testcase>
+    </testsuite>
+</testsuites>
