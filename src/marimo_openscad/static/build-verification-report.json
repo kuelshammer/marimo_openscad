@@ -1,0 +1,177 @@
+{
+  "timestamp": "2025-06-13T05:05:38.737Z",
+  "build_verification": {
+    "status": "needs_improvement",
+    "overall_score": 58.82352941176471,
+    "critical_issues": 0
+  },
+  "javascript_modules": {
+    "total": 9,
+    "valid": 2,
+    "results": [
+      {
+        "file": "widget.es.js",
+        "description": "Main widget module (ES)",
+        "exists": true,
+        "size": 38001,
+        "sizeFormatted": "37.11 KB"
+      },
+      {
+        "file": "widget.umd.js",
+        "description": "Main widget module (UMD)",
+        "exists": true,
+        "size": 27369,
+        "sizeFormatted": "26.73 KB"
+      },
+      {
+        "file": "wasm-loader.es.js",
+        "description": "WASM loader module (ES)",
+        "exists": false
+      },
+      {
+        "file": "wasm-loader.umd.js",
+        "description": "WASM loader module (UMD)",
+        "exists": false
+      },
+      {
+        "file": "wasm-renderer.es.js",
+        "description": "WASM renderer module (ES)",
+        "exists": false
+      },
+      {
+        "file": "worker-manager.es.js",
+        "description": "Worker manager module (ES)",
+        "exists": false
+      },
+      {
+        "file": "memory-manager.es.js",
+        "description": "Memory manager module (ES)",
+        "exists": false
+      },
+      {
+        "file": "cache-manager.es.js",
+        "description": "Cache manager module (ES)",
+        "exists": false
+      },
+      {
+        "file": "openscad-worker.es.js",
+        "description": "OpenSCAD worker module (ES)",
+        "exists": false
+      }
+    ]
+  },
+  "wasm_assets": {
+    "total": 6,
+    "valid": 6,
+    "critical_issues": 0,
+    "results": [
+      {
+        "file": "openscad.wasm",
+        "description": "OpenSCAD WASM binary",
+        "critical": true,
+        "exists": true,
+        "size": 7720447,
+        "sizeFormatted": "7.36 MB"
+      },
+      {
+        "file": "openscad.js",
+        "description": "OpenSCAD JavaScript glue code",
+        "critical": true,
+        "exists": true,
+        "size": 745,
+        "sizeFormatted": "745.00 B"
+      },
+      {
+        "file": "openscad.wasm.js",
+        "description": "WASM loader JavaScript",
+        "critical": true,
+        "exists": true,
+        "size": 120025,
+        "sizeFormatted": "117.21 KB"
+      },
+      {
+        "file": "openscad.d.ts",
+        "description": "TypeScript definitions",
+        "critical": false,
+        "exists": true,
+        "size": 816,
+        "sizeFormatted": "816.00 B"
+      },
+      {
+        "file": "openscad.fonts.js",
+        "description": "Font resources",
+        "critical": false,
+        "exists": true,
+        "size": 8163407,
+        "sizeFormatted": "7.79 MB"
+      },
+      {
+        "file": "openscad.mcad.js",
+        "description": "MCAD library",
+        "critical": false,
+        "exists": true,
+        "size": 491462,
+        "sizeFormatted": "479.94 KB"
+      }
+    ]
+  },
+  "compressed_assets": {
+    "total_compressed": 7,
+    "results": [
+      {
+        "pattern": "*.js.gz",
+        "description": "Compressed JavaScript modules",
+        "count": 2,
+        "files": [
+          "widget.es.js.gz",
+          "widget.umd.js.gz"
+        ]
+      },
+      {
+        "pattern": "wasm/*.wasm.gz",
+        "description": "Compressed WASM binaries",
+        "count": 1,
+        "files": [
+          "openscad.wasm.gz"
+        ]
+      },
+      {
+        "pattern": "wasm/*.js.gz",
+        "description": "Compressed WASM JavaScript",
+        "count": 4,
+        "files": [
+          "openscad.fonts.js.gz",
+          "openscad.js.gz",
+          "openscad.mcad.js.gz",
+          "openscad.wasm.js.gz"
+        ]
+      }
+    ]
+  },
+  "build_manifests": {
+    "total": 2,
+    "valid": 2,
+    "results": [
+      {
+        "file": "optimization-manifest.json",
+        "description": "Asset optimization manifest",
+        "exists": true,
+        "size": 2820,
+        "sizeFormatted": "2.75 KB"
+      },
+      {
+        "file": "nginx-wasm.conf",
+        "description": "Nginx configuration",
+        "exists": true,
+        "size": 1041,
+        "sizeFormatted": "1.02 KB"
+      }
+    ]
+  },
+  "summary": {
+    "total_files_expected": 17,
+    "total_files_found": 10,
+    "compression_enabled": true,
+    "production_ready": false
+  }
+}

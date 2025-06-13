@@ -24,7 +24,7 @@ export class MockOpenSCADWASM {
      */
     callMain(args) {
         this.callCount++;
-        console.log(`Mock OpenSCAD callMain called with:`, args);
+        console.log('Mock OpenSCAD callMain called with:', args);
         
         if (this.shouldFail) {
             throw new Error('Mock OpenSCAD rendering failed');

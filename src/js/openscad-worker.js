@@ -160,27 +160,27 @@ self.onmessage = async function(event) {
         let result;
         
         switch (command) {
-            case 'initialize':
-                result = await worker.initialize(data);
-                break;
+        case 'initialize':
+            result = await worker.initialize(data);
+            break;
                 
-            case 'render':
-                result = await worker.renderToSTL(data.scadCode, data.options);
-                break;
+        case 'render':
+            result = await worker.renderToSTL(data.scadCode, data.options);
+            break;
                 
-            case 'status':
-                result = await worker.getStatus();
-                break;
+        case 'status':
+            result = await worker.getStatus();
+            break;
                 
-            case 'reset':
-                result = await worker.reset();
-                break;
+        case 'reset':
+            result = await worker.reset();
+            break;
                 
-            default:
-                result = {
-                    success: false,
-                    error: `Unknown command: ${command}`
-                };
+        default:
+            result = {
+                success: false,
+                error: `Unknown command: ${command}`
+            };
         }
         
         // Send result back to main thread

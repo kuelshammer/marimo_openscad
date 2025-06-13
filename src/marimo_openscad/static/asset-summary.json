@@ -1,0 +1,12 @@
+{
+  "build_timestamp": "Fr 13 Jun 2025 05:05:38 UTC",
+  "asset_counts": {
+    "javascript": 2,
+    "css": 0,
+    "wasm": 14,
+    "manifests": 2
+  },
+  "wasm_enabled": true,
+  "total_assets": 18,
+  "python_package_ready": true
+}

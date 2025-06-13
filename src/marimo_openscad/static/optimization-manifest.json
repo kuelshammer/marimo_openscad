@@ -1,0 +1,98 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-06-13T05:05:38.621Z",
+  "cache_strategy": {
+    "js_modules": "7 days",
+    "wasm_modules": "30 days",
+    "compression": "gzip"
+  },
+  "files": {
+    "javascript": [
+      {
+        "name": "widget.es.js",
+        "original_size": 38001,
+        "compressed_size": 9619,
+        "compression_ratio": 74.6875082234678,
+        "cache_headers": {
+          "Cache-Control": "public, max-age=604800",
+          "Content-Encoding": "gzip",
+          "Content-Type": "application/javascript"
+        }
+      },
+      {
+        "name": "widget.umd.js",
+        "original_size": 27369,
+        "compressed_size": 8156,
+        "compression_ratio": 70.19986115678321,
+        "cache_headers": {
+          "Cache-Control": "public, max-age=604800",
+          "Content-Encoding": "gzip",
+          "Content-Type": "application/javascript"
+        }
+      }
+    ],
+    "wasm": [
+      {
+        "name": "openscad.fonts.js",
+        "original_size": 8163407,
+        "compressed_size": 2615219,
+        "compression_ratio": 67.9641233127296,
+        "cache_headers": {
+          "Cache-Control": "public, max-age=2592000",
+          "Content-Encoding": "gzip",
+          "Content-Type": "application/javascript"
+        }
+      },
+      {
+        "name": "openscad.js",
+        "original_size": 745,
+        "compressed_size": 411,
+        "compression_ratio": 44.83221476510067,
+        "cache_headers": {
+          "Cache-Control": "public, max-age=2592000",
+          "Content-Encoding": "gzip",
+          "Content-Type": "application/javascript"
+        }
+      },
+      {
+        "name": "openscad.mcad.js",
+        "original_size": 491462,
+        "compressed_size": 68544,
+        "compression_ratio": 86.05304174076531,
+        "cache_headers": {
+          "Cache-Control": "public, max-age=2592000",
+          "Content-Encoding": "gzip",
+          "Content-Type": "application/javascript"
+        }
+      },
+      {
+        "name": "openscad.wasm",
+        "original_size": 7720447,
+        "compressed_size": 2468578,
+        "compression_ratio": 68.02545241227614,
+        "cache_headers": {
+          "Cache-Control": "public, max-age=2592000",
+          "Content-Encoding": "gzip",
+          "Content-Type": "application/wasm"
+        }
+      },
+      {
+        "name": "openscad.wasm.js",
+        "original_size": 120025,
+        "compressed_size": 29614,
+        "compression_ratio": 75.326806915226,
+        "cache_headers": {
+          "Cache-Control": "public, max-age=2592000",
+          "Content-Encoding": "gzip",
+          "Content-Type": "application/javascript"
+        }
+      }
+    ]
+  },
+  "statistics": {
+    "total_files": 7,
+    "total_original_size": 16561456,
+    "total_compressed_size": 5200141,
+    "average_compression_ratio": 69.58414407519267
+  }
+}

@@ -143,13 +143,13 @@ export class PerformanceBenchmark {
             comparison: comparison.testName,
             performance: {
                 speedImprovement: speedRatio > 1 ? `${((speedRatio - 1) * 100).toFixed(1)}% faster` : 
-                                                   `${((1 - speedRatio) * 100).toFixed(1)}% slower`,
+                    `${((1 - speedRatio) * 100).toFixed(1)}% slower`,
                 speedRatio: speedRatio,
                 isImprovement: speedRatio > 1
             },
             memory: {
                 memoryChange: memoryRatio > 1 ? `${((memoryRatio - 1) * 100).toFixed(1)}% more memory` :
-                                               `${((1 - memoryRatio) * 100).toFixed(1)}% less memory`,
+                    `${((1 - memoryRatio) * 100).toFixed(1)}% less memory`,
                 memoryRatio: memoryRatio,
                 isImprovement: memoryRatio < 1
             }

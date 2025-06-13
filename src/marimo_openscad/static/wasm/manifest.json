@@ -1,0 +1,52 @@
+{
+  "version": "2022.03.20",
+  "timestamp": "2025-06-13T05:05:36.816Z",
+  "base_url": "https://files.openscad.org/wasm/2022.03.20",
+  "files": {
+    "openscad.js": {
+      "exists": true,
+      "size": 745,
+      "sizeFormatted": "0.00 MB"
+    },
+    "openscad.wasm": {
+      "exists": true,
+      "size": 7720447,
+      "sizeFormatted": "7.36 MB"
+    },
+    "openscad.wasm.js": {
+      "exists": true,
+      "size": 120025,
+      "sizeFormatted": "0.11 MB"
+    },
+    "openscad.d.ts": {
+      "exists": true,
+      "size": 816,
+      "sizeFormatted": "0.00 MB"
+    },
+    "openscad.fonts.js": {
+      "exists": true,
+      "size": 8163407,
+      "sizeFormatted": "7.79 MB"
+    },
+    "openscad.fonts.d.ts": {
+      "exists": true,
+      "size": 99,
+      "sizeFormatted": "0.00 MB"
+    },
+    "openscad.mcad.js": {
+      "exists": true,
+      "size": 491462,
+      "sizeFormatted": "0.47 MB"
+    },
+    "openscad.mcad.d.ts": {
+      "exists": true,
+      "size": 98,
+      "sizeFormatted": "0.00 MB"
+    }
+  },
+  "integrity": {
+    "verified": true,
+    "total_files": 8,
+    "downloaded_files": 8
+  }
+}

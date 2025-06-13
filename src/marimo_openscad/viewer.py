@@ -574,12 +574,12 @@ class OpenSCADViewer(anywidget.AnyWidget):
                         if (stlResult) {
                             console.log('✅ Phase 2: Real WASM OpenSCAD succeeded!');
                             processSTLData(stlResult);
-                            return true;
+                            return { success: true };
                         }
                     } catch (wasmError) {
                         console.warn('⚠️ Phase 2 WASM failed:', wasmError);
                     }
-                    return false;
+                    return { success: false };
                 }
                 
                 // Phase 1: Fallback to SCAD-aware geometry generation
