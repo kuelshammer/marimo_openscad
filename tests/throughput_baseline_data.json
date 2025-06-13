@@ -1,0 +1,56 @@
+{
+  "timestamp": 1749829980.350914,
+  "platform": "Darwin",
+  "overall_avg_time_sec": null,
+  "overall_avg_throughput_per_sec": 0,
+  "performance_category": "FAILED",
+  "successful_models": 0,
+  "total_models": 5,
+  "detailed_results": {
+    "minimal": {
+      "avg_time_sec": 0.0004277916547531883,
+      "min_time_sec": 0.000364875013474375,
+      "max_time_sec": 0.0005161669687367976,
+      "throughput_per_sec": 2337.5865070975815,
+      "success_rate": 0.0,
+      "iterations": 3,
+      "successful_renders": 0
+    },
+    "simple": {
+      "avg_time_sec": 0.0004259719862602651,
+      "min_time_sec": 0.0003938750014640391,
+      "max_time_sec": 0.00045929098268970847,
+      "throughput_per_sec": 2347.5722166128758,
+      "success_rate": 0.0,
+      "iterations": 3,
+      "successful_renders": 0
+    },
+    "medium": {
+      "avg_time_sec": 0.00038370829618846375,
+      "min_time_sec": 0.00035029195714741945,
+      "max_time_sec": 0.0004242909490130842,
+      "throughput_per_sec": 2606.1464136517807,
+      "success_rate": 0.0,
+      "iterations": 3,
+      "successful_renders": 0
+    },
+    "complex": {
+      "avg_time_sec": 0.0003623196583551665,
+      "min_time_sec": 0.000351083988789469,
+      "max_time_sec": 0.0003702079993672669,
+      "throughput_per_sec": 2759.993770527744,
+      "success_rate": 0.0,
+      "iterations": 3,
+      "successful_renders": 0
+    },
+    "very_complex": {
+      "avg_time_sec": 0.00042583333561196923,
+      "min_time_sec": 0.00041912501910701394,
+      "max_time_sec": 0.00043762498535215855,
+      "throughput_per_sec": 2348.336582345979,
+      "success_rate": 0.0,
+      "iterations": 3,
+      "successful_renders": 0
+    }
+  }
+}

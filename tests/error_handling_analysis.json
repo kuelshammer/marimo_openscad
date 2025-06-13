@@ -1,0 +1,43 @@
+{
+  "timestamp": 1749829980.5711071,
+  "error_handling_ready": true,
+  "successful_scenarios": 4,
+  "total_scenarios": 4,
+  "coverage_percentage": 100.0,
+  "detailed_results": {
+    "timeout_error": {
+      "success": true,
+      "result": {
+        "timeout_detected": true,
+        "timeout_age": 35.000001192092896
+      }
+    },
+    "malformed_message": {
+      "success": true,
+      "result": {
+        "malformed_messages_tested": 5,
+        "handled_correctly": 5,
+        "handling_rate": 1.0
+      }
+    },
+    "large_data_error": {
+      "success": true,
+      "result": {
+        "large_data_size": 10485760,
+        "serialized_size": 13981135,
+        "data_integrity": true,
+        "handling_successful": true
+      }
+    },
+    "concurrent_request_error": {
+      "success": true,
+      "result": {
+        "concurrent_requests": 5,
+        "unique_requests": 5,
+        "all_tracked": true,
+        "no_conflicts": true,
+        "all_completed": true
+      }
+    }
+  }
+}

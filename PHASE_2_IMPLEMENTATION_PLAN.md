@@ -2,9 +2,16 @@
 
 **Plan Date:** 13. Juni 2025  
 **Based on:** Phase 1 E2E Test Results & Sequential Thinking Analysis  
-**Duration:** 4-5 Tage  
-**Status:** 🎯 READY FOR EXECUTION  
+**Duration:** 6-7 Tage (korrigiert basierend auf Test-Gap-Analyse)  
+**Status:** ⚠️ PARTIALLY IMPLEMENTED - CRITICAL VALIDATION GAPS
 **Priority:** ⭐ CRITICAL (Blocker für WASM Integration)
+
+🚨 **CRITICAL UPDATE (basierend auf Test-Gap-Analyse):**
+- Bundle Creation: ✅ TEILWEISE IMPLEMENTIERT (viewer_phase2.py existiert)
+- Real Environment Validation: ❌ KOMPLETT FEHLEND
+- Cross-Platform Testing: ❌ NICHT IMPLEMENTIERT
+- Production Bundle Validation: ❌ UNGETESTET
+- anywidget Integration Testing: ❌ LÜCKEN VORHANDEN
 
 ## 🎯 **Strategic Objectives**
 
@@ -392,6 +399,184 @@ uv run pytest tests/test_e2e_anywidget_real.py::TestRealAnyWidgetExecution::test
 
 ---
 
+## 📋 **Step 2.6: Critical Validation Gaps** ❌ MISSING - MUST IMPLEMENT
+**Duration:** 2 Tage  
+**Priority:** ⭐ CRITICAL  
+**Status:** ❌ NOT IMPLEMENTED - BASED ON TEST-GAP-ANALYSE
+
+**Diese kritischen Tests fehlen und MÜSSEN implementiert werden:**
+
+### **Real anywidget Bundle Integration Tests**
+```python
+# tests/test_phase2_real_bundle_integration.py - CRITICAL MISSING
+class TestPhase2RealBundleIntegration:
+    """Validate bundles actually work in real anywidget context"""
+    
+    def test_bundle_loads_in_real_anywidget_context(self):
+        """Test that bundles actually load and work in anywidget"""
+        from src.marimo_openscad.viewer_phase2 import openscad_viewer_phase2
+        from solid2 import cube
+        
+        # Test Phase 2 viewer creation
+        viewer = openscad_viewer_phase2(cube([2,2,2]), renderer_type="auto")
+        
+        # Verify bundle integration
+        assert hasattr(viewer, '_get_bundled_javascript'), "Bundle loading method missing"
+        bundle_js = viewer._get_bundled_javascript()
+        assert len(bundle_js) > 10000, f"Bundle too small: {len(bundle_js)} chars"
+        
+        # Check for Phase 2 improvements
+        assert "Phase 2" in viewer._esm or "detectWASMBasePath" in bundle_js
+        print(f"✅ Bundle loaded: {len(bundle_js)} chars")
+    
+    def test_import_resolution_improvements_work(self):
+        """Verify Phase 2 actually fixes Phase 1 import failures"""
+        # This should demonstrate that the Phase 1 import problems are resolved
+        
+        # Test that Phase 2 viewer doesn't have import failures
+        viewer = openscad_viewer_phase2(cube([1,1,1]))
+        
+        # Check ESM doesn't contain problematic relative imports
+        esm_content = viewer._esm
+        problematic_imports = ['./openscad-direct-renderer.js', './wasm-loader.js']
+        
+        for import_path in problematic_imports:
+            assert import_path not in esm_content, f"Problematic import still present: {import_path}"
+        
+        print("✅ Import resolution improvements validated")
+    
+    def test_wasm_path_resolution_real_environment(self):
+        """Test 6 fallback paths work in real deployment scenarios"""
+        from src.marimo_openscad.viewer_phase2 import openscad_viewer_phase2
+        
+        viewer = openscad_viewer_phase2(cube([1,1,1]))
+        bundle_js = viewer._get_bundled_javascript()
+        
+        # Check that fallback path logic is present
+        fallback_indicators = [
+            '/static/wasm/',
+            './wasm/',
+            'detectWASMBasePath',
+            'loadWASMWithFallbacks'
+        ]
+        
+        for indicator in fallback_indicators:
+            assert indicator in bundle_js, f"WASM fallback logic missing: {indicator}"
+        
+        print("✅ WASM path resolution fallbacks present in bundle")
+```
+
+### **Cross-Environment Validation Tests**
+```python
+# tests/test_cross_environment_validation.py - CRITICAL MISSING
+class TestCrossEnvironmentValidation:
+    """Test Phase 2 improvements across different environments"""
+    
+    def test_development_vs_production_bundle_behavior(self):
+        """Validate bundle behavior differs correctly by environment"""
+        # Test that development and production bundles have expected differences
+        
+        from src.marimo_openscad.viewer_phase2 import openscad_viewer_phase2
+        viewer = openscad_viewer_phase2(cube([1,1,1]))
+        
+        bundle_js = viewer._get_bundled_javascript()
+        
+        # Production bundle should be optimized
+        if 'production' in bundle_js.lower():
+            # Should be minified or optimized
+            assert len(bundle_js) < 100000, "Production bundle not optimized"
+        else:
+            # Development bundle can be larger
+            assert len(bundle_js) > 5000, "Development bundle too small"
+        
+        print(f"✅ Bundle behavior validated: {len(bundle_js)} chars")
+    
+    def test_platform_specific_path_resolution(self):
+        """Test Windows/Mac/Linux path resolution compatibility"""
+        import platform
+        
+        current_os = platform.system()
+        print(f"Testing on: {current_os}")
+        
+        # Test that path resolution works on current platform
+        viewer = openscad_viewer_phase2(cube([1,1,1]))
+        bundle_js = viewer._get_bundled_javascript()
+        
+        # Should contain platform-agnostic path handling
+        path_indicators = ['replace(/\\\\/g, \'/\')', 'normalize', 'path']
+        path_handling_present = any(indicator in bundle_js for indicator in path_indicators)
+        
+        assert path_handling_present, "Platform-agnostic path handling missing"
+        print(f"✅ Platform-specific path resolution validated for {current_os}")
+    
+    def test_marimo_local_vs_wasm_compatibility(self):
+        """Ensure bundles work in both Marimo environments"""
+        # Test environment detection logic
+        viewer = openscad_viewer_phase2(cube([1,1,1]))
+        bundle_js = viewer._get_bundled_javascript()
+        
+        # Should contain environment detection
+        env_detection_indicators = [
+            'window.anywidget',
+            'detectEnvironment',
+            'marimo',
+            'typeof window'
+        ]
+        
+        detection_present = any(indicator in bundle_js for indicator in env_detection_indicators)
+        assert detection_present, "Environment detection logic missing"
+        
+        print("✅ Marimo environment compatibility logic present")
+```
+
+### **Performance Validation Tests**
+```python
+# tests/test_phase2_performance_validation.py - MISSING
+class TestPhase2PerformanceValidation:
+    """Validate Phase 2 performance improvements"""
+    
+    def test_bundle_loading_performance(self):
+        """Test that bundle loading meets performance targets"""
+        import time
+        
+        start_time = time.time()
+        viewer = openscad_viewer_phase2(cube([1,1,1]))
+        bundle_load_time = time.time() - start_time
+        
+        # Should load quickly
+        assert bundle_load_time < 2.0, f"Bundle loading too slow: {bundle_load_time:.2f}s"
+        
+        bundle_size = len(viewer._get_bundled_javascript())
+        print(f"✅ Bundle performance: {bundle_load_time:.2f}s, {bundle_size} chars")
+    
+    def test_memory_usage_improvement(self):
+        """Test that Phase 2 doesn't increase memory usage significantly"""
+        import psutil
+        import gc
+        
+        process = psutil.Process()
+        initial_memory = process.memory_info().rss / 1024 / 1024  # MB
+        
+        # Create multiple viewers
+        viewers = []
+        for i in range(5):
+            viewers.append(openscad_viewer_phase2(cube([i+1, i+1, i+1])))
+        
+        current_memory = process.memory_info().rss / 1024 / 1024
+        memory_increase = current_memory - initial_memory
+        
+        # Should not increase memory dramatically
+        assert memory_increase < 100, f"Memory increase too high: {memory_increase:.1f}MB"
+        
+        print(f"✅ Memory usage acceptable: +{memory_increase:.1f}MB for 5 viewers")
+        
+        # Cleanup
+        del viewers
+        gc.collect()
+```
+
+---
+
 ## 🔧 **Implementation Details**
 
 ### **Updated File Structure nach Phase 2**
@@ -523,9 +708,18 @@ class PathNormalizer {
 
 ---
 
-**Phase 2 Status:** 🎯 READY FOR EXECUTION  
-**Next Action:** Begin Step 2.1 - JavaScript Import Problem Analysis  
-**Expected Completion:** 18. Juni 2025  
-**Success Indicator:** Phase 1 import tests transition from ❌ to ✅
+**Phase 2 Status:** ⚠️ PARTIALLY IMPLEMENTED - CRITICAL VALIDATION GAPS  
+**Next Action:** Implement Step 2.6 - Critical Validation Gaps (must complete before Phase 3)
 
-**⚠️ Critical Success Factor:** Nach Phase 2 müssen JavaScript-Module in anywidget ladbar sein - das ist Grundvoraussetzung für Phase 3 WASM-Integration!
+**🚨 BLOCKING REQUIREMENTS (must implement before Phase 3):**
+- ❌ `tests/test_phase2_real_bundle_integration.py` - CRITICAL MISSING
+- ❌ `tests/test_cross_environment_validation.py` - NOT IMPLEMENTED  
+- ❌ `tests/test_phase2_performance_validation.py` - REQUIRED
+- ✅ Bundle creation partially done (viewer_phase2.py exists)
+
+**Revised Timeline:**
+- **Current Status:** 60% (Bundle creation done, validation missing)
+- **Required Work:** 2-3 additional days for validation tests  
+**Expected Completion:** 23. Juni 2025 (korrigiert - realistisch)
+
+**⚠️ Critical Success Factor:** Phase 2 validation tests MÜSSEN bestehen bevor Phase 3 beginnen kann!

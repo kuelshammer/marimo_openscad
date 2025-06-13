@@ -1,0 +1,25 @@
+{
+  "timestamp": 1749829980.357978,
+  "bundle_size": 39487,
+  "pipeline_ready": true,
+  "js_syntax_valid": true,
+  "function_availability": {
+    "OpenSCADDirectRenderer": false,
+    "WASMManager": false,
+    "createOptimalRenderer": false,
+    "parseSTL": true,
+    "detectWASMBasePath": true,
+    "loadWASMWithFallbacks": true
+  },
+  "pattern_availability": {
+    "WebAssembly": true,
+    "wasm": true,
+    ".wasm": true,
+    "openscad.wasm": true,
+    "wasmModule": false,
+    "wasmInstance": false,
+    "WASM": true
+  },
+  "available_functions_count": 3,
+  "available_patterns_count": 5
+}

@@ -1,0 +1,37 @@
+{
+  "timestamp": 1749829980.356184,
+  "critical_files_present": true,
+  "wasm_files_found": {
+    "openscad.wasm": {
+      "path": "/Users/max/Python/marimo_openscad/dist/wasm/openscad.wasm",
+      "size": 7720447,
+      "exists": true,
+      "viewer_accessible": true
+    },
+    "openscad.js": {
+      "path": "/Users/max/Python/marimo_openscad/dist/wasm/openscad.js",
+      "size": 745,
+      "exists": true,
+      "viewer_accessible": true
+    },
+    "openscad.d.ts": {
+      "path": "/Users/max/Python/marimo_openscad/dist/wasm/openscad.d.ts",
+      "size": 816,
+      "exists": true,
+      "viewer_accessible": true
+    },
+    "openscad.fonts.js": {
+      "path": "/Users/max/Python/marimo_openscad/dist/wasm/openscad.fonts.js",
+      "size": 8163407,
+      "exists": true,
+      "viewer_accessible": true
+    },
+    "openscad.mcad.js": {
+      "path": "/Users/max/Python/marimo_openscad/dist/wasm/openscad.mcad.js",
+      "size": 491462,
+      "exists": true,
+      "viewer_accessible": true
+    }
+  },
+  "phase2_viewer_available": false
+}

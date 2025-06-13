@@ -1,0 +1,73 @@
+{
+  "timestamp": 1749829980.298652,
+  "platform": "Darwin",
+  "performance_results": {
+    "simple": {
+      "wasm": {
+        "creation_time": 0.0005902500124648213,
+        "success": false,
+        "stl_length": 0,
+        "is_placeholder": false,
+        "stl_preview": "No data"
+      },
+      "local": {
+        "creation_time": 0.0008061670232564211,
+        "success": false,
+        "stl_length": 0,
+        "stl_preview": "No data"
+      },
+      "auto": {
+        "creation_time": 0.00040016701677814126,
+        "success": false,
+        "stl_length": 0,
+        "renderer_used": "ready"
+      }
+    },
+    "medium": {
+      "wasm": {
+        "creation_time": 0.00036779098445549607,
+        "success": false,
+        "stl_length": 0,
+        "is_placeholder": false,
+        "stl_preview": "No data"
+      },
+      "local": {
+        "creation_time": 0.0008551670471206307,
+        "success": false,
+        "stl_length": 0,
+        "stl_preview": "No data"
+      },
+      "auto": {
+        "creation_time": 0.0003887079656124115,
+        "success": false,
+        "stl_length": 0,
+        "renderer_used": "ready"
+      }
+    },
+    "complex": {
+      "wasm": {
+        "creation_time": 0.000378625001758337,
+        "success": false,
+        "stl_length": 0,
+        "is_placeholder": false,
+        "stl_preview": "No data"
+      },
+      "local": {
+        "creation_time": 0.0005927499732933939,
+        "success": false,
+        "stl_length": 0,
+        "stl_preview": "No data"
+      },
+      "auto": {
+        "creation_time": 0.0004136249772273004,
+        "success": false,
+        "stl_length": 0,
+        "renderer_used": "ready"
+      }
+    }
+  },
+  "speed_improvements": {},
+  "wasm_functional": false,
+  "local_functional": false,
+  "target_improvement": 190
+}

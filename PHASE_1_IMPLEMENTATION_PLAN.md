@@ -1,10 +1,16 @@
 # 🧪 Phase 1 Implementation Plan: Test Coverage Foundation
 
 **Phase Start Date:** 13. Juni 2025  
-**Duration:** 4 Tage  
-**Current Status:** ✅ 80% IMPLEMENTED - Ready for Execution
+**Duration:** 6-7 Tage (korrigiert basierend auf realer Analyse)  
+**Current Status:** ⚠️ 50% IMPLEMENTED - CRITICAL GAPS EXIST
 **Goal:** Echte Probleme sichtbar machen, False Confidence eliminieren  
 **Expected Result:** ❌ Tests werden FEHLSCHLAGEN (erwünscht!)
+
+🚨 **CRITICAL UPDATE (basierend auf Test-Gap-Analyse):**
+- Marimo Integration Tests: ❌ KOMPLETT FEHLEND
+- Performance Baseline Tests: ❌ NICHT IMPLEMENTIERT  
+- WASM Integration Foundation: ❌ UNGETESTET
+- Real Environment Validation: ❌ LÜCKEN VORHANDEN
 
 ## 🎯 **Phase 1 Strategic Objectives**
 
@@ -202,9 +208,9 @@ class TestRealAnyWidgetExecution:
 
 ---
 
-### **Step 1.1.3: Real Marimo Notebook Execution Tests** ⚠️ PARTIALLY IMPLEMENTED
+### **Step 1.1.3: Real Marimo Notebook Execution Tests** ❌ NOT IMPLEMENTED
 
-#### **Marimo Integration Test** ⚠️ TODO
+#### **Marimo Integration Test** ❌ CRITICAL MISSING - MUST IMPLEMENT BEFORE PHASE 2/3
 ```python
 # tests/test_e2e_marimo_real.py - NOCH ZU IMPLEMENTIEREN
 import pytest
@@ -522,10 +528,11 @@ def test_marimo_multi_cell_variable_isolation(self):
 ---
 
 ## 📋 **Step 1.3: Performance & Load Testing**
-**Duration:** 1 Tag  
-**Priority:** MEDIUM
+**Duration:** 2 Tage (korrigiert)  
+**Priority:** ⭐ HIGH (korrigiert - CRITICAL für Phase 3)
+**Status:** ❌ NOT IMPLEMENTED - CRITICAL GAP
 
-### **Performance Baseline Tests**
+### **Performance Baseline Tests** ❌ MUST IMPLEMENT
 ```python
 # tests/test_performance_baseline.py - NEU
 import time
@@ -635,6 +642,111 @@ class TestPerformanceBaseline:
             print(f"🔍 MEMORY CONSTRAINT VIOLATION: {max_memory:.1f}MB > 2GB")
         else:
             print(f"🔍 MEMORY USAGE OK: Max {max_memory:.1f}MB < 2GB")
+```
+
+---
+
+## 📋 **Step 1.4: WASM Integration Foundation Tests** ❌ CRITICAL MISSING
+**Duration:** 2 Tage  
+**Priority:** ⭐ CRITICAL  
+**Status:** ❌ NOT IMPLEMENTED - REQUIRED FOR PHASE 3
+
+**Basierend auf Test-Gap-Analyse - diese Tests MÜSSEN implementiert werden:**
+
+### **WASM Module Integration Testing**
+```python
+# tests/test_wasm_integration_foundation.py - CRITICAL MISSING
+class TestWASMIntegrationFoundation:
+    """Foundation tests required before Phase 3 implementation"""
+    
+    def test_wasm_modules_loadable_from_bundle_paths(self):
+        """Validate WASM modules can load from Phase 2 bundle paths"""
+        from src.marimo_openscad import viewer_phase2
+        
+        # Check if WASM files exist and are accessible
+        wasm_files = viewer_phase2.get_wasm_files()
+        assert len(wasm_files) > 0, "No WASM files found"
+        
+        for filename, path in wasm_files.items():
+            assert Path(path).exists(), f"WASM file not found: {path}"
+            
+        print(f"🔍 WASM Files Available: {list(wasm_files.keys())}")
+    
+    def test_javascript_wasm_pipeline_accessible(self):
+        """Test that JS WASM pipeline is accessible from Python side"""
+        # Test that bundled JavaScript contains WASM-related functions
+        bundle_js = viewer_phase2._get_bundled_javascript()
+        
+        required_functions = [
+            'OpenSCADDirectRenderer',
+            'WASMManager', 
+            'createOptimalRenderer',
+            'parseSTL'
+        ]
+        
+        for func in required_functions:
+            assert func in bundle_js, f"Required WASM function missing: {func}"
+            
+        print("✅ JavaScript WASM pipeline functions available")
+    
+    def test_async_communication_infrastructure_possible(self):
+        """Validate that async communication infrastructure is possible"""
+        # Test basic anywidget message passing capability
+        # This validates that Python-JS communication is feasible
+        
+        try:
+            # Basic test of anywidget message infrastructure
+            test_widget = viewer_phase2.openscad_viewer_phase2(cube([1,1,1]))
+            
+            # Check if widget has communication capabilities
+            assert hasattr(test_widget, '_esm'), "Widget missing JavaScript component"
+            assert len(test_widget._esm) > 1000, "JavaScript bundle too small"
+            
+            print("✅ anywidget communication infrastructure available")
+            
+        except Exception as e:
+            pytest.fail(f"anywidget communication test failed: {e}")
+```
+
+### **Communication Protocol Foundation**
+```python
+# tests/test_async_communication_bridge.py - CRITICAL MISSING  
+class TestAsyncCommunicationBridge:
+    """Test foundation for Phase 3 async communication"""
+    
+    def test_uuid_request_tracking_possible(self):
+        """Test that UUID-based request tracking is implementable"""
+        import uuid
+        
+        # Validate UUID generation and tracking
+        request_ids = [str(uuid.uuid4()) for _ in range(10)]
+        assert len(set(request_ids)) == 10, "UUID collision detected"
+        
+        # Test request/response data structure
+        test_request = {
+            'type': 'WASM_RENDER_REQUEST',
+            'request_id': request_ids[0],
+            'scad_code': 'cube([1,1,1]);'
+        }
+        
+        assert test_request['request_id'] in request_ids
+        print("✅ UUID-based request tracking validated")
+    
+    def test_binary_data_encoding_decoding(self):
+        """Test base64 encoding/decoding for STL data transfer"""
+        import base64
+        
+        # Test with mock STL binary data
+        mock_stl_data = b"solid test\nfacet normal 0 0 1\n  outer loop\n    vertex 0 0 0\n  endloop\nendfacet\nendsolid test"
+        
+        # Test encoding
+        encoded = base64.b64encode(mock_stl_data).decode('utf-8')
+        
+        # Test decoding
+        decoded = base64.b64decode(encoded)
+        
+        assert decoded == mock_stl_data, "Base64 encoding/decoding failed"
+        print(f"✅ Binary data transfer validated: {len(encoded)} chars encoded")
 ```
 
 ---
@@ -766,9 +878,18 @@ CMD ["uv", "run", "pytest", "tests/test_e2e_*.py"]
 
 ---
 
-**Phase Status:** ✅ 80% IMPLEMENTED - Ready for Test Execution  
-**Next Action:** Execute existing tests: `uv run pytest tests/test_e2e_*.py -v`  
-**Missing:** Marimo notebook tests, Performance baselines  
-**Expected Completion:** 17. Juni 2025
+**Phase Status:** ⚠️ 50% IMPLEMENTED - CRITICAL GAPS MUST BE ADDRESSED  
+**Next Action:** Implement missing critical tests before proceeding to Phase 2/3  
+
+**🚨 BLOCKING REQUIREMENTS (must implement before Phase 2/3):**
+- ❌ `tests/test_e2e_marimo_real.py` - CRITICAL MISSING
+- ❌ `tests/test_performance_baseline.py` - NOT IMPLEMENTED
+- ❌ `tests/test_wasm_integration_foundation.py` - REQUIRED FOR PHASE 3
+- ❌ `tests/test_async_communication_bridge.py` - REQUIRED FOR PHASE 3
+
+**Revised Timeline:**
+- **Current Status:** 50% (E2E infrastructure exists, but critical gaps remain)
+- **Required Work:** 3-4 additional days to close gaps  
+**Expected Completion:** 20. Juni 2025 (korrigiert - realistisch)
 
 **⚠️ Important:** Test failures are EXPECTED and DESIRED in Phase 1 - they document real problems!

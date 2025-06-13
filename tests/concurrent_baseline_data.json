@@ -1,0 +1,32 @@
+{
+  "timestamp": 1749829980.353597,
+  "num_concurrent": 3,
+  "successful_workers": 0,
+  "total_time": 0.001558666001074016,
+  "avg_render_time": null,
+  "concurrency_efficiency": 0,
+  "final_memory_mb": 73.75,
+  "detailed_results": [
+    {
+      "worker_id": 0,
+      "success": false,
+      "render_time": 0.0008661249885335565,
+      "stl_size": 0,
+      "error": null
+    },
+    {
+      "worker_id": 1,
+      "success": false,
+      "render_time": 0.0009614169830456376,
+      "stl_size": 0,
+      "error": null
+    },
+    {
+      "worker_id": 2,
+      "success": false,
+      "render_time": 0.0004948750138282776,
+      "stl_size": 0,
+      "error": null
+    }
+  ]
+}

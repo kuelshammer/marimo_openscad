@@ -1,0 +1,51 @@
+{
+  "timestamp": 1749829980.343466,
+  "platform": "Darwin",
+  "max_memory_mb": 73.46875,
+  "total_memory_increase_mb": 0.015625,
+  "avg_memory_per_model_mb": 0.003125,
+  "wasm_2gb_compliant": true,
+  "memory_usage_details": {
+    "initial": 73.453125,
+    "size_1": {
+      "pre_memory_mb": 73.453125,
+      "post_memory_mb": 73.453125,
+      "memory_increase_mb": 0.0,
+      "stl_size_bytes": 0,
+      "stl_size_mb": 0.0,
+      "success": true
+    },
+    "size_2": {
+      "pre_memory_mb": 73.453125,
+      "post_memory_mb": 73.453125,
+      "memory_increase_mb": 0.0,
+      "stl_size_bytes": 0,
+      "stl_size_mb": 0.0,
+      "success": true
+    },
+    "size_3": {
+      "pre_memory_mb": 73.453125,
+      "post_memory_mb": 73.453125,
+      "memory_increase_mb": 0.0,
+      "stl_size_bytes": 0,
+      "stl_size_mb": 0.0,
+      "success": true
+    },
+    "size_5": {
+      "pre_memory_mb": 73.453125,
+      "post_memory_mb": 73.46875,
+      "memory_increase_mb": 0.015625,
+      "stl_size_bytes": 0,
+      "stl_size_mb": 0.0,
+      "success": true
+    },
+    "size_8": {
+      "pre_memory_mb": 73.46875,
+      "post_memory_mb": 73.46875,
+      "memory_increase_mb": 0.0,
+      "stl_size_bytes": 0,
+      "stl_size_mb": 0.0,
+      "success": true
+    }
+  }
+}
