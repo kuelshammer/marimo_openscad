@@ -483,6 +483,41 @@ class TestUserExperience:
 
 ---
 
+---
+
+## 📚 **Technical Architecture Reference**
+
+### **Current WASM-Safe Architecture**
+Die JavaScript-Codebase wurde bereits für anywidget-Kompatibilität überarbeitet:
+
+#### **Core Components (Already Implemented):**
+- **OpenSCADDirectRenderer** - Ersetzt Web Worker-basierte Architektur
+- **MarimoOpenSCADWidget** - anywidget-kompatibles Widget mit ESM exports
+- **Environment Detection** - Automatische Browser-Capability-Erkennung
+
+#### **Key Architectural Decisions:**
+```javascript
+// ✅ anywidget-kompatibel
+export default { render };
+
+// ❌ Eliminiert (WASM-inkompatibel)
+- worker-manager.js (importScripts() Problem)
+- Komplexe Queue-Management-Systeme
+```
+
+#### **Browser Compatibility Matrix:**
+- **Chrome 69+, Firefox 62+, Safari 14+, Edge 79+** - 95%+ coverage
+- **Main-Thread WASM-Integration** - 2GB Memory-Limit respektiert
+- **Graceful Fallbacks** - Progressive enhancement approach
+
+### **Integration with Historical Progress**
+Dieser Fix-Plan baut auf bereits implementierten Foundations auf:
+- **Phase 1 Wireframe Rendering** ✅ Completed (CSG_RENDERING_ROADMAP.md)
+- **WASM Architecture** ✅ Designed (WASM_ARCHITECTURE.md)
+- **Current Blockers** ❌ Four critical issues prevent integration
+
+---
+
 **Plan Status:** 📋 READY FOR EXECUTION  
 **Next Action:** Begin Phase 1.1 - End-to-End Test Infrastructure  
 **Expected Completion:** End of June 2025

@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased] - 2025-06-13
+
+### Analysis & Planning
+- **CRITICAL ANALYSIS**: Identified four architecture-breaking issues blocking production
+- **SYSTEMATIC FIX PLAN**: 4-phase recovery strategy with 16 testable steps
+- **Documentation Cleanup**: Removed 4 outdated MD files, consolidated architecture info
+
+### Known Issues (Blocking Release)
+- ❌ **Marimo Reactivity Conflicts** - Variable redefinition in notebook cells
+- ❌ **anywidget Import Limitations** - Browser can't load local modules  
+- ❌ **WASM Placeholder System** - Fake STL instead of real rendering
+- ❌ **Test Coverage Gaps** - Mocks hide real integration failures
+
+### Architecture Status
+- ✅ **Phase 1 CSG Rendering** - Wireframe fallback completed (32/32 tests passing)
+- ✅ **WASM-Safe Architecture** - anywidget-compatible design implemented
+- ❌ **WASM Integration** - Blocked by critical import/placeholder issues
+- 📋 **Fix Plan Ready** - Sequential dependency resolution approach prepared
+
 ## [0.1.0] - 2025-06-10
 
 ### Added
@@ -27,6 +46,11 @@ All notable changes to this project will be documented in this file.
 - anywidget >= 0.9.0
 - traitlets >= 5.0.0
 - OpenSCAD 2021.01+ (system dependency)
+
+### Known Limitations (v0.1.0)
+- CSG operations show fallback cubes instead of real geometry
+- WASM rendering advertised but not functional
+- Test suite relies heavily on mocks
 
 ### Credits
 - Inspired by [JupyterSCAD](https://github.com/jreiberkyle/jupyterscad) architecture

@@ -239,6 +239,26 @@ Fixes dürfen bestehende Funktionalität nicht brechen:
 
 ---
 
+## 📚 **Historical Context: CSG Rendering Progress**
+
+### **Phase 1: Wireframe Fallback** ✅ COMPLETED
+**Status:** Erfolgreich implementiert und in CI/CD integriert
+- **Union Operations:** L-förmige Verbindung ohne Z-Fighting
+- **Difference Operations:** Rahmen-Struktur mit durchgehender Bohrung  
+- **Test Coverage:** 32/32 Tests bestehen, Cross-Platform kompatibel
+- **Technical Achievement:** Intelligenter SCAD-Parser erkennt CSG-Operationen automatisch
+
+### **WASM Architecture Evolution**
+**Status:** Architektur überarbeitet, aber durch kritische Probleme blockiert
+- **Web Worker Elimination:** Entfernt für anywidget-Kompatibilität
+- **ESM-Only Architecture:** Modern ES Module exports für anywidget
+- **Direct Renderer:** Main-Thread WASM-Integration implementiert
+- **Environment Detection:** Automatische Browser-Capability-Erkennung
+
+**Key Technical Insight:** Die WASM-Architektur ist theoretisch korrekt implementiert, aber durch die vier kritischen Probleme in der Praxis nicht funktional.
+
+---
+
 **Nächste Schritte:** Systematischer Fix-Plan basierend auf dieser Analyse erstellen und umsetzen.
 
 **Dokumenten-Status:** 🔍 ANALYSIS COMPLETE → 📋 PLANNING REQUIRED
