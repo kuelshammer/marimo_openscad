@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>anywidget Real Browser Test Environment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Allow module imports for testing -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        #widget-container {
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: white;
+            margin: 20px 0;
+            min-height: 400px;
+        }
+        
+        #test-results {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            white-space: pre-wrap;
+        }
+        
+        .status-ok { color: #68d391; }
+        .status-error { color: #f56565; }
+        .status-warning { color: #fad582; }
+        
+        button {
+            background-color: #4299e1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background-color: #3182ce;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 anywidget Real Browser Test Environment</h1>
+    <p>This page tests <strong>real anywidget execution</strong> without mocks. Expected to fail initially!</p>
+    
+    <div>
+        <button onclick="testBasicImport()">Test Basic Import</button>
+        <button onclick="testWASMLoading()">Test WASM Loading</button>
+        <button onclick="testWidgetCreation()">Test Widget Creation</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+    
+    <div id="widget-container">
+        <p>Widget will be rendered here...</p>
+    </div>
+    
+    <div id="test-results">
+🔍 Test Results will appear here...
+    </div>
+
+    <script type="module">
+        // Global test functions
+        window.testResults = [];
+        
+        function logResult(test, status, message, details = null) {
+            const timestamp = new Date().toISOString().substring(11, 23);
+            const result = {
+                timestamp,
+                test,
+                status,
+                message,
+                details
+            };
+            
+            window.testResults.push(result);
+            updateResultsDisplay();
+            
+            // Log to console for Playwright capture
+            console.log(`[${timestamp}] ${test}: ${status} - ${message}`, details || '');
+        }
+        
+        function updateResultsDisplay() {
+            const resultsDiv = document.getElementById('test-results');
+            const results = window.testResults.map(r => {
+                const statusClass = r.status === 'SUCCESS' ? 'status-ok' : 
+                                   r.status === 'ERROR' ? 'status-error' : 'status-warning';
+                return `<span class="${statusClass}">[${r.timestamp}] ${r.test}: ${r.status}</span>
+${r.message}${r.details ? '\nDetails: ' + JSON.stringify(r.details, null, 2) : ''}`;
+            }).join('\n\n');
+            
+            resultsDiv.innerHTML = results || '🔍 Test Results will appear here...';
+        }
+        
+        // Test 1: Basic Import Attempt
+        window.testBasicImport = async function() {
+            logResult('BASIC_IMPORT', 'RUNNING', 'Attempting to import anywidget modules...');
+            
+            try {
+                // This should FAIL due to relative import limitations
+                const widgetModule = await import('../../src/js/widget.js');
+                logResult('BASIC_IMPORT', 'UNEXPECTED_SUCCESS', 'Import succeeded (unexpected!)', {
+                    moduleKeys: Object.keys(widgetModule)
+                });
+            } catch (error) {
+                // EXPECTED FAILURE - this documents the import problem
+                logResult('BASIC_IMPORT', 'EXPECTED_FAILURE', 'Import failed as expected', {
+                    errorType: error.constructor.name,
+                    errorMessage: error.message,
+                    stack: error.stack.split('\n').slice(0, 3)
+                });
+            }
+        };
+        
+        // Test 2: WASM Loading Attempt  
+        window.testWASMLoading = async function() {
+            logResult('WASM_LOADING', 'RUNNING', 'Attempting to load WASM modules...');
+            
+            const wasmPaths = [
+                '/static/wasm/openscad.wasm',
+                '../../src/marimo_openscad/wasm/openscad.wasm',
+                './wasm/openscad.wasm'
+            ];
+            
+            const results = {};
+            
+            for (const path of wasmPaths) {
+                try {
+                    const response = await fetch(path);
+                    results[path] = {
+                        success: response.ok,
+                        status: response.status,
+                        contentType: response.headers.get('content-type')
+                    };
+                } catch (error) {
+                    results[path] = {
+                        success: false,
+                        error: error.message
+                    };
+                }
+            }
+            
+            const successfulPaths = Object.entries(results).filter(([_, r]) => r.success);
+            
+            if (successfulPaths.length === 0) {
+                // EXPECTED FAILURE - WASM files not accessible
+                logResult('WASM_LOADING', 'EXPECTED_FAILURE', 'No WASM files accessible (expected)', results);
+            } else {
+                logResult('WASM_LOADING', 'PARTIAL_SUCCESS', `Found ${successfulPaths.length} accessible paths`, results);
+            }
+        };
+        
+        // Test 3: Widget Creation Attempt
+        window.testWidgetCreation = async function() {
+            logResult('WIDGET_CREATION', 'RUNNING', 'Attempting to create anywidget...');
+            
+            const container = document.getElementById('widget-container');
+            
+            try {
+                // Simulate anywidget creation
+                const mockModel = {
+                    get: (key) => {
+                        const data = {
+                            'scad_code': 'cube([2,2,2]);',
+                            'renderer_type': 'auto',
+                            'stl_data': ''
+                        };
+                        return data[key];
+                    },
+                    set: (key, value) => logResult('MODEL_UPDATE', 'INFO', `Model.${key} = ${value}`),
+                    on: (event, callback) => logResult('MODEL_EVENT', 'INFO', `Listening to ${event}`)
+                };
+                
+                // This will fail because the render function is not available
+                if (typeof window.renderWidget === 'function') {
+                    await window.renderWidget({ model: mockModel, el: container });
+                    logResult('WIDGET_CREATION', 'SUCCESS', 'Widget created successfully');
+                } else {
+                    throw new Error('Widget render function not available (import failure)');
+                }
+                
+            } catch (error) {
+                // EXPECTED FAILURE - render function not available due to import issues
+                logResult('WIDGET_CREATION', 'EXPECTED_FAILURE', 'Widget creation failed (expected)', {
+                    errorType: error.constructor.name,
+                    errorMessage: error.message
+                });
+                
+                // Show fallback content
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <h3>❌ Widget Creation Failed</h3>
+                        <p>This failure demonstrates the import limitation issue.</p>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        };
+        
+        // Clear results
+        window.clearResults = function() {
+            window.testResults = [];
+            updateResultsDisplay();
+            
+            const container = document.getElementById('widget-container');
+            container.innerHTML = '<p>Widget will be rendered here...</p>';
+        };
+        
+        // Auto-run basic tests on load
+        window.addEventListener('load', () => {
+            logResult('PAGE_LOAD', 'SUCCESS', 'Test environment loaded');
+            
+            // Check for basic browser capabilities
+            const capabilities = {
+                webAssembly: typeof WebAssembly !== 'undefined',
+                esModules: typeof import !== 'undefined',
+                fetch: typeof fetch !== 'undefined',
+                localStorage: typeof localStorage !== 'undefined'
+            };
+            
+            logResult('BROWSER_CAPABILITIES', 'INFO', 'Browser capabilities detected', capabilities);
+        });
+        
+        // Expose test results for Playwright
+        window.getTestResults = () => window.testResults;
+        window.getErrorCount = () => window.testResults.filter(r => r.status === 'ERROR' || r.status === 'EXPECTED_FAILURE').length;
+        window.getSuccessCount = () => window.testResults.filter(r => r.status === 'SUCCESS').length;
+    </script>
+</body>
+</html>
