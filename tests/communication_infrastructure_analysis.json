@@ -1,7 +1,7 @@
 {
-  "timestamp": 1749829980.4620469,
-  "readiness_score": 1.0,
-  "readiness_percentage": 100.0,
+  "timestamp": 1749857375.888492,
+  "readiness_score": 0.8333333333333334,
+  "readiness_percentage": 83.33333333333334,
   "anywidget_available": true,
   "viewer_communication_ready": true,
   "uuid_test_results": {
@@ -11,5 +11,5 @@
   },
   "message_structure_valid": true,
   "binary_transfer_ready": true,
-  "timeout_mechanism_ready": true
+  "timeout_mechanism_ready": false
 }

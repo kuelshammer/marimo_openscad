@@ -11,13 +11,16 @@ import traitlets
 import tempfile
 import subprocess
 import base64
+import asyncio
 from pathlib import Path
 import logging
-from typing import Optional, Literal, Union
+from typing import Optional, Literal, Union, Dict
 from .openscad_renderer import OpenSCADRenderer
 from .openscad_wasm_renderer import OpenSCADWASMRenderer, HybridOpenSCADRenderer
 from .renderer_config import get_config
 from .realtime_renderer import RealTimeRenderer
+from .wasm_version_manager import WASMVersionManager
+from .version_manager import OpenSCADVersionManager
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +52,13 @@ class OpenSCADViewer(anywidget.AnyWidget):
     debounce_delay_ms = traitlets.Int(100).tag(sync=True)  # Parameter change debounce delay
     cache_hit_rate = traitlets.Float(0.0).tag(sync=True)  # Current cache hit rate
     render_time_ms = traitlets.Float(0.0).tag(sync=True)  # Last render time in milliseconds
+    
+    # Version management traits (Phase 4.2)
+    openscad_version = traitlets.Unicode("auto").tag(sync=True)  # OpenSCAD version to use
+    available_versions = traitlets.List([]).tag(sync=True)  # List of available OpenSCAD versions
+    active_wasm_version = traitlets.Unicode("").tag(sync=True)  # Currently active WASM version
+    version_compatibility = traitlets.Dict({}).tag(sync=True)  # Version compatibility information
+    auto_version_selection = traitlets.Bool(True).tag(sync=True)  # Whether to auto-select optimal version
     
     _esm = """
     async function render({ model, el }) {
@@ -2206,6 +2216,9 @@ class OpenSCADViewer(anywidget.AnyWidget):
         )
         self.real_time_enabled = True
         
+        # Initialize version management (Phase 4.2)
+        self._initialize_version_management()
+        
         if model is not None:
             self.update_model(model)
     
@@ -2362,6 +2375,10 @@ class OpenSCADViewer(anywidget.AnyWidget):
         try:
             self.is_loading = True
             self.error_message = ""
+            
+            # Auto-select optimal version if enabled (Phase 4.2)
+            if hasattr(self, 'auto_version_selection') and self.auto_version_selection:
+                asyncio.create_task(self.auto_select_version_for_render(scad_code))
             
             # Auto-detect WASM usage if not specified
             if use_wasm is None:
@@ -2572,6 +2589,203 @@ class OpenSCADViewer(anywidget.AnyWidget):
             }
         
         return base_info
+    
+    # ========================
+    # Version Management Methods (Phase 4.2)
+    # ========================
+    
+    def _initialize_version_management(self) -> None:
+        """Initialize version management system."""
+        try:
+            # Initialize version managers
+            self.version_manager = OpenSCADVersionManager()
+            self.wasm_version_manager = WASMVersionManager()
+            
+            # Detect available versions
+            self._update_available_versions()
+            
+            # Set initial version compatibility info
+            self._update_version_compatibility()
+            
+            logger.info("Version management initialized successfully")
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize version management: {e}")
+            # Continue without version management
+            self.version_manager = None
+            self.wasm_version_manager = None
+    
+    def _update_available_versions(self) -> None:
+        """Update list of available OpenSCAD versions."""
+        try:
+            available = []
+            
+            # Add detected local installations
+            if self.version_manager:
+                local_installations = self.version_manager.detect_all_installations()
+                for installation in local_installations:
+                    available.append(f"{installation.version_info} ({installation.installation_type.value})")
+            
+            # Add available WASM versions
+            if self.wasm_version_manager:
+                wasm_versions = self.wasm_version_manager.loader.get_available_versions()
+                for version in wasm_versions:
+                    available.append(f"{version} (wasm)")
+            
+            self.available_versions = sorted(list(set(available)))
+            logger.debug(f"Updated available versions: {self.available_versions}")
+            
+        except Exception as e:
+            logger.error(f"Failed to update available versions: {e}")
+            self.available_versions = []
+    
+    def _update_version_compatibility(self) -> None:
+        """Update version compatibility information."""
+        try:
+            compatibility_info = {}
+            
+            if self.version_manager:
+                # Get preferred installation info
+                preferred = self.version_manager.get_preferred_installation()
+                if preferred:
+                    compatibility_info['preferred_local'] = {
+                        'version': str(preferred.version_info),
+                        'type': preferred.installation_type.value,
+                        'capabilities': preferred.capabilities
+                    }
+            
+            if self.wasm_version_manager:
+                # Get WASM manager info
+                wasm_info = self.wasm_version_manager.get_system_info()
+                compatibility_info['wasm'] = wasm_info
+            
+            self.version_compatibility = compatibility_info
+            logger.debug(f"Updated version compatibility: {compatibility_info}")
+            
+        except Exception as e:
+            logger.error(f"Failed to update version compatibility: {e}")
+            self.version_compatibility = {}
+    
+    async def set_openscad_version(self, version: str) -> bool:
+        """
+        Set the OpenSCAD version to use for rendering.
+        
+        Args:
+            version: Version string to use (e.g., "2023.06", "auto")
+            
+        Returns:
+            True if version was set successfully
+        """
+        try:
+            if version == "auto":
+                self.auto_version_selection = True
+                self.openscad_version = "auto"
+                logger.info("Enabled automatic version selection")
+                return True
+            
+            self.auto_version_selection = False
+            
+            # Check if it's a WASM version
+            if self.wasm_version_manager and version in self.wasm_version_manager.loader.get_available_versions():
+                success = await self.wasm_version_manager.switch_to_version(version)
+                if success:
+                    self.openscad_version = version
+                    self.active_wasm_version = version
+                    logger.info(f"Switched to WASM version: {version}")
+                    return True
+                else:
+                    logger.error(f"Failed to switch to WASM version: {version}")
+                    return False
+            
+            # Check if it's a local version
+            if self.version_manager:
+                installation = self.version_manager.get_installation_by_version(version)
+                if installation:
+                    self.openscad_version = version
+                    logger.info(f"Set local OpenSCAD version: {version}")
+                    return True
+            
+            logger.warning(f"Version not found: {version}")
+            return False
+            
+        except Exception as e:
+            logger.error(f"Failed to set OpenSCAD version {version}: {e}")
+            return False
+    
+    async def get_optimal_version_for_scad(self, scad_code: str) -> Optional[str]:
+        """
+        Get optimal OpenSCAD version for given SCAD code.
+        
+        Args:
+            scad_code: OpenSCAD code to analyze
+            
+        Returns:
+            Optimal version string, or None if analysis fails
+        """
+        try:
+            if not self.wasm_version_manager:
+                return None
+            
+            user_preferences = {
+                "performance": "stable" if not self.real_time_enabled else "fastest"
+            }
+            
+            optimal_version = await self.wasm_version_manager.get_optimal_version_for_scad(
+                scad_code, user_preferences
+            )
+            
+            logger.debug(f"Optimal version for SCAD code: {optimal_version}")
+            return optimal_version
+            
+        except Exception as e:
+            logger.error(f"Failed to get optimal version for SCAD: {e}")
+            return None
+    
+    async def auto_select_version_for_render(self, scad_code: str) -> bool:
+        """
+        Automatically select optimal version for rendering.
+        
+        Args:
+            scad_code: SCAD code to be rendered
+            
+        Returns:
+            True if version was selected and set
+        """
+        if not self.auto_version_selection:
+            return True  # Manual version already set
+        
+        try:
+            optimal_version = await self.get_optimal_version_for_scad(scad_code)
+            if optimal_version:
+                return await self.set_openscad_version(optimal_version)
+            return False
+            
+        except Exception as e:
+            logger.error(f"Failed to auto-select version: {e}")
+            return False
+    
+    def get_version_management_info(self) -> Dict[str, any]:
+        """Get comprehensive version management information."""
+        try:
+            info = {
+                "current_version": self.openscad_version,
+                "active_wasm_version": self.active_wasm_version,
+                "auto_selection_enabled": self.auto_version_selection,
+                "available_versions": self.available_versions,
+                "compatibility": self.version_compatibility
+            }
+            
+            if self.version_manager:
+                info["local_manager"] = self.version_manager.get_version_summary()
+            
+            if self.wasm_version_manager:
+                info["wasm_manager"] = self.wasm_version_manager.get_system_info()
+            
+            return info
+            
+        except Exception as e:
+            logger.error(f"Failed to get version management info: {e}")
+            return {"error": str(e)}
 
 def openscad_viewer(model, renderer_type: Optional[Literal["local", "wasm", "auto"]] = None, **kwargs):
     """

@@ -1,11 +1,11 @@
 {
-  "timestamp": 1749829980.467032,
+  "timestamp": 1749883889.6382248,
   "uuid_generation_stats": {
     "total_generated": 1000,
     "unique_count": 1000,
     "collision_count": 0,
-    "generation_time": 0.0031633329926989973,
-    "uuids_per_second": 316122.2679711588
+    "generation_time": 0.0017738339956849813,
+    "uuids_per_second": 563750.6116314122
   },
   "tracking_integrity": true,
   "id_matching_correct": true,

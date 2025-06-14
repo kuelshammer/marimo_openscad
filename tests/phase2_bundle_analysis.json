@@ -1,7 +1,7 @@
 {
-  "timestamp": 1749830711.2499998,
+  "timestamp": 1749857375.4413471,
   "bundle_size": 39487,
-  "creation_time": 0.0009539169841445982,
+  "creation_time": 0.001584291981998831,
   "phase2_indicators": [
     "Phase 2",
     "detectWASMBasePath",

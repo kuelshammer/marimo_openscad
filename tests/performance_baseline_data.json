@@ -1,23 +1,23 @@
 {
-  "timestamp": 1749829980.298652,
+  "timestamp": 1749857374.808258,
   "platform": "Darwin",
   "performance_results": {
     "simple": {
       "wasm": {
-        "creation_time": 0.0005902500124648213,
+        "creation_time": 0.00043866701889783144,
         "success": false,
         "stl_length": 0,
         "is_placeholder": false,
         "stl_preview": "No data"
       },
       "local": {
-        "creation_time": 0.0008061670232564211,
+        "creation_time": 0.0008331249700859189,
         "success": false,
         "stl_length": 0,
         "stl_preview": "No data"
       },
       "auto": {
-        "creation_time": 0.00040016701677814126,
+        "creation_time": 0.0003706670249812305,
         "success": false,
         "stl_length": 0,
         "renderer_used": "ready"
@@ -25,20 +25,20 @@
     },
     "medium": {
       "wasm": {
-        "creation_time": 0.00036779098445549607,
+        "creation_time": 0.00040141702629625797,
         "success": false,
         "stl_length": 0,
         "is_placeholder": false,
         "stl_preview": "No data"
       },
       "local": {
-        "creation_time": 0.0008551670471206307,
+        "creation_time": 0.000748208025470376,
         "success": false,
         "stl_length": 0,
         "stl_preview": "No data"
       },
       "auto": {
-        "creation_time": 0.0003887079656124115,
+        "creation_time": 0.0003660410293377936,
         "success": false,
         "stl_length": 0,
         "renderer_used": "ready"
@@ -46,20 +46,20 @@
     },
     "complex": {
       "wasm": {
-        "creation_time": 0.000378625001758337,
+        "creation_time": 0.00037041702307760715,
         "success": false,
         "stl_length": 0,
         "is_placeholder": false,
         "stl_preview": "No data"
       },
       "local": {
-        "creation_time": 0.0005927499732933939,
+        "creation_time": 0.0005782910156995058,
         "success": false,
         "stl_length": 0,
         "stl_preview": "No data"
       },
       "auto": {
-        "creation_time": 0.0004136249772273004,
+        "creation_time": 0.00040212494786828756,
         "success": false,
         "stl_length": 0,
         "renderer_used": "ready"
