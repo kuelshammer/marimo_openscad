@@ -17,6 +17,7 @@ from typing import Optional, Literal, Union
 from .openscad_renderer import OpenSCADRenderer
 from .openscad_wasm_renderer import OpenSCADWASMRenderer, HybridOpenSCADRenderer
 from .renderer_config import get_config
+from .realtime_renderer import RealTimeRenderer
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,12 @@ class OpenSCADViewer(anywidget.AnyWidget):
     wasm_supported = traitlets.Bool(True).tag(sync=True)  # Whether WASM is supported
     wasm_enabled = traitlets.Bool(False).tag(sync=True)  # Whether WASM is actively enabled
     wasm_base_url = traitlets.Unicode("").tag(sync=True)  # Base URL for WASM assets
+    
+    # Real-time rendering traits (Phase 3.3b)
+    real_time_enabled = traitlets.Bool(False).tag(sync=True)  # Whether real-time rendering is active
+    debounce_delay_ms = traitlets.Int(100).tag(sync=True)  # Parameter change debounce delay
+    cache_hit_rate = traitlets.Float(0.0).tag(sync=True)  # Current cache hit rate
+    render_time_ms = traitlets.Float(0.0).tag(sync=True)  # Last render time in milliseconds
     
     _esm = """
     async function render({ model, el }) {
@@ -2191,6 +2198,14 @@ class OpenSCADViewer(anywidget.AnyWidget):
         # Set WASM base URL if WASM renderer is available
         self._setup_wasm_urls()
         
+        # Initialize real-time renderer (Phase 3.3b)
+        self.realtime_renderer = RealTimeRenderer(
+            viewer=self, 
+            cache_size_mb=256,  # Default 256MB cache
+            debounce_ms=self.debounce_delay_ms
+        )
+        self.real_time_enabled = True
+        
         if model is not None:
             self.update_model(model)
     
@@ -2429,9 +2444,112 @@ class OpenSCADViewer(anywidget.AnyWidget):
             self.error_message = f"Rendering error: {e}"
             raise
     
+    # ==========================================
+    # Phase 3.3b: Real-time Rendering Methods
+    # ==========================================
+    
+    async def update_parameter_realtime(self, name: str, value: any, force_render: bool = False) -> None:
+        """
+        Update a parameter with real-time rendering and debouncing.
+        
+        Args:
+            name: Parameter name
+            value: New parameter value
+            force_render: If True, bypass debouncing for immediate render
+        """
+        if not self.real_time_enabled or not hasattr(self, 'realtime_renderer'):
+            logger.warning("Real-time rendering not enabled or not initialized")
+            return
+            
+        try:
+            await self.realtime_renderer.update_parameter(name, value, force_render)
+            
+            # Update performance metrics
+            stats = self.realtime_renderer.get_performance_stats()
+            self.cache_hit_rate = stats['cache']['hit_rate']
+            self.render_time_ms = stats['rendering']['last_render_time'] * 1000
+            
+        except Exception as e:
+            self.error_message = f"Real-time parameter update failed: {e}"
+            logger.error(f"❌ Real-time parameter update failed: {e}")
+    
+    def update_parameter(self, name: str, value: any, force_render: bool = False) -> None:
+        """
+        Synchronous wrapper for real-time parameter updates.
+        
+        Args:
+            name: Parameter name
+            value: New parameter value  
+            force_render: If True, bypass debouncing for immediate render
+        """
+        import asyncio
+        
+        try:
+            # Try to get current event loop
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # If loop is running, schedule as task
+                asyncio.create_task(self.update_parameter_realtime(name, value, force_render))
+            else:
+                # If no loop running, run until complete
+                loop.run_until_complete(self.update_parameter_realtime(name, value, force_render))
+        except Exception as e:
+            logger.error(f"❌ Synchronous parameter update failed: {e}")
+            # Fallback: direct parameter application without real-time features
+            self.error_message = f"Parameter update failed: {e}"
+    
+    def set_debounce_delay(self, delay_ms: int) -> None:
+        """
+        Set the debounce delay for parameter changes.
+        
+        Args:
+            delay_ms: Delay in milliseconds
+        """
+        self.debounce_delay_ms = delay_ms
+        if hasattr(self, 'realtime_renderer'):
+            self.realtime_renderer.debouncer.delay_ms = delay_ms
+            
+    def enable_realtime_rendering(self, enabled: bool = True) -> None:
+        """
+        Enable or disable real-time rendering features.
+        
+        Args:
+            enabled: Whether to enable real-time rendering
+        """
+        self.real_time_enabled = enabled
+        logger.info(f"🎛️ Real-time rendering {'enabled' if enabled else 'disabled'}")
+        
+    def clear_render_cache(self) -> None:
+        """Clear the STL render cache."""
+        if hasattr(self, 'realtime_renderer'):
+            self.realtime_renderer.cache.clear()
+            self.cache_hit_rate = 0.0
+            logger.info("🧹 Render cache cleared")
+            
+    async def _update_stl_data(self, stl_data: bytes) -> None:
+        """
+        Async method to update STL data (used by RealTimeRenderer).
+        
+        Args:
+            stl_data: Binary STL data
+        """
+        import base64
+        
+        # Convert to base64 for browser transmission
+        stl_base64 = base64.b64encode(stl_data).decode('utf-8')
+        
+        # Update trait (this will trigger frontend update)
+        self.stl_data = stl_base64
+        
+        # Clear any SCAD code when using STL mode
+        if self.scad_code:
+            self.scad_code = ""
+            
+        logger.debug(f"🔄 STL data updated: {len(stl_data)} bytes")
+
     def get_renderer_info(self) -> dict:
         """Get information about the current renderer"""
-        return {
+        base_info = {
             'type': self.renderer_type,
             'status': self.renderer_status,
             'wasm_supported': self.wasm_supported,
@@ -2441,6 +2559,19 @@ class OpenSCADViewer(anywidget.AnyWidget):
             'stats': getattr(self.renderer, 'get_stats', lambda: {})(),
             'current_mode': 'wasm' if (self.scad_code and self.wasm_enabled) else 'stl'
         }
+        
+        # Add real-time rendering info if available
+        if hasattr(self, 'realtime_renderer'):
+            realtime_stats = self.realtime_renderer.get_performance_stats()
+            base_info['realtime'] = {
+                'enabled': self.real_time_enabled,
+                'debounce_delay_ms': self.debounce_delay_ms,
+                'cache_hit_rate': self.cache_hit_rate,
+                'render_time_ms': self.render_time_ms,
+                'performance': realtime_stats
+            }
+        
+        return base_info
 
 def openscad_viewer(model, renderer_type: Optional[Literal["local", "wasm", "auto"]] = None, **kwargs):
     """
