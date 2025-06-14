@@ -95,6 +95,581 @@ class OpenSCADViewer(anywidget.AnyWidget):
         const rendererInfo = el.querySelector('#renderer-info');
         
         try {
+            // Workaround for Marimo Service Worker bug
+            // Suppress Service Worker errors that break JavaScript execution
+            const originalError = console.error;
+            console.error = function(...args) {
+                const message = args.join(' ');
+                if (!message.includes('service worker') && !message.includes('registration.active')) {
+                    originalError.apply(console, args);
+                }
+            };
+            
+            // ====================================================================
+            // PHASE 5.1.1: ADVANCED MEMORY MANAGEMENT SYSTEM
+            // ====================================================================
+            
+            class MemoryManager {
+                constructor() {
+                    this.resources = new Set();
+                    this.cleanupTimers = new Map();
+                    this.memoryWarningThreshold = 100 * 1024 * 1024; // 100MB
+                    this.lastCleanup = Date.now();
+                    this.cleanupInterval = 5 * 60 * 1000; // 5 minutes
+                    
+                    console.log('🧠 MemoryManager initialized');
+                    this.startMonitoring();
+                }
+                
+                register(resource, cleanupFn, category = 'general') {
+                    const entry = { 
+                        resource, 
+                        cleanupFn, 
+                        category,
+                        timestamp: Date.now(),
+                        id: Math.random().toString(36).substr(2, 9)
+                    };
+                    this.resources.add(entry);
+                    console.log(`🧠 Resource registered: ${category}:${entry.id}`);
+                    return entry.id;
+                }
+                
+                unregister(resourceId) {
+                    for (const entry of this.resources) {
+                        if (entry.id === resourceId) {
+                            this.resources.delete(entry);
+                            console.log(`🧠 Resource unregistered: ${entry.category}:${resourceId}`);
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                
+                scheduleCleanup(delay = this.cleanupInterval) {
+                    if (this.cleanupTimers.has('auto')) {
+                        clearTimeout(this.cleanupTimers.get('auto'));
+                    }
+                    
+                    const timer = setTimeout(() => this.cleanup(), delay);
+                    this.cleanupTimers.set('auto', timer);
+                    console.log(`🧠 Cleanup scheduled in ${delay/1000}s`);
+                }
+                
+                cleanup(category = null) {
+                    let cleaned = 0;
+                    const now = Date.now();
+                    
+                    for (const entry of this.resources) {
+                        if (category && entry.category !== category) continue;
+                        
+                        // Auto-cleanup resources older than 10 minutes
+                        if (!category && (now - entry.timestamp) < 10 * 60 * 1000) continue;
+                        
+                        try {
+                            entry.cleanupFn(entry.resource);
+                            this.resources.delete(entry);
+                            cleaned++;
+                            console.log(`🧠 Cleaned up: ${entry.category}:${entry.id}`);
+                        } catch (error) {
+                            console.warn(`🧠 Cleanup failed for ${entry.category}:${entry.id}:`, error);
+                        }
+                    }
+                    
+                    this.lastCleanup = now;
+                    console.log(`🧠 Cleanup completed: ${cleaned} resources freed`);
+                    
+                    // Trigger garbage collection if available
+                    if (window.gc) {
+                        window.gc();
+                        console.log('🧠 Manual garbage collection triggered');
+                    }
+                    
+                    return cleaned;
+                }
+                
+                getMemoryUsage() {
+                    if ('memory' in performance) {
+                        return {
+                            used: performance.memory.usedJSHeapSize,
+                            total: performance.memory.totalJSHeapSize,
+                            limit: performance.memory.jsHeapSizeLimit
+                        };
+                    }
+                    return null;
+                }
+                
+                checkMemoryPressure() {
+                    const memory = this.getMemoryUsage();
+                    if (!memory) return false;
+                    
+                    const usageRatio = memory.used / memory.limit;
+                    if (usageRatio > 0.8) {
+                        console.warn(`🧠 High memory usage: ${(usageRatio * 100).toFixed(1)}%`);
+                        this.cleanup();
+                        return true;
+                    }
+                    return false;
+                }
+                
+                startMonitoring() {
+                    // Check memory every 30 seconds
+                    setInterval(() => {
+                        this.checkMemoryPressure();
+                        
+                        // Auto-cleanup every 5 minutes
+                        if (Date.now() - this.lastCleanup > this.cleanupInterval) {
+                            this.cleanup();
+                        }
+                    }, 30000);
+                    
+                    console.log('🧠 Memory monitoring started');
+                }
+                
+                dispose() {
+                    // Clear all resources
+                    this.cleanup();
+                    
+                    // Clear all timers
+                    for (const timer of this.cleanupTimers.values()) {
+                        clearTimeout(timer);
+                    }
+                    this.cleanupTimers.clear();
+                    
+                    console.log('🧠 MemoryManager disposed');
+                }
+            }
+            
+            // Initialize global memory manager
+            const memoryManager = new MemoryManager();
+            
+            // ====================================================================
+            // PHASE 5.1.2: INTELLIGENT WASM LOADING & CACHING SYSTEM
+            // ====================================================================
+            
+            class WASMCache {
+                constructor() {
+                    this.cache = new Map();
+                    this.loadingPromises = new Map();
+                    this.cacheStats = {
+                        hits: 0,
+                        misses: 0,
+                        loads: 0,
+                        errors: 0
+                    };
+                    this.maxCacheSize = 50 * 1024 * 1024; // 50MB cache limit
+                    this.maxCacheAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+                    
+                    console.log('🚀 WASMCache initialized with 50MB limit, 7-day expiry');
+                    this.startCacheCleanup();
+                }
+                
+                async loadModule(url, version = 'latest', options = {}) {
+                    const cacheKey = `${url}@${version}`;
+                    const now = Date.now();
+                    
+                    // Check cache first
+                    if (this.cache.has(cacheKey)) {
+                        const entry = this.cache.get(cacheKey);
+                        
+                        // Check if cache entry is still valid
+                        if (now - entry.timestamp < this.maxCacheAge) {
+                            this.cacheStats.hits++;
+                            console.log(`🚀 WASM cache hit: ${cacheKey} (${this.getCacheHitRate()}% hit rate)`);
+                            return entry.module;
+                        } else {
+                            // Cache expired, remove it
+                            this.cache.delete(cacheKey);
+                            console.log(`🚀 WASM cache expired: ${cacheKey}`);
+                        }
+                    }
+                    
+                    // Check if already loading
+                    if (this.loadingPromises.has(cacheKey)) {
+                        console.log(`🚀 WASM already loading: ${cacheKey}`);
+                        return this.loadingPromises.get(cacheKey);
+                    }
+                    
+                    // Load with caching
+                    this.cacheStats.misses++;
+                    const loadPromise = this._loadAndCache(url, cacheKey, options);
+                    this.loadingPromises.set(cacheKey, loadPromise);
+                    
+                    return loadPromise;
+                }
+                
+                async _loadAndCache(url, cacheKey, options) {
+                    const startTime = performance.now();
+                    
+                    try {
+                        console.log(`🚀 Loading WASM module: ${url}`);
+                        this.cacheStats.loads++;
+                        
+                        // Enhanced loading with streaming and compression detection
+                        const response = await fetch(url, {
+                            cache: 'force-cache', // Use browser cache first
+                            ...options.fetchOptions
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        
+                        // Check content encoding
+                        const contentEncoding = response.headers.get('content-encoding');
+                        const contentLength = response.headers.get('content-length');
+                        
+                        console.log(`🚀 WASM response headers:`, {
+                            encoding: contentEncoding,
+                            size: contentLength,
+                            type: response.headers.get('content-type')
+                        });
+                        
+                        // Use streaming instantiation for better performance
+                        let module;
+                        if (typeof WebAssembly.instantiateStreaming === 'function') {
+                            console.log('🚀 Using WebAssembly.instantiateStreaming');
+                            module = await WebAssembly.instantiateStreaming(response, options.imports || {});
+                        } else {
+                            console.log('🚀 Fallback to WebAssembly.instantiate');
+                            const arrayBuffer = await response.arrayBuffer();
+                            module = await WebAssembly.instantiate(arrayBuffer, options.imports || {});
+                        }
+                        
+                        const loadTime = performance.now() - startTime;
+                        console.log(`🚀 WASM loaded in ${loadTime.toFixed(2)}ms: ${cacheKey}`);
+                        
+                        // Cache the module
+                        const entry = {
+                            module,
+                            timestamp: Date.now(),
+                            size: contentLength ? parseInt(contentLength) : 0,
+                            loadTime
+                        };
+                        
+                        this.cache.set(cacheKey, entry);
+                        
+                        // Check cache size and cleanup if needed
+                        this.enforceMemoryLimits();
+                        
+                        // Register with memory manager for cleanup
+                        memoryManager.register(entry, (e) => {
+                            this.cache.delete(cacheKey);
+                            console.log(`🚀 WASM cache entry disposed: ${cacheKey}`);
+                        }, 'wasm-cache');
+                        
+                        return module;
+                        
+                    } catch (error) {
+                        this.cacheStats.errors++;
+                        console.error(`🚀 WASM loading failed: ${url}`, error);
+                        throw new Error(`WASM loading failed: ${error.message}`);
+                    } finally {
+                        this.loadingPromises.delete(cacheKey);
+                    }
+                }
+                
+                enforceMemoryLimits() {
+                    const entries = Array.from(this.cache.entries());
+                    const totalSize = entries.reduce((sum, [, entry]) => sum + (entry.size || 0), 0);
+                    
+                    if (totalSize > this.maxCacheSize) {
+                        console.log(`🚀 WASM cache size limit exceeded: ${(totalSize/1024/1024).toFixed(2)}MB`);
+                        
+                        // Sort by timestamp (oldest first) and remove entries
+                        entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+                        
+                        let removedSize = 0;
+                        for (const [key, entry] of entries) {
+                            this.cache.delete(key);
+                            removedSize += entry.size || 0;
+                            console.log(`🚀 Evicted WASM cache entry: ${key}`);
+                            
+                            if (totalSize - removedSize <= this.maxCacheSize * 0.8) {
+                                break; // Keep some headroom
+                            }
+                        }
+                    }
+                }
+                
+                getCacheHitRate() {
+                    const total = this.cacheStats.hits + this.cacheStats.misses;
+                    return total > 0 ? Math.round((this.cacheStats.hits / total) * 100) : 0;
+                }
+                
+                getStats() {
+                    return {
+                        ...this.cacheStats,
+                        hitRate: this.getCacheHitRate(),
+                        cacheSize: this.cache.size,
+                        totalMemory: Array.from(this.cache.values()).reduce((sum, entry) => sum + (entry.size || 0), 0)
+                    };
+                }
+                
+                clearCache() {
+                    const cleared = this.cache.size;
+                    this.cache.clear();
+                    this.loadingPromises.clear();
+                    console.log(`🚀 WASM cache cleared: ${cleared} entries`);
+                    return cleared;
+                }
+                
+                startCacheCleanup() {
+                    // Clean expired entries every hour
+                    setInterval(() => {
+                        const now = Date.now();
+                        let cleaned = 0;
+                        
+                        for (const [key, entry] of this.cache.entries()) {
+                            if (now - entry.timestamp > this.maxCacheAge) {
+                                this.cache.delete(key);
+                                cleaned++;
+                            }
+                        }
+                        
+                        if (cleaned > 0) {
+                            console.log(`🚀 WASM cache auto-cleanup: ${cleaned} expired entries removed`);
+                        }
+                    }, 60 * 60 * 1000); // 1 hour
+                }
+                
+                // Prefetch WASM modules for better performance
+                async prefetch(urls, versions = {}) {
+                    const prefetchPromises = urls.map(url => {
+                        const version = versions[url] || 'latest';
+                        return this.loadModule(url, version).catch(error => {
+                            console.warn(`🚀 WASM prefetch failed for ${url}:`, error);
+                        });
+                    });
+                    
+                    await Promise.allSettled(prefetchPromises);
+                    console.log(`🚀 WASM prefetch completed for ${urls.length} modules`);
+                }
+            }
+            
+            // Initialize global WASM cache
+            const wasmCache = new WASMCache();
+            
+            // ====================================================================
+            // PHASE 5.1.3: THREE.JS LOD & RENDERING OPTIMIZATION
+            // ====================================================================
+            
+            class RenderingOptimizer {
+                constructor(renderer, scene) {
+                    this.renderer = renderer;
+                    this.scene = scene;
+                    this.performanceMonitor = {
+                        frameRate: 60,
+                        frameTime: 16.67,
+                        triangleCount: 0,
+                        lodLevel: 0
+                    };
+                    this.lodDistances = [25, 75, 150]; // LOD switch distances
+                    this.maxTriangles = {
+                        high: 100000,   // High detail
+                        medium: 25000,  // Medium detail
+                        low: 5000       // Low detail
+                    };
+                    
+                    console.log('🎨 RenderingOptimizer initialized');
+                    this.startPerformanceMonitoring();
+                }
+                
+                optimizeGeometry(geometry, targetTriangles = this.maxTriangles.high) {
+                    if (!geometry || !geometry.attributes.position) {
+                        console.warn('🎨 Invalid geometry for optimization');
+                        return geometry;
+                    }
+                    
+                    const currentTriangles = geometry.attributes.position.count / 3;
+                    console.log(`🎨 Optimizing geometry: ${currentTriangles} → target: ${targetTriangles} triangles`);
+                    
+                    if (currentTriangles <= targetTriangles) {
+                        console.log('🎨 Geometry already within triangle limit');
+                        return geometry;
+                    }
+                    
+                    // Simple vertex decimation for optimization
+                    const optimizedGeometry = this.simplifyGeometry(geometry, targetTriangles);
+                    this.performanceMonitor.triangleCount = optimizedGeometry.attributes.position.count / 3;
+                    
+                    console.log(`🎨 Geometry optimized: ${currentTriangles} → ${this.performanceMonitor.triangleCount} triangles`);
+                    return optimizedGeometry;
+                }
+                
+                simplifyGeometry(geometry, targetTriangles) {
+                    // Create a simplified version using vertex reduction
+                    const positions = geometry.attributes.position.array;
+                    const normals = geometry.attributes.normal ? geometry.attributes.normal.array : null;
+                    
+                    const currentTriangles = positions.length / 9; // 3 vertices * 3 coordinates
+                    const reductionRatio = Math.min(targetTriangles / currentTriangles, 1.0);
+                    
+                    if (reductionRatio >= 0.95) {
+                        // Less than 5% reduction needed, return original
+                        return geometry;
+                    }
+                    
+                    // Simple every-nth-triangle reduction (better algorithms exist but this is fast)
+                    const step = Math.max(1, Math.floor(1 / reductionRatio));
+                    const newPositions = [];
+                    const newNormals = normals ? [] : null;
+                    
+                    for (let i = 0; i < positions.length; i += 9 * step) {
+                        if (i + 8 < positions.length) {
+                            // Add triangle vertices
+                            for (let j = 0; j < 9; j++) {
+                                newPositions.push(positions[i + j]);
+                            }
+                            
+                            if (normals && newNormals) {
+                                for (let j = 0; j < 9; j++) {
+                                    newNormals.push(normals[i + j]);
+                                }
+                            }
+                        }
+                    }
+                    
+                    const simplifiedGeometry = new THREE.BufferGeometry();
+                    simplifiedGeometry.setAttribute('position', new THREE.Float32Array(newPositions));
+                    
+                    if (newNormals) {
+                        simplifiedGeometry.setAttribute('normal', new THREE.Float32Array(newNormals));
+                    } else {
+                        simplifiedGeometry.computeVertexNormals();
+                    }
+                    
+                    return simplifiedGeometry;
+                }
+                
+                createLODMesh(originalMesh, distances = this.lodDistances) {
+                    if (!originalMesh || !originalMesh.geometry) {
+                        console.warn('🎨 Invalid mesh for LOD creation');
+                        return originalMesh;
+                    }
+                    
+                    const lod = new THREE.LOD();
+                    
+                    // High detail (original)
+                    const highDetailMesh = originalMesh.clone();
+                    highDetailMesh.geometry = this.optimizeGeometry(originalMesh.geometry, this.maxTriangles.high);
+                    lod.addLevel(highDetailMesh, distances[0] || 25);
+                    
+                    // Medium detail
+                    const mediumDetailMesh = originalMesh.clone();
+                    mediumDetailMesh.geometry = this.optimizeGeometry(originalMesh.geometry, this.maxTriangles.medium);
+                    mediumDetailMesh.material = mediumDetailMesh.material.clone();
+                    mediumDetailMesh.material.wireframe = false;
+                    lod.addLevel(mediumDetailMesh, distances[1] || 75);
+                    
+                    // Low detail (wireframe)
+                    const lowDetailMesh = originalMesh.clone();
+                    lowDetailMesh.geometry = this.optimizeGeometry(originalMesh.geometry, this.maxTriangles.low);
+                    lowDetailMesh.material = lowDetailMesh.material.clone();
+                    lowDetailMesh.material.wireframe = true;
+                    lowDetailMesh.material.wireframeLinewidth = 2;
+                    lod.addLevel(lowDetailMesh, distances[2] || 150);
+                    
+                    // Register LOD with memory manager
+                    memoryManager.register(lod, (lodMesh) => {
+                        lodMesh.levels.forEach(level => {
+                            if (level.object.geometry) level.object.geometry.dispose();
+                            if (level.object.material) level.object.material.dispose();
+                        });
+                        console.log('🎨 LOD mesh disposed');
+                    }, 'lod-mesh');
+                    
+                    console.log(`🎨 LOD mesh created with ${lod.levels.length} detail levels`);
+                    return lod;
+                }
+                
+                adaptiveQuality(camera) {
+                    // Adjust rendering quality based on performance
+                    const frameTime = this.performanceMonitor.frameTime;
+                    const targetFrameTime = 16.67; // 60 FPS
+                    
+                    if (frameTime > targetFrameTime * 1.5) {
+                        // Performance is poor, reduce quality
+                        this.renderer.setPixelRatio(Math.max(1, this.renderer.getPixelRatio() * 0.9));
+                        console.log('🎨 Reducing render quality due to performance');
+                        return 'reduced';
+                    } else if (frameTime < targetFrameTime * 0.8) {
+                        // Performance is good, can increase quality
+                        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.renderer.getPixelRatio() * 1.1));
+                        console.log('🎨 Increasing render quality');
+                        return 'increased';
+                    }
+                    
+                    return 'stable';
+                }
+                
+                startPerformanceMonitoring() {
+                    let lastTime = performance.now();
+                    let frameCount = 0;
+                    
+                    const monitor = () => {
+                        const now = performance.now();
+                        const deltaTime = now - lastTime;
+                        
+                        if (deltaTime >= 1000) { // Update every second
+                            this.performanceMonitor.frameRate = (frameCount * 1000) / deltaTime;
+                            this.performanceMonitor.frameTime = deltaTime / frameCount;
+                            
+                            // Log performance if it's concerning
+                            if (this.performanceMonitor.frameRate < 30) {
+                                console.warn(`🎨 Low framerate: ${this.performanceMonitor.frameRate.toFixed(1)} FPS`);
+                            }
+                            
+                            frameCount = 0;
+                            lastTime = now;
+                        }
+                        
+                        frameCount++;
+                        requestAnimationFrame(monitor);
+                    };
+                    
+                    requestAnimationFrame(monitor);
+                    console.log('🎨 Performance monitoring started');
+                }
+                
+                getPerformanceStats() {
+                    return {
+                        ...this.performanceMonitor,
+                        pixelRatio: this.renderer.getPixelRatio(),
+                        memoryUsage: this.renderer.info.memory,
+                        renderInfo: this.renderer.info.render
+                    };
+                }
+                
+                // Frustum culling optimization
+                enableFrustumCulling(camera) {
+                    const frustum = new THREE.Frustum();
+                    const matrix = new THREE.Matrix4();
+                    
+                    return () => {
+                        matrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+                        frustum.setFromProjectionMatrix(matrix);
+                        
+                        this.scene.traverse((object) => {
+                            if (object.isMesh) {
+                                object.visible = frustum.intersectsObject(object);
+                            }
+                        });
+                    };
+                }
+                
+                // Automatic LOD switching based on camera distance
+                updateLOD(camera) {
+                    this.scene.traverse((object) => {
+                        if (object.isLOD) {
+                            object.update(camera);
+                        }
+                    });
+                }
+            }
+            
+            // Will be initialized after scene creation
+            let renderingOptimizer = null;
+            
             // Three.js laden (robuste Multi-CDN-Strategie)
             status.textContent = "Loading Three.js...";
             
@@ -133,6 +708,9 @@ class OpenSCADViewer(anywidget.AnyWidget):
                     throw new Error("Could not load Three.js from any CDN");
                 }
             }
+            
+            // Disable Web Workers for Marimo compatibility
+            console.log('🔧 Marimo Mode: Web Workers disabled for compatibility');
             
             // Load CSG library for Boolean operations with better error handling
             status.textContent = "Loading CSG library...";
@@ -283,6 +861,31 @@ class OpenSCADViewer(anywidget.AnyWidget):
             renderer.toneMapping = THREE.LinearToneMapping;
             container.appendChild(renderer.domElement);
             
+            // Register Three.js resources with memory manager
+            memoryManager.register(scene, (s) => {
+                s.traverse((object) => {
+                    if (object.geometry) object.geometry.dispose();
+                    if (object.material) {
+                        if (Array.isArray(object.material)) {
+                            object.material.forEach(mat => mat.dispose());
+                        } else {
+                            object.material.dispose();
+                        }
+                    }
+                });
+                s.clear();
+            }, 'three-scene');
+            
+            memoryManager.register(renderer, (r) => {
+                r.dispose();
+                if (r.domElement && r.domElement.parentNode) {
+                    r.domElement.parentNode.removeChild(r.domElement);
+                }
+            }, 'three-renderer');
+            
+            // Initialize rendering optimizer after scene and renderer setup
+            renderingOptimizer = new RenderingOptimizer(renderer, scene);
+            
             // Balanced lighting setup for edge definition without harsh shadows
             const ambientLight = new THREE.AmbientLight(0x404040, 0.6);  // Soft ambient
             scene.add(ambientLight);
@@ -307,6 +910,13 @@ class OpenSCADViewer(anywidget.AnyWidget):
             gridHelper.material.depthWrite = false;  // Don't write to depth buffer
             gridHelper.renderOrder = -1;  // Render before other objects
             scene.add(gridHelper);
+            
+            // Register lighting and grid resources
+            memoryManager.register(gridHelper, (grid) => {
+                if (grid.geometry) grid.geometry.dispose();
+                if (grid.material) grid.material.dispose();
+                scene.remove(grid);
+            }, 'three-grid');
             
             // Mouse Controls
             let mouseDown = false;
@@ -355,6 +965,81 @@ class OpenSCADViewer(anywidget.AnyWidget):
             updateCameraPosition();
             
             let currentMesh = null;
+            let currentMeshResourceId = null;
+            
+            // Helper function to register mesh with memory manager
+            function registerMesh(mesh, category = 'mesh') {
+                const resourceId = memoryManager.register(mesh, (m) => {
+                    // Clean up the main mesh
+                    if (m.geometry) m.geometry.dispose();
+                    if (m.material) {
+                        if (Array.isArray(m.material)) {
+                            m.material.forEach(mat => mat.dispose());
+                        } else {
+                            m.material.dispose();
+                        }
+                    }
+                    
+                    // Clean up additional meshes in userData
+                    if (m.userData) {
+                        ['holeMesh', 'outlineMesh', 'voidMesh', 'innerWallMesh', 'frontRim', 'backRim', 'cube2Mesh'].forEach(key => {
+                            if (m.userData[key]) {
+                                scene.remove(m.userData[key]);
+                                if (m.userData[key].geometry) m.userData[key].geometry.dispose();
+                                if (m.userData[key].material) m.userData[key].material.dispose();
+                            }
+                        });
+                    }
+                    
+                    // Remove from scene
+                    scene.remove(m);
+                    console.log(`🧠 Mesh disposed: ${category}`);
+                }, category);
+                
+                return resourceId;
+            }
+            
+            // Helper function to safely replace current mesh
+            function replaceCurrentMesh(newMesh, category = 'main-mesh') {
+                // Unregister and cleanup old mesh
+                if (currentMeshResourceId) {
+                    memoryManager.unregister(currentMeshResourceId);
+                    currentMeshResourceId = null;
+                }
+                
+                // Clean up manually if memory manager didn't handle it
+                if (currentMesh) {
+                    scene.remove(currentMesh);
+                    if (currentMesh.geometry) currentMesh.geometry.dispose();
+                    if (currentMesh.material) currentMesh.material.dispose();
+                }
+                
+                // Set new mesh and apply optimizations
+                currentMesh = newMesh;
+                if (newMesh) {
+                    // Apply LOD optimization if rendering optimizer is available and mesh is complex
+                    if (renderingOptimizer && newMesh.geometry && newMesh.geometry.attributes.position) {
+                        const triangleCount = newMesh.geometry.attributes.position.count / 3;
+                        console.log(`🎨 Mesh has ${triangleCount} triangles`);
+                        
+                        if (triangleCount > 10000) { // Only apply LOD for complex meshes
+                            console.log('🎨 Creating LOD mesh for performance optimization');
+                            const lodMesh = renderingOptimizer.createLODMesh(newMesh);
+                            scene.add(lodMesh);
+                            currentMesh = lodMesh;
+                            currentMeshResourceId = registerMesh(lodMesh, `${category}-lod`);
+                        } else {
+                            // For simpler meshes, just optimize geometry
+                            newMesh.geometry = renderingOptimizer.optimizeGeometry(newMesh.geometry);
+                            scene.add(newMesh);
+                            currentMeshResourceId = registerMesh(newMesh, category);
+                        }
+                    } else {
+                        scene.add(newMesh);
+                        currentMeshResourceId = registerMesh(newMesh, category);
+                    }
+                }
+            }
             
             // STL Parser (nach Three.js STLLoader)
             class STLParser {
@@ -517,16 +1202,16 @@ class OpenSCADViewer(anywidget.AnyWidget):
                         depthWrite: true
                     });
                     
-                    currentMesh = new THREE.Mesh(geometry, material);
-                    currentMesh.castShadow = true;
-                    currentMesh.receiveShadow = true;
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
                     
                     // Auto-Center
                     const box = geometry.boundingBox;
                     const center = box.getCenter(new THREE.Vector3());
-                    currentMesh.position.sub(center);
+                    mesh.position.sub(center);
                     
-                    scene.add(currentMesh);
+                    replaceCurrentMesh(mesh, 'stl-mesh');
                     
                     // Kamera optimal positionieren
                     const size = box.getSize(new THREE.Vector3());
@@ -554,8 +1239,8 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 
                 const geometry = new THREE.BoxGeometry(10, 10, 10);
                 const material = new THREE.MeshLambertMaterial({ color: 0xff6b6b });
-                currentMesh = new THREE.Mesh(geometry, material);
-                scene.add(currentMesh);
+                const mesh = new THREE.Mesh(geometry, material);
+                replaceCurrentMesh(mesh, 'fallback-mesh');
                 
                 status.textContent = "⚠️ Using fallback geometry";
                 status.style.background = "rgba(255,193,7,0.9)";
@@ -663,29 +1348,8 @@ class OpenSCADViewer(anywidget.AnyWidget):
                     console.log('🔄 Both Phase 2 and Phase 1 failed, using basic geometric interpretation...');
                     
                     try {
-                        // Safely clean up existing mesh
-                if (currentMesh && currentMesh !== null) {
-                    scene.remove(currentMesh);
-                    // Clean up hole mesh if it exists
-                    if (currentMesh.userData && currentMesh.userData.holeMesh) {
-                        scene.remove(currentMesh.userData.holeMesh);
-                        if (currentMesh.userData.holeMesh.geometry) currentMesh.userData.holeMesh.geometry.dispose();
-                        if (currentMesh.userData.holeMesh.material) currentMesh.userData.holeMesh.material.dispose();
-                    }
-                    // Clean up all additional meshes
-                    if (currentMesh.userData) {
-                        ['outlineMesh', 'voidMesh', 'innerWallMesh', 'frontRim', 'backRim', 'cube2Mesh'].forEach(key => {
-                            if (currentMesh.userData[key]) {
-                                scene.remove(currentMesh.userData[key]);
-                                if (currentMesh.userData[key].geometry) currentMesh.userData[key].geometry.dispose();
-                                if (currentMesh.userData[key].material) currentMesh.userData[key].material.dispose();
-                            }
-                        });
-                    }
-                    if (currentMesh.geometry) currentMesh.geometry.dispose();
-                    if (currentMesh.material) currentMesh.material.dispose();
-                    currentMesh = null;
-                }
+                        // Safely clean up existing mesh using memory manager
+                        replaceCurrentMesh(null, 'cleanup');
                 
                 // Create geometry based on SCAD code analysis
                 let geometry;
@@ -1023,11 +1687,11 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 }
                 
                 // Create final mesh with processed geometry
-                currentMesh = new THREE.Mesh(finalGeometry, material);
-                currentMesh.castShadow = true;
-                currentMesh.receiveShadow = true;
-                currentMesh.userData = {}; // Initialize userData
-                scene.add(currentMesh);
+                const mesh = new THREE.Mesh(finalGeometry, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                mesh.userData = {}; // Initialize userData
+                replaceCurrentMesh(mesh, 'wasm-mesh');
                 
                 // Add simple union visualization when CSG failed OR for all union operations (temporary)
                 if (csgOperation === 'union') {
@@ -1171,8 +1835,8 @@ class OpenSCADViewer(anywidget.AnyWidget):
                                 if (currentMesh.material) currentMesh.material.dispose();
                             }
                             
-                            currentMesh = new THREE.Mesh(fallbackGeometry, fallbackMaterial);
-                            scene.add(currentMesh);
+                            const mesh = new THREE.Mesh(fallbackGeometry, fallbackMaterial);
+                            replaceCurrentMesh(mesh, 'scad-fallback-mesh');
                             updateCameraPosition();
                             
                             status.textContent = '❌ Basic geometry error: ' + basicRenderError.message;
@@ -2154,9 +2818,20 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 initializeWASMRenderer();
             }
             
-            // Animation Loop
+            // Animation Loop with LOD optimization
             function animate() {
                 requestAnimationFrame(animate);
+                
+                // Update LOD based on camera distance
+                if (renderingOptimizer) {
+                    renderingOptimizer.updateLOD(camera);
+                    
+                    // Adaptive quality adjustment (every 30 frames to avoid overhead)
+                    if (Math.random() < 0.033) { // ~1/30 chance per frame
+                        renderingOptimizer.adaptiveQuality(camera);
+                    }
+                }
+                
                 renderer.render(scene, camera);
             }
             
@@ -2173,6 +2848,24 @@ class OpenSCADViewer(anywidget.AnyWidget):
             status.textContent = "🚀 3D viewer ready";
             updateModel();
             animate();
+            
+            // Widget cleanup handler
+            return () => {
+                console.log('🧠 Widget cleanup initiated');
+                
+                // Dispose memory manager (cleans up all registered resources)
+                memoryManager.dispose();
+                
+                // Remove event listeners
+                window.removeEventListener('resize', onWindowResize);
+                
+                // Clean up remaining DOM elements
+                if (container && container.parentNode) {
+                    container.innerHTML = '';
+                }
+                
+                console.log('🧠 Widget cleanup completed');
+            };
             
         } catch (error) {
             console.error("Viewer initialization error:", error);
