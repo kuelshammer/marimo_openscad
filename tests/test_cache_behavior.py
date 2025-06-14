@@ -261,6 +261,10 @@ class TestOpenSCADViewer:
         """Setup test environment"""
         self.viewer = OpenSCADViewer()
         
+        # Ensure WASM is disabled for predictable testing
+        self.viewer.wasm_enabled = False
+        self.viewer.enable_real_time_wasm = False
+        
         # Replace the _render_stl method with a simple mock
         def mock_render_stl(scad_code, force_render=False):
             if "cube" in scad_code.lower():
@@ -275,14 +279,14 @@ class TestOpenSCADViewer:
     
     def test_update_scad_code_produces_different_output(self):
         """Test that update_scad_code produces different outputs for different SCAD code"""
-        # Test cube
+        # Test cube - explicitly disable WASM to ensure local rendering
         cube_scad = "cube([10, 10, 10]);"
-        self.viewer.update_scad_code(cube_scad)
+        self.viewer.update_scad_code(cube_scad, use_wasm=False)
         cube_output = self.viewer.stl_data
         
-        # Test sphere  
+        # Test sphere - explicitly disable WASM to ensure local rendering
         sphere_scad = "sphere(r=6);"
-        self.viewer.update_scad_code(sphere_scad)
+        self.viewer.update_scad_code(sphere_scad, use_wasm=False)
         sphere_output = self.viewer.stl_data
         
         # Outputs should be different
