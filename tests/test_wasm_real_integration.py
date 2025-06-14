@@ -51,8 +51,11 @@ class TestRealWASMIntegration:
         assert base_url
         assert "marimo_openscad/wasm" in base_url
         
-        # Should be accessible path
-        wasm_path = Path(base_url)
+        # Should be accessible path (convert URL to path if needed)
+        if base_url.startswith('file://'):
+            wasm_path = Path(base_url[7:])  # Remove 'file://' prefix
+        else:
+            wasm_path = Path(base_url)
         assert wasm_path.exists()
     
     def test_wasm_stats_real_data(self):

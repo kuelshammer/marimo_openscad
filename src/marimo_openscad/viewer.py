@@ -12,6 +12,7 @@ import tempfile
 import subprocess
 import base64
 import asyncio
+import time
 from pathlib import Path
 import logging
 from typing import Optional, Literal, Union, Dict
@@ -3173,7 +3174,7 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 'compatibility_status': self.version_compatibility_status,
                 'migration_suggestions': migration_suggestions,
                 'enhanced_code': enhanced_code,
-                'timestamp': asyncio.get_event_loop().time() if hasattr(asyncio, 'get_event_loop') else 0
+                'timestamp': time.time()
             }
             
             logger.info(f"✅ Enhanced SCAD workflow completed: {len(enhanced_code)} chars, status: {self.version_compatibility_status}")
