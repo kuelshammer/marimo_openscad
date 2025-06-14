@@ -6,3 +6,8 @@
 
 [W 250614 16:08:43 middleware:127] Received request with invalid server token (skew protection token). This could mean the server has new code deployed but the client is still using an old version.Expected: ckPXXO-R1PUG3fSMvffd_g, got: EEOREA7Hot4IfellERABmQ
 [W 250614 16:08:49 middleware:127] Received request with invalid server token (skew protection token). This could mean the server has new code deployed but the client is still using an old version.Expected: ckPXXO-R1PUG3fSMvffd_g, got: EEOREA7Hot4IfellERABmQ
+
+        Thanks for using marimo! 🌊🍃
+
+/Users/max/.local/share/uv/python/cpython-3.12.6-macos-aarch64-none/lib/python3.12/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 1 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

@@ -675,6 +675,589 @@ class OpenSCADViewer(anywidget.AnyWidget):
             let renderingOptimizer = null;
             
             // ====================================================================
+            // PHASE 5.2.2: ENHANCED ERROR HANDLING & RECOVERY SUGGESTIONS
+            // ====================================================================
+            
+            class ErrorHandler {
+                constructor(container, progressiveLoader) {
+                    this.container = container;
+                    this.progressiveLoader = progressiveLoader;
+                    this.errorHistory = [];
+                    this.maxErrorHistory = 10;
+                    this.retryCount = 0;
+                    this.maxRetries = 3;
+                    
+                    console.log('🛡️ ErrorHandler initialized');
+                }
+                
+                handleError(error, context = 'general', retryCallback = null) {
+                    const errorRecord = {
+                        error,
+                        context,
+                        timestamp: Date.now(),
+                        retryCount: this.retryCount,
+                        stack: error.stack || '',
+                        userAgent: navigator.userAgent
+                    };
+                    
+                    this.errorHistory.push(errorRecord);
+                    
+                    // Keep only recent errors
+                    if (this.errorHistory.length > this.maxErrorHistory) {
+                        this.errorHistory.shift();
+                    }
+                    
+                    console.error(`🛡️ Error handled: ${context}`, errorRecord);
+                    
+                    // Show appropriate error UI
+                    this.showContextualError(error, context, retryCallback);
+                    
+                    // Report to analytics if available
+                    this.reportError(errorRecord);
+                    
+                    return errorRecord;
+                }
+                
+                showContextualError(error, context, retryCallback) {
+                    const errorStrategies = {
+                        'webgl': {
+                            icon: '🖥️',
+                            title: 'Graphics Not Available',
+                            message: 'WebGL is required for 3D rendering but isn\'t available.',
+                            detailedMessage: 'This could be due to hardware limitations, browser settings, or disabled graphics acceleration.',
+                            suggestions: [
+                                'Enable hardware acceleration in browser settings',
+                                'Update your graphics drivers',
+                                'Try a different browser (Chrome, Firefox, Edge)',
+                                'Check if WebGL is supported at webglreport.com'
+                            ],
+                            actions: [
+                                { label: '🔄 Retry', action: 'retry', primary: true },
+                                { label: '📱 Use 2D Fallback', action: 'fallback', primary: false },
+                                { label: '🌐 Check WebGL Support', action: 'check_webgl', primary: false }
+                            ],
+                            severity: 'high'
+                        },
+                        'wasm': {
+                            icon: '🚀',
+                            title: 'WebAssembly Loading Failed',
+                            message: 'Unable to load OpenSCAD WebAssembly modules.',
+                            detailedMessage: 'This could be due to network issues, browser restrictions, or CORS policies.',
+                            suggestions: [
+                                'Refresh the page to retry loading',
+                                'Check your internet connection',
+                                'Disable ad blockers or browser extensions',
+                                'Try using a different network'
+                            ],
+                            actions: [
+                                { label: '🔄 Retry Loading', action: 'retry', primary: true },
+                                { label: '🔧 Use Local Renderer', action: 'fallback_local', primary: false },
+                                { label: '📊 Network Diagnostics', action: 'network_check', primary: false }
+                            ],
+                            severity: 'medium'
+                        },
+                        'network': {
+                            icon: '🌐',
+                            title: 'Network Connection Error',
+                            message: 'Failed to load required resources.',
+                            detailedMessage: 'Unable to connect to CDN or load external dependencies.',
+                            suggestions: [
+                                'Check your internet connection',
+                                'Disable VPN or proxy if active',
+                                'Try refreshing the page',
+                                'Clear browser cache and cookies'
+                            ],
+                            actions: [
+                                { label: '🔄 Retry', action: 'retry', primary: true },
+                                { label: '📱 Offline Mode', action: 'offline_mode', primary: false },
+                                { label: '🔍 Connection Test', action: 'connection_test', primary: false }
+                            ],
+                            severity: 'medium'
+                        },
+                        'parsing': {
+                            icon: '🔧',
+                            title: 'Model Processing Error',
+                            message: 'Unable to process the 3D model data.',
+                            detailedMessage: 'The STL data might be corrupted, incomplete, or in an unsupported format.',
+                            suggestions: [
+                                'Try regenerating the model',
+                                'Check if the model is too complex',
+                                'Verify the source SCAD code',
+                                'Reduce model complexity if possible'
+                            ],
+                            actions: [
+                                { label: '🔄 Regenerate', action: 'regenerate', primary: true },
+                                { label: '📐 Use Simple Model', action: 'fallback_model', primary: false },
+                                { label: '🔍 Debug SCAD', action: 'debug_scad', primary: false }
+                            ],
+                            severity: 'low'
+                        },
+                        'memory': {
+                            icon: '🧠',
+                            title: 'Memory Limit Exceeded',
+                            message: 'Not enough memory to render this model.',
+                            detailedMessage: 'The model is too complex for your device\'s available memory.',
+                            suggestions: [
+                                'Close other browser tabs',
+                                'Reduce model complexity',
+                                'Try a simpler version',
+                                'Restart your browser'
+                            ],
+                            actions: [
+                                { label: '🔄 Try Again', action: 'retry', primary: true },
+                                { label: '📐 Simplify Model', action: 'simplify', primary: false },
+                                { label: '🧹 Free Memory', action: 'cleanup', primary: false }
+                            ],
+                            severity: 'high'
+                        },
+                        'timeout': {
+                            icon: '⏱️',
+                            title: 'Operation Timeout',
+                            message: 'The operation took too long to complete.',
+                            detailedMessage: 'This might be due to model complexity or slow network connection.',
+                            suggestions: [
+                                'Try again with a simpler model',
+                                'Check your internet connection speed',
+                                'Reduce model detail level',
+                                'Wait and retry in a moment'
+                            ],
+                            actions: [
+                                { label: '🔄 Retry', action: 'retry', primary: true },
+                                { label: '📐 Reduce Quality', action: 'reduce_quality', primary: false },
+                                { label: '⏳ Extend Timeout', action: 'extend_timeout', primary: false }
+                            ],
+                            severity: 'medium'
+                        },
+                        'general': {
+                            icon: '❌',
+                            title: 'Unexpected Error',
+                            message: error.message || 'An unknown error occurred.',
+                            detailedMessage: 'Something went wrong that we didn\'t anticipate.',
+                            suggestions: [
+                                'Try refreshing the page',
+                                'Check the browser console for details',
+                                'Report this issue if it persists',
+                                'Try using a different browser'
+                            ],
+                            actions: [
+                                { label: '🔄 Retry', action: 'retry', primary: true },
+                                { label: '📋 Copy Error', action: 'copy_error', primary: false },
+                                { label: '🐛 Report Bug', action: 'report_bug', primary: false }
+                            ],
+                            severity: 'medium'
+                        }
+                    };
+                    
+                    const strategy = errorStrategies[context] || errorStrategies['general'];
+                    this.showEnhancedErrorUI(strategy, error, retryCallback);
+                }
+                
+                showEnhancedErrorUI(strategy, error, retryCallback) {
+                    const severityColors = {
+                        'low': { bg: 'rgba(245, 158, 11, 0.1)', border: '#f59e0b', text: '#92400e' },
+                        'medium': { bg: 'rgba(239, 68, 68, 0.1)', border: '#ef4444', text: '#dc2626' },
+                        'high': { bg: 'rgba(127, 29, 29, 0.1)', border: '#991b1b', text: '#7f1d1d' }
+                    };
+                    
+                    const colors = severityColors[strategy.severity] || severityColors['medium'];
+                    
+                    // Create enhanced error UI
+                    this.container.innerHTML = `
+                        <div style="
+                            background: ${colors.bg}; 
+                            border: 1px solid ${colors.border}; 
+                            border-radius: 12px; 
+                            padding: 20px;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+                            max-width: 500px;
+                            margin: 20px auto;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        ">
+                            <!-- Header -->
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                                <span style="font-size: 24px;">${strategy.icon}</span>
+                                <div>
+                                    <div style="color: ${colors.text}; font-weight: 700; font-size: 16px; margin-bottom: 2px;">
+                                        ${strategy.title}
+                                    </div>
+                                    <div style="color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                        ${strategy.severity} severity
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Main Message -->
+                            <div style="color: #374151; font-size: 14px; margin-bottom: 12px; line-height: 1.5;">
+                                ${strategy.message}
+                            </div>
+                            
+                            <!-- Detailed Message (Expandable) -->
+                            <details style="margin-bottom: 16px;">
+                                <summary style="color: #6b7280; font-size: 12px; cursor: pointer; margin-bottom: 8px;">
+                                    🔍 Technical Details
+                                </summary>
+                                <div style="
+                                    color: #4b5563; 
+                                    font-size: 12px; 
+                                    background: rgba(0,0,0,0.05); 
+                                    padding: 10px; 
+                                    border-radius: 6px;
+                                    line-height: 1.4;
+                                ">
+                                    ${strategy.detailedMessage}
+                                    <br><br>
+                                    <strong>Error:</strong> ${error.message}<br>
+                                    <strong>Time:</strong> ${new Date().toLocaleTimeString()}<br>
+                                    <strong>Retry Count:</strong> ${this.retryCount}/${this.maxRetries}
+                                </div>
+                            </details>
+                            
+                            <!-- Suggestions -->
+                            <div style="margin-bottom: 16px;">
+                                <div style="color: #059669; font-size: 13px; font-weight: 600; margin-bottom: 8px;">
+                                    💡 Suggested Solutions:
+                                </div>
+                                <ul style="margin: 0; padding-left: 16px; color: #374151; font-size: 12px; line-height: 1.5;">
+                                    ${strategy.suggestions.map(suggestion => 
+                                        `<li style="margin-bottom: 4px;">${suggestion}</li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                ${strategy.actions.map(action => `
+                                    <button 
+                                        onclick="window.errorHandler.executeAction('${action.action}', '${error.message}')"
+                                        style="
+                                            background: ${action.primary ? colors.border : 'transparent'}; 
+                                            color: ${action.primary ? 'white' : colors.text}; 
+                                            border: 1px solid ${colors.border}; 
+                                            border-radius: 6px; 
+                                            padding: 8px 12px; 
+                                            font-size: 12px; 
+                                            cursor: pointer;
+                                            font-weight: ${action.primary ? '600' : '400'};
+                                            transition: all 0.2s;
+                                        " 
+                                        onmouseover="this.style.opacity='0.8'" 
+                                        onmouseout="this.style.opacity='1'"
+                                    >
+                                        ${action.label}
+                                    </button>
+                                `).join('')}
+                            </div>
+                            
+                            <!-- Error History Link -->
+                            ${this.errorHistory.length > 1 ? `
+                                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.1);">
+                                    <button onclick="window.errorHandler.showErrorHistory()" style="
+                                        background: none; 
+                                        border: none; 
+                                        color: #6b7280; 
+                                        font-size: 11px; 
+                                        cursor: pointer;
+                                        text-decoration: underline;
+                                    ">
+                                        📋 View Error History (${this.errorHistory.length} errors)
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    
+                    // Store retry callback globally for button access
+                    window.errorHandler = this;
+                    this.currentRetryCallback = retryCallback;
+                }
+                
+                executeAction(action, errorMessage) {
+                    console.log(`🛡️ Executing error action: ${action}`);
+                    
+                    switch (action) {
+                        case 'retry':
+                            this.retryOperation();
+                            break;
+                        case 'fallback':
+                            this.useFallbackMode();
+                            break;
+                        case 'fallback_local':
+                            this.switchToLocalRenderer();
+                            break;
+                        case 'fallback_model':
+                            this.useSimpleModel();
+                            break;
+                        case 'copy_error':
+                            this.copyErrorToClipboard(errorMessage);
+                            break;
+                        case 'report_bug':
+                            this.openBugReport(errorMessage);
+                            break;
+                        case 'check_webgl':
+                            window.open('https://webglreport.com', '_blank');
+                            break;
+                        case 'network_check':
+                            this.runNetworkDiagnostics();
+                            break;
+                        case 'cleanup':
+                            this.performMemoryCleanup();
+                            break;
+                        case 'regenerate':
+                            this.regenerateModel();
+                            break;
+                        case 'debug_scad':
+                            this.debugSCADCode();
+                            break;
+                        case 'simplify':
+                            this.simplifyModel();
+                            break;
+                        case 'connection_test':
+                            this.runConnectionTest();
+                            break;
+                        default:
+                            console.warn(`Unknown action: ${action}`);
+                    }
+                }
+                
+                useFallbackMode() {
+                    console.log('🛡️ Switching to fallback mode');
+                    // Implement 2D fallback or simple geometry
+                    if (window.createFallbackGeometry) {
+                        window.createFallbackGeometry();
+                    }
+                }
+                
+                switchToLocalRenderer() {
+                    console.log('🛡️ Switching to local renderer');
+                    // Force switch to local OpenSCAD renderer
+                    if (window.model && window.model.set) {
+                        window.model.set('renderer_type', 'local');
+                    }
+                }
+                
+                useSimpleModel() {
+                    console.log('🛡️ Using simple fallback model');
+                    if (window.createFallbackGeometry) {
+                        window.createFallbackGeometry();
+                    }
+                }
+                
+                regenerateModel() {
+                    console.log('🛡️ Regenerating model');
+                    // Trigger model regeneration
+                    if (window.updateModel) {
+                        window.updateModel();
+                    }
+                }
+                
+                debugSCADCode() {
+                    console.log('🛡️ Opening SCAD debugger');
+                    // Show SCAD code in console for debugging
+                    if (window.model && window.model.get) {
+                        const scadCode = window.model.get('scad_code');
+                        console.log('SCAD Code for debugging:', scadCode);
+                    }
+                }
+                
+                simplifyModel() {
+                    console.log('🛡️ Simplifying model');
+                    // Reduce model complexity
+                    // This would need to be implemented based on specific model parameters
+                }
+                
+                runConnectionTest() {
+                    console.log('🛡️ Running connection test');
+                    const testUrls = [
+                        'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
+                        'https://unpkg.com/three@0.128.0/build/three.min.js',
+                        'https://www.google.com/favicon.ico'
+                    ];
+                    
+                    Promise.all(testUrls.map(url => 
+                        fetch(url, { mode: 'no-cors' })
+                            .then(() => ({ url, status: 'ok' }))
+                            .catch(() => ({ url, status: 'failed' }))
+                    )).then(results => {
+                        console.log('🛡️ Connection test results:', results);
+                    });
+                }
+                
+                openBugReport(errorMessage) {
+                    const bugReportUrl = `https://github.com/your-repo/marimo-openscad/issues/new?title=Error%20Report&body=${encodeURIComponent(this.generateErrorReport())}`;
+                    window.open(bugReportUrl, '_blank');
+                }
+                }
+                
+                retryOperation() {
+                    this.retryCount++;
+                    if (this.retryCount <= this.maxRetries) {
+                        console.log(`🔄 Retrying operation (${this.retryCount}/${this.maxRetries})`);
+                        if (this.currentRetryCallback) {
+                            this.currentRetryCallback();
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        this.showMaxRetriesReached();
+                    }
+                }
+                
+                showMaxRetriesReached() {
+                    this.container.innerHTML = `
+                        <div style="
+                            background: rgba(127, 29, 29, 0.1); 
+                            border: 1px solid #991b1b; 
+                            border-radius: 8px; 
+                            padding: 16px;
+                            text-align: center;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+                        ">
+                            <div style="font-size: 24px; margin-bottom: 8px;">😞</div>
+                            <div style="color: #7f1d1d; font-weight: 600; margin-bottom: 8px;">
+                                Maximum Retries Reached
+                            </div>
+                            <div style="color: #374151; font-size: 13px; margin-bottom: 12px;">
+                                We've tried ${this.maxRetries} times but the issue persists.
+                            </div>
+                            <button onclick="location.reload()" style="
+                                background: #991b1b; 
+                                color: white; 
+                                border: none; 
+                                border-radius: 6px; 
+                                padding: 8px 16px; 
+                                cursor: pointer;
+                            ">
+                                🔄 Refresh Page
+                            </button>
+                        </div>
+                    `;
+                }
+                
+                copyErrorToClipboard(errorMessage) {
+                    const errorReport = this.generateErrorReport();
+                    navigator.clipboard.writeText(errorReport).then(() => {
+                        console.log('📋 Error report copied to clipboard');
+                        // Show temporary success message
+                        const button = event.target;
+                        const original = button.textContent;
+                        button.textContent = '✅ Copied!';
+                        setTimeout(() => button.textContent = original, 2000);
+                    });
+                }
+                
+                generateErrorReport() {
+                    const latest = this.errorHistory[this.errorHistory.length - 1];
+                    return `
+=== MARIMO-OPENSCAD ERROR REPORT ===
+Time: ${new Date(latest.timestamp).toISOString()}
+Error: ${latest.error.message}
+Context: ${latest.context}
+Stack: ${latest.stack}
+Retry Count: ${latest.retryCount}
+User Agent: ${latest.userAgent}
+URL: ${window.location.href}
+
+Error History (${this.errorHistory.length} errors):
+${this.errorHistory.map((err, i) => 
+    `${i + 1}. [${new Date(err.timestamp).toLocaleTimeString()}] ${err.context}: ${err.error.message}`
+).join('\n')}
+                    `.trim();
+                }
+                
+                showErrorHistory() {
+                    const historyHTML = this.errorHistory.map((err, index) => `
+                        <div style="
+                            padding: 8px; 
+                            border-bottom: 1px solid rgba(0,0,0,0.1);
+                            font-size: 11px;
+                        ">
+                            <strong>${index + 1}.</strong> 
+                            ${new Date(err.timestamp).toLocaleTimeString()} - 
+                            <span style="color: #ef4444;">${err.context}</span>: 
+                            ${err.error.message}
+                        </div>
+                    `).join('');
+                    
+                    this.container.innerHTML = `
+                        <div style="
+                            background: rgba(107, 114, 128, 0.1); 
+                            border: 1px solid #6b7280; 
+                            border-radius: 8px; 
+                            padding: 16px;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+                            max-height: 300px;
+                            overflow-y: auto;
+                        ">
+                            <h3 style="margin: 0 0 12px 0; color: #374151;">📋 Error History</h3>
+                            ${historyHTML}
+                            <button onclick="location.reload()" style="
+                                background: #6b7280; 
+                                color: white; 
+                                border: none; 
+                                border-radius: 6px; 
+                                padding: 8px 16px; 
+                                margin-top: 12px;
+                                cursor: pointer;
+                            ">
+                                🔄 Refresh & Start Over
+                            </button>
+                        </div>
+                    `;
+                }
+                
+                reportError(errorRecord) {
+                    // Send to analytics if available
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'exception', {
+                            description: `${errorRecord.context}: ${errorRecord.error.message}`,
+                            fatal: false
+                        });
+                    }
+                    
+                    // Log to console for debugging
+                    console.error('🛡️ Error Report:', errorRecord);
+                }
+                
+                performMemoryCleanup() {
+                    // Trigger garbage collection if available
+                    if (window.gc) {
+                        window.gc();
+                    }
+                    
+                    // Clear caches
+                    if (window.memoryManager) {
+                        window.memoryManager.cleanup();
+                    }
+                    
+                    console.log('🧹 Memory cleanup performed');
+                }
+                
+                runNetworkDiagnostics() {
+                    console.log('🌐 Running network diagnostics...');
+                    // Basic connectivity test
+                    fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' })
+                        .then(() => console.log('✅ Internet connection OK'))
+                        .catch(() => console.log('❌ Internet connection failed'));
+                }
+                
+                getErrorSummary() {
+                    return {
+                        totalErrors: this.errorHistory.length,
+                        errorsByContext: this.errorHistory.reduce((acc, err) => {
+                            acc[err.context] = (acc[err.context] || 0) + 1;
+                            return acc;
+                        }, {}),
+                        lastErrorTime: this.errorHistory.length > 0 ? 
+                            this.errorHistory[this.errorHistory.length - 1].timestamp : null,
+                        retryCount: this.retryCount
+                    };
+                }
+            }
+            
+            // Initialize enhanced error handler
+            let errorHandler = null;
+            
+            // ====================================================================
             // PHASE 5.2.1: PROGRESSIVE LOADING STATES & VISUAL FEEDBACK
             // ====================================================================
             
@@ -980,8 +1563,9 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 }
             }
             
-            // Initialize progressive loader
+            // Initialize progressive loader and error handler
             progressiveLoader = new ProgressiveLoader(container, status);
+            errorHandler = new ErrorHandler(container, progressiveLoader);
             
             // Start loading with enhanced progress feedback
             progressiveLoader.showState('loading-three', 0, 'Connecting to CDN...');
@@ -1022,8 +1606,9 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 }
                 
                 if (!loaded) {
-                    progressiveLoader.showError(new Error("Could not load Three.js from any CDN"), 'network');
-                    throw new Error("Could not load Three.js from any CDN");
+                    const error = new Error("Could not load Three.js from any CDN");
+                    errorHandler.handleError(error, 'network', () => location.reload());
+                    throw error;
                 }
             } else {
                 progressiveLoader.showState('loading-three', 100, 'Three.js already available');
@@ -1165,15 +1750,33 @@ class OpenSCADViewer(anywidget.AnyWidget):
             const camera = new THREE.PerspectiveCamera(45, rect.width / rect.height, 0.1, 1000);
             
             // Renderer - optimiert gegen Z-Fighting und Color-Artefakte
-            const renderer = new THREE.WebGLRenderer({ 
-                antialias: true,
-                alpha: true,
-                powerPreference: "high-performance",
-                precision: "highp",
-                stencil: false,
-                depth: true,
-                logarithmicDepthBuffer: true  // Better depth precision
-            });
+            let renderer;
+            try {
+                renderer = new THREE.WebGLRenderer({ 
+                    antialias: true,
+                    alpha: true,
+                    powerPreference: "high-performance",
+                    precision: "highp",
+                    stencil: false,
+                    depth: true,
+                    logarithmicDepthBuffer: true  // Better depth precision
+                });
+            } catch (webglError) {
+                errorHandler.handleError(webglError, 'webgl', () => {
+                    // Retry with fallback options
+                    try {
+                        renderer = new THREE.WebGLRenderer({ 
+                            antialias: false,
+                            alpha: false,
+                            powerPreference: "default"
+                        });
+                    } catch (fallbackError) {
+                        // Use Canvas renderer as last resort
+                        throw new Error("WebGL not supported and Canvas fallback failed");
+                    }
+                });
+                throw webglError;
+            }
             renderer.setSize(rect.width, rect.height);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             
@@ -1565,7 +2168,10 @@ class OpenSCADViewer(anywidget.AnyWidget):
                     
                 } catch (error) {
                     console.error("STL Processing Error:", error);
-                    progressiveLoader.showError(error, 'parsing');
+                    errorHandler.handleError(error, 'parsing', () => {
+                        // Retry STL processing
+                        processSTLData(base64STL);
+                    });
                     status.textContent = `❌ STL Error: ${error.message}`;
                     status.style.background = "rgba(220,20,60,0.9)";
                     createFallbackGeometry();
@@ -3228,8 +3834,27 @@ class OpenSCADViewer(anywidget.AnyWidget):
             
         } catch (error) {
             console.error("Viewer initialization error:", error);
-            status.textContent = `❌ Init Error: ${error.message}`;
-            status.style.background = "rgba(220,20,60,0.9)";
+            
+            // Determine error context for better handling
+            let context = 'general';
+            if (error.message.includes('WebGL')) {
+                context = 'webgl';
+            } else if (error.message.includes('WASM') || error.message.includes('WebAssembly')) {
+                context = 'wasm';
+            } else if (error.message.includes('network') || error.message.includes('CDN')) {
+                context = 'network';
+            } else if (error.message.includes('memory') || error.message.includes('Memory')) {
+                context = 'memory';
+            }
+            
+            // Use enhanced error handler if available
+            if (typeof errorHandler !== 'undefined' && errorHandler) {
+                errorHandler.handleError(error, context, () => location.reload());
+            } else {
+                // Fallback to simple error display
+                status.textContent = `❌ Init Error: ${error.message}`;
+                status.style.background = "rgba(220,20,60,0.9)";
+            }
         }
     }
     

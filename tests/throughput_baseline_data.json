@@ -1,5 +1,5 @@
 {
-  "timestamp": 1749899199.9374888,
+  "timestamp": 1749918953.715891,
   "platform": "Darwin",
   "overall_avg_time_sec": null,
   "overall_avg_throughput_per_sec": 0,
@@ -8,46 +8,46 @@
   "total_models": 5,
   "detailed_results": {
     "minimal": {
-      "avg_time_sec": 0.0010946386804183323,
-      "min_time_sec": 0.0009534580167382956,
-      "max_time_sec": 0.001312083040829748,
-      "throughput_per_sec": 913.5434530943445,
+      "avg_time_sec": 0.0011281663513121505,
+      "min_time_sec": 0.0009915000409819186,
+      "max_time_sec": 0.0013171660248190165,
+      "throughput_per_sec": 886.3941021081843,
       "success_rate": 0.0,
       "iterations": 3,
       "successful_renders": 0
     },
     "simple": {
-      "avg_time_sec": 0.0009177913307212293,
-      "min_time_sec": 0.0009090829989872873,
-      "max_time_sec": 0.0009315829956904054,
-      "throughput_per_sec": 1089.5722878687125,
+      "avg_time_sec": 0.0010833196768847604,
+      "min_time_sec": 0.001014959008898586,
+      "max_time_sec": 0.0011829580180346966,
+      "throughput_per_sec": 923.088559487484,
       "success_rate": 0.0,
       "iterations": 3,
       "successful_renders": 0
     },
     "medium": {
-      "avg_time_sec": 0.0010391253357132275,
-      "min_time_sec": 0.0010224590077996254,
-      "max_time_sec": 0.0010490830172784626,
-      "throughput_per_sec": 962.34781852723,
+      "avg_time_sec": 0.0009707636781968176,
+      "min_time_sec": 0.0009525830391794443,
+      "max_time_sec": 0.0009838329860940576,
+      "throughput_per_sec": 1030.1168270505223,
       "success_rate": 0.0,
       "iterations": 3,
       "successful_renders": 0
     },
     "complex": {
-      "avg_time_sec": 0.0010290833500524361,
-      "min_time_sec": 0.0009470839868299663,
-      "max_time_sec": 0.0011813330347649753,
-      "throughput_per_sec": 971.7385865285312,
+      "avg_time_sec": 0.001080222330832233,
+      "min_time_sec": 0.0009994579595513642,
+      "max_time_sec": 0.0012402920401655138,
+      "throughput_per_sec": 925.735352304347,
       "success_rate": 0.0,
       "iterations": 3,
       "successful_renders": 0
     },
     "very_complex": {
-      "avg_time_sec": 0.0009960830017613869,
-      "min_time_sec": 0.0009774159989319742,
-      "max_time_sec": 0.001008082996122539,
-      "throughput_per_sec": 1003.9324014481591,
+      "avg_time_sec": 0.0010612220115338762,
+      "min_time_sec": 0.0010427079978398979,
+      "max_time_sec": 0.0010781669989228249,
+      "throughput_per_sec": 942.3098928702141,
       "success_rate": 0.0,
       "iterations": 3,
       "successful_renders": 0
