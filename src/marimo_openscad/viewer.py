@@ -95,6 +95,9 @@ class OpenSCADViewer(anywidget.AnyWidget):
         const status = el.querySelector('#status');
         const rendererInfo = el.querySelector('#renderer-info');
         
+        // Initialize progressive loader for enhanced UX
+        progressiveLoader = new ProgressiveLoader(container, status);
+        
         try {
             // Workaround for Marimo Service Worker bug
             // Suppress Service Worker errors that break JavaScript execution
@@ -671,8 +674,317 @@ class OpenSCADViewer(anywidget.AnyWidget):
             // Will be initialized after scene creation
             let renderingOptimizer = null;
             
-            // Three.js laden (robuste Multi-CDN-Strategie)
-            status.textContent = "Loading Three.js...";
+            // ====================================================================
+            // PHASE 5.2.1: PROGRESSIVE LOADING STATES & VISUAL FEEDBACK
+            // ====================================================================
+            
+            class ProgressiveLoader {
+                constructor(container, statusElement) {
+                    this.container = container;
+                    this.statusElement = statusElement;
+                    this.states = ['initializing', 'loading-three', 'loading-wasm', 'parsing-stl', 'optimizing', 'rendering', 'complete'];
+                    this.currentState = 0;
+                    this.startTime = Date.now();
+                    this.stateHistory = [];
+                    
+                    console.log('🔄 ProgressiveLoader initialized');
+                }
+                
+                showState(state, progress = 0, details = '') {
+                    const now = Date.now();
+                    const elapsed = now - this.startTime;
+                    
+                    // Update state history for analytics
+                    this.stateHistory.push({
+                        state,
+                        progress,
+                        details,
+                        timestamp: now,
+                        elapsed
+                    });
+                    
+                    const stateInfo = {
+                        'initializing': { 
+                            icon: '⚡', 
+                            text: 'Initializing 3D viewer...', 
+                            color: '#3b82f6',
+                            bgColor: 'rgba(59, 130, 246, 0.1)'
+                        },
+                        'loading-three': { 
+                            icon: '📦', 
+                            text: 'Loading Three.js library...', 
+                            color: '#8b5cf6',
+                            bgColor: 'rgba(139, 92, 246, 0.1)'
+                        },
+                        'loading-wasm': { 
+                            icon: '🚀', 
+                            text: 'Loading WASM modules...', 
+                            color: '#06b6d4',
+                            bgColor: 'rgba(6, 182, 212, 0.1)'
+                        },
+                        'parsing-stl': { 
+                            icon: '🔧', 
+                            text: 'Processing 3D model...', 
+                            color: '#f59e0b',
+                            bgColor: 'rgba(245, 158, 11, 0.1)'
+                        },
+                        'optimizing': { 
+                            icon: '⚡', 
+                            text: 'Optimizing geometry...', 
+                            color: '#10b981',
+                            bgColor: 'rgba(16, 185, 129, 0.1)'
+                        },
+                        'rendering': { 
+                            icon: '🎨', 
+                            text: 'Rendering scene...', 
+                            color: '#f97316',
+                            bgColor: 'rgba(249, 115, 22, 0.1)'
+                        },
+                        'complete': { 
+                            icon: '✅', 
+                            text: 'Ready for interaction', 
+                            color: '#22c55e',
+                            bgColor: 'rgba(34, 197, 94, 0.1)'
+                        }
+                    };
+                    
+                    const info = stateInfo[state] || stateInfo['initializing'];
+                    this.updateUI(info, progress, details, elapsed);
+                    
+                    console.log(`🔄 Loading state: ${state} (${progress}%) - ${details}`);
+                }
+                
+                updateUI(info, progress, details, elapsed) {
+                    const progressPercent = Math.max(0, Math.min(100, progress));
+                    const elapsedSeconds = (elapsed / 1000).toFixed(1);
+                    
+                    // Enhanced status display with progress bar
+                    this.statusElement.innerHTML = `
+                        <div style="
+                            background: ${info.bgColor}; 
+                            border: 1px solid ${info.color}; 
+                            border-radius: 8px; 
+                            padding: 12px 16px;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+                            font-size: 13px;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                            backdrop-filter: blur(10px);
+                            min-width: 280px;
+                        ">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <span style="font-size: 16px;">${info.icon}</span>
+                                <span style="color: ${info.color}; font-weight: 600;">${info.text}</span>
+                                <span style="color: #6b7280; font-size: 11px; margin-left: auto;">${elapsedSeconds}s</span>
+                            </div>
+                            
+                            ${progressPercent > 0 ? `
+                                <div style="
+                                    background: rgba(0,0,0,0.1); 
+                                    border-radius: 4px; 
+                                    height: 6px; 
+                                    margin-bottom: 6px;
+                                    overflow: hidden;
+                                ">
+                                    <div style="
+                                        background: linear-gradient(90deg, ${info.color}, ${this.lightenColor(info.color, 20)});
+                                        height: 100%; 
+                                        width: ${progressPercent}%; 
+                                        border-radius: 4px;
+                                        transition: width 0.3s ease;
+                                        box-shadow: 0 0 6px ${info.color}40;
+                                    "></div>
+                                </div>
+                                <div style="color: #6b7280; font-size: 11px; text-align: center;">${progressPercent}%</div>
+                            ` : ''}
+                            
+                            ${details ? `
+                                <div style="
+                                    color: #6b7280; 
+                                    font-size: 11px; 
+                                    margin-top: 4px;
+                                    text-align: center;
+                                    font-style: italic;
+                                ">${details}</div>
+                            ` : ''}
+                        </div>
+                    `;
+                    
+                    this.statusElement.style.background = info.bgColor;
+                    this.statusElement.style.borderColor = info.color;
+                }
+                
+                // Helper function to lighten colors for gradients
+                lightenColor(color, percent) {
+                    const num = parseInt(color.replace("#", ""), 16);
+                    const amt = Math.round(2.55 * percent);
+                    const R = (num >> 16) + amt;
+                    const B = (num >> 8 & 0x00FF) + amt;
+                    const G = (num & 0x0000FF) + amt;
+                    return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + 
+                                  (B < 255 ? B < 1 ? 0 : B : 255) * 0x100 + 
+                                  (G < 255 ? G < 1 ? 0 : G : 255)).toString(16).slice(1);
+                }
+                
+                // Show error state with recovery options
+                showError(error, context = 'general') {
+                    const errorInfo = {
+                        'webgl': {
+                            icon: '⚠️',
+                            title: 'WebGL Not Available',
+                            message: 'Your browser doesn\'t support WebGL or it\'s disabled.',
+                            suggestion: 'Try enabling hardware acceleration in your browser settings.',
+                            action: 'Retry with Software Rendering'
+                        },
+                        'wasm': {
+                            icon: '🚨',
+                            title: 'WebAssembly Loading Failed',
+                            message: 'Unable to load WebAssembly modules for 3D rendering.',
+                            suggestion: 'This might be due to browser restrictions or network issues.',
+                            action: 'Fallback to Local Rendering'
+                        },
+                        'network': {
+                            icon: '🌐',
+                            title: 'Network Error',
+                            message: 'Failed to load required resources from the network.',
+                            suggestion: 'Check your internet connection and try refreshing the page.',
+                            action: 'Retry Loading'
+                        },
+                        'parsing': {
+                            icon: '🔧',
+                            title: 'Model Processing Error',
+                            message: 'Unable to process the 3D model data.',
+                            suggestion: 'The model might be corrupted or in an unsupported format.',
+                            action: 'Generate Fallback Model'
+                        },
+                        'general': {
+                            icon: '❌',
+                            title: 'Unexpected Error',
+                            message: error.message || 'An unknown error occurred.',
+                            suggestion: 'Please try refreshing the page or check the browser console.',
+                            action: 'Retry Operation'
+                        }
+                    };
+                    
+                    const info = errorInfo[context] || errorInfo['general'];
+                    
+                    this.statusElement.innerHTML = `
+                        <div style="
+                            background: rgba(239, 68, 68, 0.1); 
+                            border: 1px solid #ef4444; 
+                            border-radius: 8px; 
+                            padding: 16px;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+                            max-width: 400px;
+                        ">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                <span style="font-size: 18px;">${info.icon}</span>
+                                <span style="color: #ef4444; font-weight: 600; font-size: 14px;">${info.title}</span>
+                            </div>
+                            
+                            <div style="color: #374151; font-size: 13px; margin-bottom: 8px;">
+                                ${info.message}
+                            </div>
+                            
+                            <div style="color: #6b7280; font-size: 12px; margin-bottom: 12px; font-style: italic;">
+                                💡 ${info.suggestion}
+                            </div>
+                            
+                            <button style="
+                                background: #ef4444; 
+                                color: white; 
+                                border: none; 
+                                border-radius: 6px; 
+                                padding: 8px 16px; 
+                                font-size: 12px; 
+                                cursor: pointer;
+                                font-weight: 500;
+                                transition: background 0.2s;
+                            " 
+                            onmouseover="this.style.background='#dc2626'" 
+                            onmouseout="this.style.background='#ef4444'"
+                            onclick="location.reload()">
+                                🔄 ${info.action}
+                            </button>
+                            
+                            <details style="margin-top: 12px;">
+                                <summary style="color: #6b7280; font-size: 11px; cursor: pointer;">Technical Details</summary>
+                                <pre style="
+                                    color: #374151; 
+                                    font-size: 10px; 
+                                    margin: 8px 0 0 0; 
+                                    padding: 8px; 
+                                    background: rgba(0,0,0,0.05); 
+                                    border-radius: 4px;
+                                    white-space: pre-wrap;
+                                    word-break: break-word;
+                                ">${error.stack || error.message || 'No additional details available'}</pre>
+                            </details>
+                        </div>
+                    `;
+                    
+                    console.error(`🔄 Error state: ${context}`, error);
+                }
+                
+                // Show completion with performance stats
+                showComplete(stats = {}) {
+                    const totalTime = Date.now() - this.startTime;
+                    const performanceRating = this.getPerformanceRating(totalTime);
+                    
+                    this.statusElement.innerHTML = `
+                        <div style="
+                            background: rgba(34, 197, 94, 0.1); 
+                            border: 1px solid #22c55e; 
+                            border-radius: 8px; 
+                            padding: 12px 16px;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+                            font-size: 13px;
+                            text-align: center;
+                        ">
+                            <div style="font-size: 18px; margin-bottom: 4px;">✅</div>
+                            <div style="color: #22c55e; font-weight: 600; margin-bottom: 8px;">3D Viewer Ready</div>
+                            <div style="color: #6b7280; font-size: 11px;">
+                                Loaded in ${(totalTime/1000).toFixed(1)}s ${performanceRating}
+                            </div>
+                            ${stats.triangles ? `
+                                <div style="color: #6b7280; font-size: 10px; margin-top: 4px;">
+                                    ${stats.triangles.toLocaleString()} triangles, ${stats.renderer || 'auto'} renderer
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    
+                    // Auto-hide after 3 seconds
+                    setTimeout(() => {
+                        this.statusElement.style.opacity = '0';
+                        this.statusElement.style.transition = 'opacity 0.5s ease';
+                        setTimeout(() => {
+                            this.statusElement.innerHTML = '';
+                            this.statusElement.style.opacity = '1';
+                        }, 500);
+                    }, 3000);
+                }
+                
+                getPerformanceRating(timeMs) {
+                    if (timeMs < 1000) return '⚡';
+                    if (timeMs < 3000) return '🚀';
+                    if (timeMs < 5000) return '👍';
+                    return '🐌';
+                }
+                
+                getLoadingStats() {
+                    return {
+                        totalTime: Date.now() - this.startTime,
+                        stateHistory: this.stateHistory,
+                        currentState: this.currentState
+                    };
+                }
+            }
+            
+            // Initialize progressive loader
+            progressiveLoader = new ProgressiveLoader(container, status);
+            
+            // Start loading with enhanced progress feedback
+            progressiveLoader.showState('loading-three', 0, 'Connecting to CDN...');
             
             if (!window.THREE) {
                 const threeSources = [
@@ -682,8 +994,11 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 ];
                 
                 let loaded = false;
-                for (const src of threeSources) {
+                for (let i = 0; i < threeSources.length; i++) {
+                    const src = threeSources[i];
                     try {
+                        progressiveLoader.showState('loading-three', (i / threeSources.length) * 50, `Trying CDN ${i + 1}/${threeSources.length}...`);
+                        
                         const script = document.createElement('script');
                         script.src = src;
                         document.head.appendChild(script);
@@ -696,6 +1011,7 @@ class OpenSCADViewer(anywidget.AnyWidget):
                         
                         if (window.THREE) {
                             loaded = true;
+                            progressiveLoader.showState('loading-three', 75, 'Three.js loaded successfully!');
                             console.log("✅ Three.js loaded from:", src);
                             break;
                         }
@@ -706,15 +1022,18 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 }
                 
                 if (!loaded) {
+                    progressiveLoader.showError(new Error("Could not load Three.js from any CDN"), 'network');
                     throw new Error("Could not load Three.js from any CDN");
                 }
+            } else {
+                progressiveLoader.showState('loading-three', 100, 'Three.js already available');
             }
             
             // Disable Web Workers for Marimo compatibility
             console.log('🔧 Marimo Mode: Web Workers disabled for compatibility');
             
             // Load CSG library for Boolean operations with better error handling
-            status.textContent = "Loading CSG library...";
+            progressiveLoader.showState('loading-three', 90, 'Loading CSG library...');
             console.log('🔧 Starting CSG library loading process...');
             
             if (!window.THREECSG) {
@@ -727,8 +1046,10 @@ class OpenSCADViewer(anywidget.AnyWidget):
                     ];
                     
                     let csgLoaded = false;
-                    for (const src of csgSources) {
+                    for (let i = 0; i < csgSources.length; i++) {
+                        const src = csgSources[i];
                         try {
+                            progressiveLoader.showState('loading-three', 90 + (i / csgSources.length) * 10, `Loading CSG library ${i + 1}/${csgSources.length}...`);
                             console.log(`🔧 Trying to load CSG from: ${src}`);
                             const script = document.createElement('script');
                             script.src = src;
@@ -832,7 +1153,8 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 }
             }
             
-            status.textContent = "Setting up 3D scene...";
+            // Transition to scene setup
+            progressiveLoader.showState('rendering', 0, 'Setting up 3D scene...');
             
             // Three.js Scene Setup
             const scene = new THREE.Scene();
@@ -885,9 +1207,11 @@ class OpenSCADViewer(anywidget.AnyWidget):
             }, 'three-renderer');
             
             // Initialize rendering optimizer after scene and renderer setup
+            progressiveLoader.showState('rendering', 25, 'Initializing rendering optimizer...');
             renderingOptimizer = new RenderingOptimizer(renderer, scene);
             
             // Balanced lighting setup for edge definition without harsh shadows
+            progressiveLoader.showState('rendering', 50, 'Setting up lighting...');
             const ambientLight = new THREE.AmbientLight(0x404040, 0.6);  // Soft ambient
             scene.add(ambientLight);
             
@@ -920,6 +1244,7 @@ class OpenSCADViewer(anywidget.AnyWidget):
             }, 'three-grid');
             
             // Mouse Controls
+            progressiveLoader.showState('rendering', 75, 'Setting up camera controls...');
             let mouseDown = false;
             let mouseX = 0, mouseY = 0;
             let cameraDistance = 50;
@@ -1149,13 +1474,14 @@ class OpenSCADViewer(anywidget.AnyWidget):
             // STL-Daten verarbeiten
             function processSTLData(base64STL) {
                 try {
-                    status.textContent = "Processing STL data...";
+                    progressiveLoader.showState('parsing-stl', 0, 'Decoding STL data...');
                     
                     if (!base64STL || base64STL.length < 100) {
                         throw new Error("No valid STL data received");
                     }
                     
                     // Base64 → Binary
+                    progressiveLoader.showState('parsing-stl', 25, 'Converting to binary...');
                     const binaryString = atob(base64STL);
                     const bytes = new Uint8Array(binaryString.length);
                     for (let i = 0; i < binaryString.length; i++) {
@@ -1163,6 +1489,7 @@ class OpenSCADViewer(anywidget.AnyWidget):
                     }
                     
                     // STL parsen
+                    progressiveLoader.showState('parsing-stl', 50, 'Parsing STL format...');
                     let parsed;
                     if (bytes.length >= 84) {
                         try {
@@ -1182,8 +1509,10 @@ class OpenSCADViewer(anywidget.AnyWidget):
                         throw new Error("STL contains no valid geometry");
                     }
                     
+                    progressiveLoader.showState('optimizing', 0, 'Creating geometry...');
                     const geometry = STLParser.createBufferGeometry(parsed);
                     
+                    progressiveLoader.showState('optimizing', 50, 'Removing old mesh...');
                     // Alte Mesh entfernen
                     if (currentMesh) {
                         scene.remove(currentMesh);
@@ -1212,19 +1541,31 @@ class OpenSCADViewer(anywidget.AnyWidget):
                     const center = box.getCenter(new THREE.Vector3());
                     mesh.position.sub(center);
                     
+                    progressiveLoader.showState('rendering', 0, 'Adding to scene...');
                     replaceCurrentMesh(mesh, 'stl-mesh');
                     
                     // Kamera optimal positionieren
+                    progressiveLoader.showState('rendering', 50, 'Positioning camera...');
                     const size = box.getSize(new THREE.Vector3());
                     const maxDim = Math.max(size.x, size.y, size.z);
                     cameraDistance = Math.max(maxDim * 2.5, 20);
                     updateCameraPosition();
                     
-                    status.textContent = `✅ STL loaded: ${parsed.vertices.length/9} triangles`;
+                    // Complete with performance stats
+                    const triangleCount = parsed.vertices.length / 9;
+                    const stats = {
+                        triangles: triangleCount,
+                        renderer: 'stl-parser',
+                        loadTime: Date.now() - progressiveLoader.startTime
+                    };
+                    progressiveLoader.showComplete(stats);
+                    
+                    status.textContent = `✅ STL loaded: ${triangleCount} triangles`;
                     status.style.background = "rgba(34,197,94,0.9)";
                     
                 } catch (error) {
                     console.error("STL Processing Error:", error);
+                    progressiveLoader.showError(error, 'parsing');
                     status.textContent = `❌ STL Error: ${error.message}`;
                     status.style.background = "rgba(220,20,60,0.9)";
                     createFallbackGeometry();
@@ -2845,10 +3186,27 @@ class OpenSCADViewer(anywidget.AnyWidget):
             }
             window.addEventListener('resize', onWindowResize);
             
-            // Initialize
-            status.textContent = "🚀 3D viewer ready";
-            updateModel();
+            // Complete initialization - show final progress state
+            progressiveLoader.showState('complete', 100, 'All systems ready');
+            
+            // Start animation loop  
             animate();
+            
+            // Initialize model display
+            updateModel();
+            
+            // Show completion with performance stats
+            setTimeout(() => {
+                const stats = {
+                    triangles: 0, // Will be updated when model loads
+                    renderer: rendererType,
+                    loadTime: Date.now() - progressiveLoader.startTime
+                };
+                progressiveLoader.showComplete(stats);
+            }, 500);
+            
+            // Final status update
+            console.log('🎉 3D viewer initialization complete!');
             
             // Widget cleanup handler
             return () => {
