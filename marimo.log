@@ -1,0 +1,1911 @@
+
+        Running test_notebook.py ⚡
+
+        ➜  URL: http://0.0.0.0:2718
+        ➜  Network: http://192.168.2.31:2718
+
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 77, in collapse_excgroups
+  |     yield
+  |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 183, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 772, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 187, in __call__
+    |     raise exc
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 182, in __call__
+    |     with recv_stream, send_stream, collapse_excgroups():
+    |                                    ^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/.local/share/uv/python/cpython-3.12.6-macos-aarch64-none/lib/python3.12/contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 83, in collapse_excgroups
+    |     raise exc
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 184, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 168, in dispatch
+    |     return await call_next(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 159, in call_next
+    |     raise app_exc
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    |     await app(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 99, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 381, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 78, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 75, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/router.py", line 108, in wrapper_func
+    |     response = await response
+    |                ^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/authentication.py", line 76, in async_wrapper
+    |     return await func(*args, **kwargs)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/assets.py", line 102, in index
+    |     app_manager = app_state.session_manager.app_manager(file_key)
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 810, in app_manager
+    |     return self.file_router.get_file_manager(
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    |     return AppFileManager(
+    |            ^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    |     self.app = self._load_app(self.path)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    |     app = load.load_app(path)
+    |           ^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    |     return _static_load(filename)
+    |            ^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    |     app._cell_manager.register_ir_cell(cell, InternalApp(app))
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    |     cell = ir_cell_factory(cell_def, cell_id=cell_id)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    |     _cell=compile_cell(
+    |           ^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    |     module = compile(
+    |              ^^^^^^^^
+    |   File "<unknown>", line 2
+    |     legacy_scad = """// Legacy OpenSCAD code that might need migration
+    | IndentationError: unexpected indent
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 187, in __call__
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 182, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/.local/share/uv/python/cpython-3.12.6-macos-aarch64-none/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 83, in collapse_excgroups
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 184, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 168, in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 159, in call_next
+    raise app_exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 99, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 381, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/router.py", line 108, in wrapper_func
+    response = await response
+               ^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/authentication.py", line 76, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/assets.py", line 102, in index
+    app_manager = app_state.session_manager.app_manager(file_key)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 810, in app_manager
+    return self.file_router.get_file_manager(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 77, in collapse_excgroups
+  |     yield
+  |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 183, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 772, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 187, in __call__
+    |     raise exc
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 182, in __call__
+    |     with recv_stream, send_stream, collapse_excgroups():
+    |                                    ^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/.local/share/uv/python/cpython-3.12.6-macos-aarch64-none/lib/python3.12/contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 83, in collapse_excgroups
+    |     raise exc
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 184, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 168, in dispatch
+    |     return await call_next(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 159, in call_next
+    |     raise app_exc
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    |     await app(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 99, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 381, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 78, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 75, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/router.py", line 108, in wrapper_func
+    |     response = await response
+    |                ^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/authentication.py", line 76, in async_wrapper
+    |     return await func(*args, **kwargs)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/assets.py", line 102, in index
+    |     app_manager = app_state.session_manager.app_manager(file_key)
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 810, in app_manager
+    |     return self.file_router.get_file_manager(
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    |     return AppFileManager(
+    |            ^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    |     self.app = self._load_app(self.path)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    |     app = load.load_app(path)
+    |           ^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    |     return _static_load(filename)
+    |            ^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    |     app._cell_manager.register_ir_cell(cell, InternalApp(app))
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    |     cell = ir_cell_factory(cell_def, cell_id=cell_id)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    |     _cell=compile_cell(
+    |           ^^^^^^^^^^^^^
+    |   File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    |     module = compile(
+    |              ^^^^^^^^
+    |   File "<unknown>", line 2
+    |     legacy_scad = """// Legacy OpenSCAD code that might need migration
+    | IndentationError: unexpected indent
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 187, in __call__
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 182, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/.local/share/uv/python/cpython-3.12.6-macos-aarch64-none/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 83, in collapse_excgroups
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 184, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 168, in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 159, in call_next
+    raise app_exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 99, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 381, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/router.py", line 108, in wrapper_func
+    response = await response
+               ^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/authentication.py", line 76, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/assets.py", line 102, in index
+    app_manager = app_state.session_manager.app_manager(file_key)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 810, in app_manager
+    return self.file_router.get_file_manager(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 244, in run_asgi
+    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 103, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 250, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/auth.py", line 239, in wrapped_app
+    await app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 77, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 92, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/middleware.py", line 356, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 462, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 364, in handle
+    await self.app(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 97, in app
+    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
+    await func(session)
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 106, in websocket_endpoint
+    await WebsocketHandler(
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 607, in start
+    get_session()
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/api/endpoints/ws.py", line 584, in get_session
+    new_session = mgr.create_session(
+                  ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/sessions.py", line 826, in create_session
+    app_file_manager = self.file_router.get_file_manager(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_router.py", line 103, in get_file_manager
+    return AppFileManager(
+           ^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 43, in __init__
+    self.app = self._load_app(self.path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_server/file_manager.py", line 188, in _load_app
+    app = load.load_app(path)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 135, in load_app
+    return _static_load(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/load.py", line 72, in _static_load
+    app._cell_manager.register_ir_cell(cell, InternalApp(app))
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/cell_manager.py", line 219, in register_ir_cell
+    cell = ir_cell_factory(cell_def, cell_id=cell_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 429, in ir_cell_factory
+    _cell=compile_cell(
+          ^^^^^^^^^^^^^
+  File "/Users/max/Python/marimo_openscad/.venv/lib/python3.12/site-packages/marimo/_ast/compiler.py", line 162, in compile_cell
+    module = compile(
+             ^^^^^^^^
+  File "<unknown>", line 2
+    legacy_scad = """// Legacy OpenSCAD code that might need migration
+IndentationError: unexpected indent
+
+        Thanks for using marimo! 🌊🍃
+

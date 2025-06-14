@@ -1,0 +1,8 @@
+
+        Running simple_test.py ⚡
+
+        ➜  URL: http://0.0.0.0:2718
+        ➜  Network: http://192.168.2.31:2718
+
+[W 250614 16:08:43 middleware:127] Received request with invalid server token (skew protection token). This could mean the server has new code deployed but the client is still using an old version.Expected: ckPXXO-R1PUG3fSMvffd_g, got: EEOREA7Hot4IfellERABmQ
+[W 250614 16:08:49 middleware:127] Received request with invalid server token (skew protection token). This could mean the server has new code deployed but the client is still using an old version.Expected: ckPXXO-R1PUG3fSMvffd_g, got: EEOREA7Hot4IfellERABmQ

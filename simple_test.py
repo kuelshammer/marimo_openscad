@@ -20,34 +20,31 @@ def _(mo):
     # UI-Parameter
     size_slider = mo.ui.slider(5, 20, value=10, label="Größe", show_value=True)
     size_slider
-    return (size_slider,)
+    return size_slider,
 
 
 @app.cell
 def _(cube, size_slider):
     # Einfaches Modell
     simple_cube = cube([size_slider.value, size_slider.value, size_slider.value])
-    return (simple_cube,)
+    return simple_cube,
 
 
 @app.cell
 def _(openscad_viewer, simple_cube):
     # 3D Viewer
     viewer = openscad_viewer(simple_cube, renderer_type="auto")
-
-    return (viewer,)
+    return viewer,
 
 
 @app.cell
 def _(viewer):
     viewer
-    return
 
 
 @app.cell
 def _(mo):
     mo.md("""✅ **Test erfolgreich!** Das PyPI-Package funktioniert.""")
-    return
 
 
 if __name__ == "__main__":

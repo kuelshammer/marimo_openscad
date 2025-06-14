@@ -1,0 +1,12 @@
+
+        Running simple_test.py ⚡
+
+        ➜  URL: http://0.0.0.0:2718
+        ➜  Network: http://192.168.2.31:2718
+
+[W 250614 16:03:21 middleware:127] Received request with invalid server token (skew protection token). This could mean the server has new code deployed but the client is still using an old version.Expected: Xdu6LpykSo-l6RgS4_YGow, got: LJ4_tYAeCNZ0AzzZtTyN5g
+
+        Thanks for using marimo! 🌊🍃
+
+/Users/max/.local/share/uv/python/cpython-3.12.6-macos-aarch64-none/lib/python3.12/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 5 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

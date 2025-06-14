@@ -1,0 +1,11 @@
+
+        Running simple_test.py ⚡
+
+        ➜  URL: http://0.0.0.0:2718
+        ➜  Network: http://192.168.2.31:2718
+
+
+        Thanks for using marimo! 🌊🍃
+
+/Users/max/.local/share/uv/python/cpython-3.12.6-macos-aarch64-none/lib/python3.12/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 1 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
