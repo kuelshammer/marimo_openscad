@@ -21,6 +21,7 @@ from .renderer_config import get_config
 from .realtime_renderer import RealTimeRenderer
 from .wasm_version_manager import WASMVersionManager
 from .version_manager import OpenSCADVersionManager
+from .migration_engine import MigrationEngine
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,12 @@ class OpenSCADViewer(anywidget.AnyWidget):
     active_wasm_version = traitlets.Unicode("").tag(sync=True)  # Currently active WASM version
     version_compatibility = traitlets.Dict({}).tag(sync=True)  # Version compatibility information
     auto_version_selection = traitlets.Bool(True).tag(sync=True)  # Whether to auto-select optimal version
+    
+    # Phase 4.4: Migration and workflow integration traits
+    migration_suggestions = traitlets.List([]).tag(sync=True)  # Available migration suggestions
+    version_compatibility_status = traitlets.Unicode("unknown").tag(sync=True)  # "compatible", "migration_suggested", "incompatible"
+    available_migrations = traitlets.Dict({}).tag(sync=True)  # Migration preview data
+    version_detection_cache = traitlets.Dict({}).tag(sync=True)  # Cache for version detection results
     
     _esm = """
     async function render({ model, el }) {
@@ -2366,7 +2373,7 @@ class OpenSCADViewer(anywidget.AnyWidget):
     
     def update_scad_code(self, scad_code: str, use_wasm: bool = None) -> None:
         """
-        Update viewer with new SCAD code directly
+        Update viewer with new SCAD code directly (Phase 4.4: Enhanced with version management)
         
         Args:
             scad_code: Raw OpenSCAD code as string
@@ -2376,9 +2383,8 @@ class OpenSCADViewer(anywidget.AnyWidget):
             self.is_loading = True
             self.error_message = ""
             
-            # Auto-select optimal version if enabled (Phase 4.2)
-            if hasattr(self, 'auto_version_selection') and self.auto_version_selection:
-                asyncio.create_task(self.auto_select_version_for_render(scad_code))
+            # Phase 4.4: Enhanced workflow with version detection and migration
+            enhanced_scad_code = self._enhanced_scad_update_workflow(scad_code)
             
             # Auto-detect WASM usage if not specified
             if use_wasm is None:
@@ -2387,20 +2393,20 @@ class OpenSCADViewer(anywidget.AnyWidget):
             if use_wasm:
                 # For WASM: send SCAD code directly to frontend
                 previous_scad = self.scad_code
-                self.scad_code = scad_code
+                self.scad_code = enhanced_scad_code
                 
                 # Clear STL data to prioritize WASM rendering
                 if self.stl_data:
                     self.stl_data = ""
                 
-                logger.info(f"✅ SCAD code sent to WASM: {len(scad_code)} chars")
-                logger.info(f"SCAD code changed: {scad_code != previous_scad}")
+                logger.info(f"✅ SCAD code sent to WASM: {len(enhanced_scad_code)} chars")
+                logger.info(f"SCAD code changed: {enhanced_scad_code != previous_scad}")
             else:
                 # For local: render to STL
                 previous_stl = self.stl_data
                 
                 # SCAD → STL (no caching for direct code updates)
-                stl_data = self._render_stl(scad_code, force_render=True)
+                stl_data = self._render_stl(enhanced_scad_code, force_render=True)
                 
                 # STL → Base64 for browser
                 new_stl_base64 = base64.b64encode(stl_data).decode('utf-8')
@@ -2410,7 +2416,7 @@ class OpenSCADViewer(anywidget.AnyWidget):
                 if self.scad_code:
                     self.scad_code = ""
                 
-                logger.info(f"✅ SCAD code rendered to STL: {len(stl_data)} bytes from {len(scad_code)} chars")
+                logger.info(f"✅ SCAD code rendered to STL: {len(stl_data)} bytes from {len(enhanced_scad_code)} chars")
                 logger.info(f"STL data changed: {new_stl_base64 != previous_stl}")
             
         except Exception as e:
@@ -2418,6 +2424,73 @@ class OpenSCADViewer(anywidget.AnyWidget):
             logger.error(f"❌ SCAD code update error: {e}")
         finally:
             self.is_loading = False
+    
+    def _enhanced_scad_update_workflow(self, scad_code: str) -> str:
+        """
+        Phase 4.4: Enhanced SCAD update workflow with version detection and migration
+        
+        Args:
+            scad_code: Raw OpenSCAD code
+            
+        Returns:
+            Enhanced SCAD code (potentially migrated)
+        """
+        try:
+            # 1. Check cache first (performance optimization)
+            code_hash = hash(scad_code)
+            if code_hash in self.version_detection_cache:
+                cached_result = self.version_detection_cache[code_hash]
+                logger.debug(f"Using cached analysis for SCAD code (hash: {code_hash})")
+                self.version_compatibility_status = cached_result.get('compatibility_status', 'unknown')
+                self.migration_suggestions = cached_result.get('migration_suggestions', [])
+                return cached_result.get('enhanced_code', scad_code)
+            
+            # 2. Version Detection Phase
+            required_version = self._detect_scad_version_requirements(scad_code)
+            current_config = self._get_current_version_config()
+            
+            # 3. Compatibility Check Phase
+            compatibility = self._check_version_compatibility(scad_code, current_config, required_version)
+            
+            # 4. Migration Phase (if needed)
+            enhanced_code = scad_code
+            migration_suggestions = []
+            
+            if not compatibility.get('is_compatible', True) and self.migration_engine:
+                migration_result = self._handle_version_migration(scad_code, compatibility)
+                if migration_result.get('success', False):
+                    enhanced_code = migration_result.get('migrated_code', scad_code)
+                    migration_suggestions = migration_result.get('suggestions', [])
+                    logger.info(f"✅ Applied {len(migration_suggestions)} migrations")
+                
+            # 5. Version Selection Phase
+            optimal_version = self._select_optimal_rendering_version(enhanced_code, required_version)
+            self._switch_to_version_if_needed(optimal_version)
+            
+            # 6. Update UI state
+            self.version_compatibility_status = compatibility.get('status', 'compatible')
+            self.migration_suggestions = migration_suggestions
+            self.available_migrations = {
+                'preview': enhanced_code if enhanced_code != scad_code else None,
+                'suggestions': migration_suggestions
+            }
+            
+            # 7. Cache results for performance
+            self.version_detection_cache[code_hash] = {
+                'compatibility_status': self.version_compatibility_status,
+                'migration_suggestions': migration_suggestions,
+                'enhanced_code': enhanced_code,
+                'timestamp': asyncio.get_event_loop().time() if hasattr(asyncio, 'get_event_loop') else 0
+            }
+            
+            logger.info(f"✅ Enhanced SCAD workflow completed: {len(enhanced_code)} chars, status: {self.version_compatibility_status}")
+            return enhanced_code
+            
+        except Exception as e:
+            logger.error(f"❌ Enhanced SCAD workflow error: {e}")
+            # Fallback to original code on any error
+            self.version_compatibility_status = "error"
+            return scad_code
     
     def _render_stl(self, scad_code, force_render: bool = False):
         """
@@ -2601,11 +2674,17 @@ class OpenSCADViewer(anywidget.AnyWidget):
             self.version_manager = OpenSCADVersionManager()
             self.wasm_version_manager = WASMVersionManager()
             
+            # Initialize migration engine (Phase 4.4)
+            self.migration_engine = MigrationEngine()
+            
             # Detect available versions
             self._update_available_versions()
             
             # Set initial version compatibility info
             self._update_version_compatibility()
+            
+            # Initialize version detection cache
+            self.version_detection_cache = {}
             
             logger.info("Version management initialized successfully")
             
@@ -2614,6 +2693,7 @@ class OpenSCADViewer(anywidget.AnyWidget):
             # Continue without version management
             self.version_manager = None
             self.wasm_version_manager = None
+            self.migration_engine = None
     
     def _update_available_versions(self) -> None:
         """Update list of available OpenSCAD versions."""
@@ -2820,3 +2900,133 @@ def openscad_viewer(model, renderer_type: Optional[Literal["local", "wasm", "aut
         renderer_type = config.get_renderer_preference()
     
     return OpenSCADViewer(model=model, renderer_type=renderer_type, **kwargs)
+
+
+# =============================================================================
+# Phase 4.4: Enhanced Workflow Helper Methods
+# =============================================================================
+
+def _detect_scad_version_requirements(self, scad_code: str) -> Optional[str]:
+    """Detect version requirements from SCAD code."""
+    if not self.version_manager:
+        return None
+    
+    try:
+        # Use version manager to analyze code
+        analysis = self.version_manager.analyze_scad_code(scad_code)
+        return analysis.get('required_version')
+    except Exception as e:
+        logger.debug(f"Version detection failed: {e}")
+        return None
+
+def _get_current_version_config(self) -> Dict:
+    """Get current version configuration."""
+    return {
+        'openscad_version': self.openscad_version,
+        'active_wasm_version': self.active_wasm_version,
+        'renderer_type': self.renderer_type
+    }
+
+def _check_version_compatibility(self, scad_code: str, current_config: Dict, required_version: Optional[str]) -> Dict:
+    """Check version compatibility and return status."""
+    if not self.version_manager or not required_version:
+        return {'is_compatible': True, 'status': 'compatible'}
+    
+    try:
+        # Check if current version is compatible
+        current_version = current_config.get('openscad_version', 'auto')
+        if current_version == 'auto' or current_version == required_version:
+            return {'is_compatible': True, 'status': 'compatible'}
+        
+        # Check version compatibility matrix
+        compatibility = self.version_manager.check_compatibility(current_version, required_version)
+        
+        if compatibility.get('compatible', False):
+            return {'is_compatible': True, 'status': 'compatible'}
+        else:
+            return {
+                'is_compatible': False, 
+                'status': 'migration_suggested',
+                'issues': compatibility.get('issues', [])
+            }
+    except Exception as e:
+        logger.error(f"Compatibility check failed: {e}")
+        return {'is_compatible': True, 'status': 'unknown'}
+
+def _handle_version_migration(self, scad_code: str, compatibility: Dict) -> Dict:
+    """Handle version migration using migration engine."""
+    if not self.migration_engine:
+        return {'success': False, 'migrated_code': scad_code}
+    
+    try:
+        # Detect migration issues
+        issues = self.migration_engine.detect_version_issues(scad_code)
+        
+        if not issues:
+            return {'success': True, 'migrated_code': scad_code, 'suggestions': []}
+        
+        # Generate migration suggestions
+        suggestions = self.migration_engine.suggest_migrations(issues)
+        
+        # Apply automatic migrations with high confidence
+        migrated_code = scad_code
+        applied_suggestions = []
+        
+        for suggestion in suggestions:
+            if suggestion.get('confidence', 0) >= 0.8:  # High confidence only
+                try:
+                    migration_result = self.migration_engine.apply_migration(migrated_code, suggestion)
+                    if migration_result.get('success', False):
+                        migrated_code = migration_result.get('migrated_code', migrated_code)
+                        applied_suggestions.append(suggestion)
+                except Exception as e:
+                    logger.debug(f"Migration failed for {suggestion.get('rule', 'unknown')}: {e}")
+                    continue
+        
+        return {
+            'success': len(applied_suggestions) > 0,
+            'migrated_code': migrated_code,
+            'suggestions': applied_suggestions,
+            'all_suggestions': suggestions
+        }
+        
+    except Exception as e:
+        logger.error(f"Migration handling failed: {e}")
+        return {'success': False, 'migrated_code': scad_code}
+
+def _select_optimal_rendering_version(self, scad_code: str, required_version: Optional[str]) -> Optional[str]:
+    """Select optimal version for rendering."""
+    if not self.wasm_version_manager:
+        return None
+    
+    try:
+        # Use WASM version manager for optimal selection
+        return self.wasm_version_manager.select_optimal_version(scad_code, required_version)
+    except Exception as e:
+        logger.debug(f"Optimal version selection failed: {e}")
+        return None
+
+def _switch_to_version_if_needed(self, optimal_version: Optional[str]) -> bool:
+    """Switch to optimal version if different from current."""
+    if not optimal_version or optimal_version == self.active_wasm_version:
+        return False
+    
+    try:
+        if self.wasm_version_manager:
+            success = self.wasm_version_manager.switch_to_version(optimal_version)
+            if success:
+                self.active_wasm_version = optimal_version
+                logger.info(f"✅ Switched to WASM version: {optimal_version}")
+                return True
+    except Exception as e:
+        logger.error(f"Version switching failed: {e}")
+    
+    return False
+
+# Add methods to OpenSCADViewer class
+OpenSCADViewer._detect_scad_version_requirements = _detect_scad_version_requirements
+OpenSCADViewer._get_current_version_config = _get_current_version_config
+OpenSCADViewer._check_version_compatibility = _check_version_compatibility
+OpenSCADViewer._handle_version_migration = _handle_version_migration
+OpenSCADViewer._select_optimal_rendering_version = _select_optimal_rendering_version
+OpenSCADViewer._switch_to_version_if_needed = _switch_to_version_if_needed
