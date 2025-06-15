@@ -2779,6 +2779,1069 @@ ${this.errorHistory.map((err, i) =>
             // Initialize resource optimization engine
             resourceOptimizer = new ResourceOptimizationEngine(performanceMonitor, adaptiveQuality, progressiveLoader);
             
+            // ===== PHASE 5.2.3: Keyboard Navigation & Accessibility =====
+            // Comprehensive keyboard navigation and screen reader support
+            class AccessibilityManager {
+                constructor(container, controls) {
+                    this.container = container;
+                    this.controls = controls;
+                    this.enabled = true;
+                    
+                    // Keyboard navigation state
+                    this.keyboardEnabled = true;
+                    this.focusVisible = false;
+                    this.activeElement = null;
+                    
+                    // Navigation speeds
+                    this.rotationSpeed = 0.05; // radians per keypress
+                    this.panSpeed = 0.1; // units per keypress
+                    this.zoomSpeed = 0.1; // zoom factor per keypress
+                    
+                    // Accessibility features
+                    this.screenReaderEnabled = this.detectScreenReader();
+                    this.highContrastMode = false;
+                    this.reducedMotion = this.detectReducedMotion();
+                    
+                    // Keyboard shortcuts
+                    this.shortcuts = {
+                        // Camera controls
+                        'ArrowLeft': () => this.rotateCamera(-this.rotationSpeed, 0),
+                        'ArrowRight': () => this.rotateCamera(this.rotationSpeed, 0),
+                        'ArrowUp': () => this.rotateCamera(0, -this.rotationSpeed),
+                        'ArrowDown': () => this.rotateCamera(0, this.rotationSpeed),
+                        'w': () => this.panCamera(0, this.panSpeed, 0),
+                        'a': () => this.panCamera(-this.panSpeed, 0, 0),
+                        's': () => this.panCamera(0, -this.panSpeed, 0),
+                        'd': () => this.panCamera(this.panSpeed, 0, 0),
+                        'q': () => this.panCamera(0, 0, this.panSpeed),
+                        'e': () => this.panCamera(0, 0, -this.panSpeed),
+                        '+': () => this.zoomCamera(1 + this.zoomSpeed),
+                        '-': () => this.zoomCamera(1 - this.zoomSpeed),
+                        'r': () => this.resetCamera(),
+                        
+                        // View presets
+                        '1': () => this.setViewPreset('front'),
+                        '2': () => this.setViewPreset('back'),
+                        '3': () => this.setViewPreset('left'),
+                        '4': () => this.setViewPreset('right'),
+                        '5': () => this.setViewPreset('top'),
+                        '6': () => this.setViewPreset('bottom'),
+                        '7': () => this.setViewPreset('isometric'),
+                        
+                        // Accessibility
+                        'h': () => this.showKeyboardHelp(),
+                        'c': () => this.toggleHighContrast(),
+                        'f': () => this.toggleFullscreen(),
+                        'Escape': () => this.exitFocus()
+                    };
+                    
+                    // ARIA live region for announcements
+                    this.announcements = null;
+                    
+                    this.initializeAccessibility();
+                    console.log('♿ AccessibilityManager initialized');
+                }
+                
+                initializeAccessibility() {
+                    // Make container focusable
+                    this.container.setAttribute('tabindex', '0');
+                    this.container.setAttribute('role', 'application');
+                    this.container.setAttribute('aria-label', '3D OpenSCAD Model Viewer');
+                    this.container.setAttribute('aria-describedby', 'viewer-help');
+                    
+                    // Create ARIA live region
+                    this.announcements = document.createElement('div');
+                    this.announcements.setAttribute('aria-live', 'polite');
+                    this.announcements.setAttribute('aria-atomic', 'true');
+                    this.announcements.style.cssText = `
+                        position: absolute;
+                        left: -10000px;
+                        width: 1px;
+                        height: 1px;
+                        overflow: hidden;
+                    `;
+                    this.container.appendChild(this.announcements);
+                    
+                    // Create keyboard help overlay
+                    this.createKeyboardHelp();
+                    
+                    // Setup event listeners
+                    this.setupEventListeners();
+                    
+                    // Apply accessibility preferences
+                    this.applyAccessibilityPreferences();
+                    
+                    // Announce initial state
+                    this.announce('3D OpenSCAD viewer loaded. Press H for keyboard shortcuts.');
+                }
+                
+                setupEventListeners() {
+                    // Keyboard navigation
+                    this.container.addEventListener('keydown', (e) => {
+                        if (!this.keyboardEnabled) return;
+                        
+                        const key = e.key;
+                        const shortcut = this.shortcuts[key];
+                        
+                        if (shortcut) {
+                            e.preventDefault();
+                            shortcut();
+                            this.showFocusIndicator();
+                        }
+                    });
+                    
+                    // Focus management
+                    this.container.addEventListener('focus', () => {
+                        this.focusVisible = true;
+                        this.container.classList.add('keyboard-focused');
+                        this.announce('3D viewer focused. Use arrow keys to rotate, WASD to pan, +/- to zoom.');
+                    });
+                    
+                    this.container.addEventListener('blur', () => {
+                        this.focusVisible = false;
+                        this.container.classList.remove('keyboard-focused');
+                    });
+                    
+                    // Mouse interaction detection
+                    this.container.addEventListener('mousedown', () => {
+                        this.focusVisible = false;
+                        this.container.classList.remove('keyboard-focused');
+                    });
+                }
+                
+                detectScreenReader() {
+                    // Check for common screen reader indicators
+                    return !!(
+                        navigator.userAgent.includes('NVDA') ||
+                        navigator.userAgent.includes('JAWS') ||
+                        navigator.userAgent.includes('VoiceOver') ||
+                        window.speechSynthesis ||
+                        navigator.mediaDevices?.getUserMedia
+                    );
+                }
+                
+                detectReducedMotion() {
+                    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                }
+                
+                applyAccessibilityPreferences() {
+                    // Apply reduced motion
+                    if (this.reducedMotion) {
+                        this.container.classList.add('reduced-motion');
+                        // Disable animations in controls if available
+                        if (this.controls && this.controls.enableDamping) {
+                            this.controls.enableDamping = false;
+                        }
+                    }
+                    
+                    // High contrast detection
+                    if (window.matchMedia('(prefers-contrast: high)').matches) {
+                        this.enableHighContrast();
+                    }
+                }
+                
+                rotateCamera(deltaX, deltaY) {
+                    if (!this.controls) return;
+                    
+                    // Apply rotation through controls
+                    if (this.controls.object) {
+                        const camera = this.controls.object;
+                        
+                        // Horizontal rotation (around Y axis)
+                        if (deltaX !== 0) {
+                            const spherical = new THREE.Spherical();
+                            spherical.setFromVector3(camera.position.clone().sub(this.controls.target));
+                            spherical.theta += deltaX;
+                            camera.position.setFromSpherical(spherical).add(this.controls.target);
+                        }
+                        
+                        // Vertical rotation (around X axis)
+                        if (deltaY !== 0) {
+                            const spherical = new THREE.Spherical();
+                            spherical.setFromVector3(camera.position.clone().sub(this.controls.target));
+                            spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi + deltaY));
+                            camera.position.setFromSpherical(spherical).add(this.controls.target);
+                        }
+                        
+                        camera.lookAt(this.controls.target);
+                        this.controls.update();
+                        
+                        this.announce(`Camera rotated. Position: ${this.describeCameraPosition()}`);
+                    }
+                }
+                
+                panCamera(deltaX, deltaY, deltaZ) {
+                    if (!this.controls || !this.controls.object) return;
+                    
+                    const camera = this.controls.object;
+                    const offset = new THREE.Vector3(deltaX, deltaY, deltaZ);
+                    
+                    // Transform by camera orientation
+                    offset.applyMatrix3(camera.matrix.extractBasis(new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()));
+                    
+                    camera.position.add(offset);
+                    this.controls.target.add(offset);
+                    this.controls.update();
+                    
+                    this.announce(`Camera panned. Position: ${this.describeCameraPosition()}`);
+                }
+                
+                zoomCamera(factor) {
+                    if (!this.controls || !this.controls.object) return;
+                    
+                    const camera = this.controls.object;
+                    const direction = new THREE.Vector3();
+                    direction.subVectors(this.controls.target, camera.position).normalize();
+                    
+                    const distance = camera.position.distanceTo(this.controls.target);
+                    const newDistance = Math.max(0.1, distance * (1 / factor));
+                    
+                    camera.position.copy(this.controls.target).addScaledVector(direction, -newDistance);
+                    this.controls.update();
+                    
+                    this.announce(`Camera zoom: ${factor > 1 ? 'in' : 'out'}. Distance: ${newDistance.toFixed(1)}`);
+                }
+                
+                resetCamera() {
+                    if (!this.controls) return;
+                    
+                    // Reset to default position
+                    const camera = this.controls.object;
+                    camera.position.set(10, 10, 10);
+                    this.controls.target.set(0, 0, 0);
+                    camera.lookAt(this.controls.target);
+                    this.controls.update();
+                    
+                    this.announce('Camera reset to default position');
+                }
+                
+                setViewPreset(view) {
+                    if (!this.controls || !this.controls.object) return;
+                    
+                    const camera = this.controls.object;
+                    const distance = camera.position.distanceTo(this.controls.target);
+                    
+                    const positions = {
+                        front: [0, 0, distance],
+                        back: [0, 0, -distance],
+                        left: [-distance, 0, 0],
+                        right: [distance, 0, 0],
+                        top: [0, distance, 0],
+                        bottom: [0, -distance, 0],
+                        isometric: [distance * 0.7, distance * 0.7, distance * 0.7]
+                    };
+                    
+                    const pos = positions[view];
+                    if (pos) {
+                        camera.position.set(...pos);
+                        camera.lookAt(this.controls.target);
+                        this.controls.update();
+                        
+                        this.announce(`View set to ${view}`);
+                    }
+                }
+                
+                describeCameraPosition() {
+                    if (!this.controls || !this.controls.object) return 'unknown';
+                    
+                    const camera = this.controls.object;
+                    const pos = camera.position;
+                    const distance = pos.distanceTo(this.controls.target);
+                    
+                    return `X: ${pos.x.toFixed(1)}, Y: ${pos.y.toFixed(1)}, Z: ${pos.z.toFixed(1)}, Distance: ${distance.toFixed(1)}`;
+                }
+                
+                showFocusIndicator() {
+                    this.container.classList.add('keyboard-active');
+                    setTimeout(() => {
+                        this.container.classList.remove('keyboard-active');
+                    }, 200);
+                }
+                
+                announce(message) {
+                    if (!this.announcements) return;
+                    
+                    this.announcements.textContent = message;
+                    console.log('♿ Announced:', message);
+                }
+                
+                createKeyboardHelp() {
+                    const helpId = 'viewer-help';
+                    const existing = document.getElementById(helpId);
+                    if (existing) existing.remove();
+                    
+                    const help = document.createElement('div');
+                    help.id = helpId;
+                    help.className = 'keyboard-help';
+                    help.setAttribute('role', 'dialog');
+                    help.setAttribute('aria-labelledby', 'help-title');
+                    help.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: rgba(0, 0, 0, 0.95);
+                        color: white;
+                        padding: 20px;
+                        border-radius: 8px;
+                        max-width: 500px;
+                        max-height: 80vh;
+                        overflow-y: auto;
+                        z-index: 10000;
+                        display: none;
+                        font-family: monospace;
+                        font-size: 14px;
+                        line-height: 1.4;
+                    `;
+                    
+                    help.innerHTML = `
+                        <h3 id="help-title" style="margin-top: 0; color: #4CAF50;">🎯 Keyboard Navigation</h3>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="color: #2196F3; margin-bottom: 5px;">📹 Camera Controls</h4>
+                            <div>Arrow Keys: Rotate camera</div>
+                            <div>W/A/S/D: Pan camera</div>
+                            <div>Q/E: Move up/down</div>
+                            <div>+/-: Zoom in/out</div>
+                            <div>R: Reset camera</div>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="color: #FF9800; margin-bottom: 5px;">👁️ View Presets</h4>
+                            <div>1: Front view</div>
+                            <div>2: Back view</div>
+                            <div>3: Left view</div>
+                            <div>4: Right view</div>
+                            <div>5: Top view</div>
+                            <div>6: Bottom view</div>
+                            <div>7: Isometric view</div>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="color: #9C27B0; margin-bottom: 5px;">♿ Accessibility</h4>
+                            <div>H: Show this help</div>
+                            <div>C: Toggle high contrast</div>
+                            <div>F: Toggle fullscreen</div>
+                            <div>Esc: Exit focus/close dialogs</div>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 20px;">
+                            <button onclick="this.parentElement.parentElement.style.display='none'" 
+                                    style="background: #4CAF50; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                                Close (Esc)
+                            </button>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(help);
+                    this.keyboardHelp = help;
+                }
+                
+                showKeyboardHelp() {
+                    if (this.keyboardHelp) {
+                        this.keyboardHelp.style.display = 'block';
+                        this.keyboardHelp.focus();
+                        this.announce('Keyboard help dialog opened');
+                    }
+                }
+                
+                toggleHighContrast() {
+                    this.highContrastMode = !this.highContrastMode;
+                    
+                    if (this.highContrastMode) {
+                        this.enableHighContrast();
+                    } else {
+                        this.disableHighContrast();
+                    }
+                    
+                    this.announce(`High contrast mode ${this.highContrastMode ? 'enabled' : 'disabled'}`);
+                }
+                
+                enableHighContrast() {
+                    this.container.classList.add('high-contrast');
+                    document.documentElement.style.setProperty('--viewer-bg', '#000000');
+                    document.documentElement.style.setProperty('--viewer-text', '#ffffff');
+                    document.documentElement.style.setProperty('--viewer-border', '#ffffff');
+                }
+                
+                disableHighContrast() {
+                    this.container.classList.remove('high-contrast');
+                    document.documentElement.style.removeProperty('--viewer-bg');
+                    document.documentElement.style.removeProperty('--viewer-text');
+                    document.documentElement.style.removeProperty('--viewer-border');
+                }
+                
+                toggleFullscreen() {
+                    if (!document.fullscreenElement) {
+                        this.container.requestFullscreen?.() || 
+                        this.container.webkitRequestFullscreen?.() || 
+                        this.container.mozRequestFullScreen?.();
+                        this.announce('Entered fullscreen mode');
+                    } else {
+                        document.exitFullscreen?.() || 
+                        document.webkitExitFullscreen?.() || 
+                        document.mozCancelFullScreen?.();
+                        this.announce('Exited fullscreen mode');
+                    }
+                }
+                
+                exitFocus() {
+                    if (this.keyboardHelp && this.keyboardHelp.style.display !== 'none') {
+                        this.keyboardHelp.style.display = 'none';
+                        this.container.focus();
+                        this.announce('Help dialog closed');
+                    } else {
+                        this.container.blur();
+                        this.announce('Viewer unfocused');
+                    }
+                }
+                
+                setKeyboardEnabled(enabled) {
+                    this.keyboardEnabled = enabled;
+                    this.announce(`Keyboard navigation ${enabled ? 'enabled' : 'disabled'}`);
+                }
+                
+                getAccessibilityInfo() {
+                    return {
+                        keyboardEnabled: this.keyboardEnabled,
+                        screenReaderDetected: this.screenReaderEnabled,
+                        highContrastMode: this.highContrastMode,
+                        reducedMotion: this.reducedMotion,
+                        focusVisible: this.focusVisible,
+                        shortcuts: Object.keys(this.shortcuts)
+                    };
+                }
+                
+                dispose() {
+                    this.enabled = false;
+                    
+                    if (this.keyboardHelp && this.keyboardHelp.parentNode) {
+                        this.keyboardHelp.parentNode.removeChild(this.keyboardHelp);
+                    }
+                    
+                    if (this.announcements && this.announcements.parentNode) {
+                        this.announcements.parentNode.removeChild(this.announcements);
+                    }
+                    
+                    console.log('♿ AccessibilityManager disposed');
+                }
+            }
+            
+            // Initialize accessibility manager (will be connected to controls later)
+            accessibilityManager = new AccessibilityManager(container, null);
+            
+            // ===== PHASE 5.2.4: Mobile Touch Controls =====
+            // Advanced touch navigation and mobile optimization
+            class MobileTouchManager {
+                constructor(container, canvas) {
+                    this.container = container;
+                    this.canvas = canvas;
+                    this.enabled = true;
+                    
+                    // Touch state management
+                    this.touches = new Map();
+                    this.lastTouchTime = 0;
+                    this.touchStartTime = 0;
+                    this.gestureActive = false;
+                    this.initialPinchDistance = 0;
+                    this.initialTouchCenter = { x: 0, y: 0 };
+                    
+                    // Mobile detection
+                    this.isMobile = this.detectMobile();
+                    this.isTablet = this.detectTablet();
+                    this.hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                    
+                    // Touch sensitivity settings
+                    this.sensitivity = {
+                        rotation: this.isMobile ? 0.008 : 0.005,
+                        pan: this.isMobile ? 0.4 : 0.3,
+                        zoom: this.isMobile ? 0.3 : 0.2,
+                        doubleTap: 300, // ms
+                        longPress: 800, // ms
+                        swipeThreshold: 50 // pixels
+                    };
+                    
+                    // Gesture recognition
+                    this.gestureTypes = {
+                        NONE: 'none',
+                        ROTATE: 'rotate',
+                        PAN: 'pan',
+                        ZOOM: 'zoom',
+                        SWIPE: 'swipe',
+                        TAP: 'tap',
+                        DOUBLE_TAP: 'double_tap',
+                        LONG_PRESS: 'long_press'
+                    };
+                    
+                    this.currentGesture = this.gestureTypes.NONE;
+                    this.lastTap = 0;
+                    this.longPressTimer = null;
+                    
+                    // Performance optimization for mobile
+                    this.frameThrottle = this.isMobile ? 33 : 16; // 30fps vs 60fps
+                    this.lastFrameTime = 0;
+                    
+                    // Haptic feedback support
+                    this.hapticEnabled = this.detectHapticSupport();
+                    
+                    // Controls reference (will be set later)
+                    this.controls = null;
+                    
+                    this.initializeMobileControls();
+                    console.log('📱 MobileTouchManager initialized:', {
+                        mobile: this.isMobile,
+                        tablet: this.isTablet,
+                        touch: this.hasTouch,
+                        haptic: this.hapticEnabled
+                    });
+                }
+                
+                detectMobile() {
+                    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                }
+                
+                detectTablet() {
+                    return /iPad|Android.*Tablet|Windows.*Touch/i.test(navigator.userAgent) || 
+                           (navigator.maxTouchPoints > 1 && window.innerWidth > 768);
+                }
+                
+                detectHapticSupport() {
+                    return 'vibrate' in navigator || 'hapticFeedback' in navigator;
+                }
+                
+                initializeMobileControls() {
+                    if (!this.hasTouch) return;
+                    
+                    // Apply mobile-specific styles
+                    this.applyMobileStyles();
+                    
+                    // Setup touch event listeners
+                    this.setupTouchListeners();
+                    
+                    // Create mobile UI enhancements
+                    this.createMobileUI();
+                    
+                    // Optimize for mobile performance
+                    this.optimizeForMobile();
+                }
+                
+                applyMobileStyles() {
+                    // Prevent default touch behaviors
+                    this.container.style.touchAction = 'none';
+                    this.container.style.userSelect = 'none';
+                    this.container.style.webkitUserSelect = 'none';
+                    this.container.style.webkitTouchCallout = 'none';
+                    
+                    // Mobile-optimized cursor
+                    if (this.isMobile) {
+                        this.container.style.cursor = 'grab';
+                    }
+                    
+                    // Add mobile-specific CSS classes
+                    this.container.classList.add('mobile-touch-enabled');
+                    if (this.isMobile) this.container.classList.add('mobile-device');
+                    if (this.isTablet) this.container.classList.add('tablet-device');
+                }
+                
+                setupTouchListeners() {
+                    // Touch events
+                    this.container.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
+                    this.container.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+                    this.container.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
+                    this.container.addEventListener('touchcancel', (e) => this.handleTouchCancel(e), { passive: false });
+                    
+                    // Gesture events (for Safari)
+                    this.container.addEventListener('gesturestart', (e) => this.handleGestureStart(e), { passive: false });
+                    this.container.addEventListener('gesturechange', (e) => this.handleGestureChange(e), { passive: false });
+                    this.container.addEventListener('gestureend', (e) => this.handleGestureEnd(e), { passive: false });
+                }
+                
+                handleTouchStart(event) {
+                    event.preventDefault();
+                    
+                    const now = Date.now();
+                    this.touchStartTime = now;
+                    this.lastTouchTime = now;
+                    
+                    // Store all touches
+                    for (let i = 0; i < event.touches.length; i++) {
+                        const touch = event.touches[i];
+                        this.touches.set(touch.identifier, {
+                            id: touch.identifier,
+                            startX: touch.clientX,
+                            startY: touch.clientY,
+                            currentX: touch.clientX,
+                            currentY: touch.clientY,
+                            startTime: now
+                        });
+                    }
+                    
+                    // Determine gesture type
+                    this.determineGesture(event);
+                    
+                    // Setup long press detection for single touch
+                    if (event.touches.length === 1) {
+                        this.longPressTimer = setTimeout(() => {
+                            this.triggerLongPress(event.touches[0]);
+                        }, this.sensitivity.longPress);
+                    }
+                    
+                    this.hapticFeedback('light');
+                }
+                
+                handleTouchMove(event) {
+                    event.preventDefault();
+                    
+                    const now = Date.now();
+                    if (now - this.lastFrameTime < this.frameThrottle) return; // Throttle for performance
+                    this.lastFrameTime = now;
+                    
+                    // Clear long press if finger moves
+                    if (this.longPressTimer) {
+                        clearTimeout(this.longPressTimer);
+                        this.longPressTimer = null;
+                    }
+                    
+                    // Update touch positions
+                    for (let i = 0; i < event.touches.length; i++) {
+                        const touch = event.touches[i];
+                        const stored = this.touches.get(touch.identifier);
+                        if (stored) {
+                            stored.currentX = touch.clientX;
+                            stored.currentY = touch.clientY;
+                        }
+                    }
+                    
+                    // Handle gesture
+                    this.handleGestureMove(event);
+                }
+                
+                handleTouchEnd(event) {
+                    event.preventDefault();
+                    
+                    const now = Date.now();
+                    const touchDuration = now - this.touchStartTime;
+                    
+                    // Clear timers
+                    if (this.longPressTimer) {
+                        clearTimeout(this.longPressTimer);
+                        this.longPressTimer = null;
+                    }
+                    
+                    // Handle tap gestures
+                    if (event.changedTouches.length === 1 && touchDuration < this.sensitivity.doubleTap) {
+                        this.handleTap(event.changedTouches[0], now);
+                    }
+                    
+                    // Remove ended touches
+                    for (let i = 0; i < event.changedTouches.length; i++) {
+                        const touch = event.changedTouches[i];
+                        this.touches.delete(touch.identifier);
+                    }
+                    
+                    // Reset gesture if no more touches
+                    if (event.touches.length === 0) {
+                        this.currentGesture = this.gestureTypes.NONE;
+                        this.gestureActive = false;
+                    }
+                    
+                    this.hapticFeedback('light');
+                }
+                
+                handleTouchCancel(event) {
+                    // Clear all touch state
+                    this.touches.clear();
+                    this.currentGesture = this.gestureTypes.NONE;
+                    this.gestureActive = false;
+                    
+                    if (this.longPressTimer) {
+                        clearTimeout(this.longPressTimer);
+                        this.longPressTimer = null;
+                    }
+                }
+                
+                determineGesture(event) {
+                    const touchCount = event.touches.length;
+                    
+                    if (touchCount === 1) {
+                        this.currentGesture = this.gestureTypes.PAN;
+                    } else if (touchCount === 2) {
+                        this.currentGesture = this.gestureTypes.ZOOM;
+                        this.setupPinchGesture(event);
+                    } else if (touchCount === 3) {
+                        this.currentGesture = this.gestureTypes.ROTATE;
+                    }
+                    
+                    this.gestureActive = true;
+                }
+                
+                setupPinchGesture(event) {
+                    const touch1 = event.touches[0];
+                    const touch2 = event.touches[1];
+                    
+                    // Calculate initial distance and center
+                    this.initialPinchDistance = this.getDistance(touch1, touch2);
+                    this.initialTouchCenter = this.getCenter(touch1, touch2);
+                }
+                
+                handleGestureMove(event) {
+                    if (!this.gestureActive || !this.controls) return;
+                    
+                    switch (this.currentGesture) {
+                        case this.gestureTypes.PAN:
+                            this.handlePanGesture(event);
+                            break;
+                        case this.gestureTypes.ZOOM:
+                            this.handleZoomGesture(event);
+                            break;
+                        case this.gestureTypes.ROTATE:
+                            this.handleRotateGesture(event);
+                            break;
+                    }
+                }
+                
+                handlePanGesture(event) {
+                    if (event.touches.length !== 1) return;
+                    
+                    const touch = event.touches[0];
+                    const stored = this.touches.get(touch.identifier);
+                    if (!stored) return;
+                    
+                    const deltaX = touch.clientX - stored.startX;
+                    const deltaY = touch.clientY - stored.startY;
+                    
+                    // Check if this is a rotation gesture (around edges) or pan (center)
+                    const rect = this.container.getBoundingClientRect();
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const touchX = touch.clientX - rect.left;
+                    const touchY = touch.clientY - rect.top;
+                    
+                    const distanceFromCenter = Math.sqrt(
+                        Math.pow(touchX - centerX, 2) + Math.pow(touchY - centerY, 2)
+                    );
+                    
+                    // If touch is near edges, treat as rotation; if near center, treat as pan
+                    const edgeThreshold = Math.min(rect.width, rect.height) * 0.3;
+                    
+                    if (distanceFromCenter > edgeThreshold) {
+                        // Rotation around center
+                        this.applyCameraRotation(-deltaX * this.sensitivity.rotation, -deltaY * this.sensitivity.rotation);
+                    } else {
+                        // Pan camera
+                        this.applyCameraPan(deltaX * this.sensitivity.pan, -deltaY * this.sensitivity.pan);
+                    }
+                    
+                    // Update start position for continuous movement
+                    stored.startX = touch.clientX;
+                    stored.startY = touch.clientY;
+                }
+                
+                handleZoomGesture(event) {
+                    if (event.touches.length !== 2) return;
+                    
+                    const touch1 = event.touches[0];
+                    const touch2 = event.touches[1];
+                    
+                    const currentDistance = this.getDistance(touch1, touch2);
+                    const zoomFactor = currentDistance / this.initialPinchDistance;
+                    
+                    this.applyCameraZoom(zoomFactor);
+                    
+                    // Update for next frame
+                    this.initialPinchDistance = currentDistance;
+                    
+                    this.hapticFeedback('medium');
+                }
+                
+                handleRotateGesture(event) {
+                    if (event.touches.length < 2) return;
+                    
+                    // Use first two touches for rotation
+                    const touch1 = event.touches[0];
+                    const touch2 = event.touches[1];
+                    
+                    const stored1 = this.touches.get(touch1.identifier);
+                    const stored2 = this.touches.get(touch2.identifier);
+                    
+                    if (!stored1 || !stored2) return;
+                    
+                    // Calculate rotation based on finger movement
+                    const deltaX = ((touch1.clientX - stored1.startX) + (touch2.clientX - stored2.startX)) / 2;
+                    const deltaY = ((touch1.clientY - stored1.startY) + (touch2.clientY - stored2.startY)) / 2;
+                    
+                    this.applyCameraRotation(deltaX * this.sensitivity.rotation * 0.5, deltaY * this.sensitivity.rotation * 0.5);
+                    
+                    // Update start positions
+                    stored1.startX = touch1.clientX;
+                    stored1.startY = touch1.clientY;
+                    stored2.startX = touch2.clientX;
+                    stored2.startY = touch2.clientY;
+                }
+                
+                handleTap(touch, now) {
+                    const timeSinceLastTap = now - this.lastTap;
+                    
+                    if (timeSinceLastTap < this.sensitivity.doubleTap) {
+                        // Double tap - reset camera
+                        this.resetCamera();
+                        this.hapticFeedback('strong');
+                    } else {
+                        // Single tap - could be used for selection in the future
+                        this.hapticFeedback('light');
+                    }
+                    
+                    this.lastTap = now;
+                }
+                
+                triggerLongPress(touch) {
+                    // Long press - show mobile controls menu
+                    this.showMobileMenu(touch);
+                    this.hapticFeedback('strong');
+                }
+                
+                applyCameraRotation(deltaX, deltaY) {
+                    if (!this.controls || !this.controls.object) return;
+                    
+                    const camera = this.controls.object;
+                    const spherical = new THREE.Spherical();
+                    spherical.setFromVector3(camera.position.clone().sub(this.controls.target));
+                    
+                    spherical.theta += deltaX;
+                    spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi + deltaY));
+                    
+                    camera.position.setFromSpherical(spherical).add(this.controls.target);
+                    camera.lookAt(this.controls.target);
+                    this.controls.update();
+                }
+                
+                applyCameraPan(deltaX, deltaY) {
+                    if (!this.controls || !this.controls.object) return;
+                    
+                    const camera = this.controls.object;
+                    const offset = new THREE.Vector3();
+                    
+                    // Get camera's right and up vectors
+                    const right = new THREE.Vector3();
+                    const up = new THREE.Vector3();
+                    camera.getWorldDirection(offset);
+                    right.crossVectors(offset, camera.up).normalize();
+                    up.crossVectors(right, offset).normalize();
+                    
+                    // Apply pan movement
+                    const panOffset = new THREE.Vector3();
+                    panOffset.addScaledVector(right, deltaX * 0.01);
+                    panOffset.addScaledVector(up, deltaY * 0.01);
+                    
+                    camera.position.add(panOffset);
+                    this.controls.target.add(panOffset);
+                    this.controls.update();
+                }
+                
+                applyCameraZoom(factor) {
+                    if (!this.controls || !this.controls.object) return;
+                    
+                    const camera = this.controls.object;
+                    const direction = new THREE.Vector3();
+                    direction.subVectors(this.controls.target, camera.position).normalize();
+                    
+                    const distance = camera.position.distanceTo(this.controls.target);
+                    const newDistance = Math.max(0.1, distance / factor);
+                    
+                    camera.position.copy(this.controls.target).addScaledVector(direction, -newDistance);
+                    this.controls.update();
+                }
+                
+                resetCamera() {
+                    if (!this.controls || !this.controls.object) return;
+                    
+                    const camera = this.controls.object;
+                    camera.position.set(10, 10, 10);
+                    this.controls.target.set(0, 0, 0);
+                    camera.lookAt(this.controls.target);
+                    this.controls.update();
+                }
+                
+                getDistance(touch1, touch2) {
+                    const dx = touch1.clientX - touch2.clientX;
+                    const dy = touch1.clientY - touch2.clientY;
+                    return Math.sqrt(dx * dx + dy * dy);
+                }
+                
+                getCenter(touch1, touch2) {
+                    return {
+                        x: (touch1.clientX + touch2.clientX) / 2,
+                        y: (touch1.clientY + touch2.clientY) / 2
+                    };
+                }
+                
+                hapticFeedback(intensity = 'light') {
+                    if (!this.hapticEnabled) return;
+                    
+                    if (navigator.vibrate) {
+                        const patterns = {
+                            light: [10],
+                            medium: [20],
+                            strong: [50]
+                        };
+                        navigator.vibrate(patterns[intensity] || patterns.light);
+                    }
+                }
+                
+                createMobileUI() {
+                    if (!this.isMobile && !this.isTablet) return;
+                    
+                    // Create mobile control hints
+                    const hints = document.createElement('div');
+                    hints.className = 'mobile-hints';
+                    hints.style.cssText = `
+                        position: absolute;
+                        bottom: 10px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: rgba(0, 0, 0, 0.7);
+                        color: white;
+                        padding: 8px 12px;
+                        border-radius: 4px;
+                        font-size: 12px;
+                        text-align: center;
+                        pointer-events: none;
+                        z-index: 1000;
+                    `;
+                    
+                    hints.innerHTML = `
+                        📱 1 finger: Rotate/Pan | ✌️ 2 fingers: Zoom | 👆 Double tap: Reset
+                    `;
+                    
+                    this.container.appendChild(hints);
+                    
+                    // Auto-hide after 5 seconds
+                    setTimeout(() => {
+                        hints.style.opacity = '0';
+                        hints.style.transition = 'opacity 0.5s';
+                        setTimeout(() => hints.remove(), 500);
+                    }, 5000);
+                }
+                
+                showMobileMenu(touch) {
+                    // Create context menu for mobile
+                    const menu = document.createElement('div');
+                    menu.className = 'mobile-context-menu';
+                    menu.style.cssText = `
+                        position: fixed;
+                        top: ${touch.clientY}px;
+                        left: ${touch.clientX}px;
+                        background: white;
+                        border: 1px solid #ccc;
+                        border-radius: 4px;
+                        padding: 8px 0;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                        z-index: 10000;
+                        min-width: 120px;
+                    `;
+                    
+                    const options = [
+                        { text: '🏠 Reset View', action: () => this.resetCamera() },
+                        { text: '📐 Fit to Screen', action: () => this.fitToScreen() },
+                        { text: '🔄 Toggle Quality', action: () => this.toggleMobileQuality() },
+                        { text: '❌ Close', action: () => menu.remove() }
+                    ];
+                    
+                    options.forEach(option => {
+                        const item = document.createElement('div');
+                        item.textContent = option.text;
+                        item.style.cssText = `
+                            padding: 8px 16px;
+                            cursor: pointer;
+                            font-size: 14px;
+                        `;
+                        item.addEventListener('click', () => {
+                            option.action();
+                            menu.remove();
+                        });
+                        menu.appendChild(item);
+                    });
+                    
+                    document.body.appendChild(menu);
+                    
+                    // Auto-remove after 5 seconds
+                    setTimeout(() => menu.remove(), 5000);
+                }
+                
+                optimizeForMobile() {
+                    if (this.isMobile) {
+                        // Reduce render quality for better performance
+                        if (window.adaptiveQuality) {
+                            window.adaptiveQuality.forceQuality('medium', 'Mobile optimization');
+                        }
+                        
+                        // Disable expensive features
+                        this.container.classList.add('mobile-optimized');
+                    }
+                }
+                
+                fitToScreen() {
+                    // Implement fit-to-screen functionality
+                    console.log('📱 Fit to screen triggered');
+                }
+                
+                toggleMobileQuality() {
+                    if (window.adaptiveQuality) {
+                        const current = window.adaptiveQuality.currentQuality;
+                        const newQuality = current === 'low' ? 'medium' : 'low';
+                        window.adaptiveQuality.forceQuality(newQuality, 'Mobile quality toggle');
+                    }
+                }
+                
+                // Safari gesture events
+                handleGestureStart(event) {
+                    event.preventDefault();
+                }
+                
+                handleGestureChange(event) {
+                    event.preventDefault();
+                    // Use Safari's native gesture scale for zoom
+                    this.applyCameraZoom(event.scale);
+                }
+                
+                handleGestureEnd(event) {
+                    event.preventDefault();
+                }
+                
+                setControls(controls) {
+                    this.controls = controls;
+                    console.log('📱 Mobile touch controls connected to camera controls');
+                }
+                
+                getMobileInfo() {
+                    return {
+                        isMobile: this.isMobile,
+                        isTablet: this.isTablet,
+                        hasTouch: this.hasTouch,
+                        hapticEnabled: this.hapticEnabled,
+                        currentGesture: this.currentGesture,
+                        activeTouches: this.touches.size,
+                        sensitivity: this.sensitivity
+                    };
+                }
+                
+                dispose() {
+                    this.enabled = false;
+                    
+                    if (this.longPressTimer) {
+                        clearTimeout(this.longPressTimer);
+                        this.longPressTimer = null;
+                    }
+                    
+                    this.touches.clear();
+                    
+                    console.log('📱 MobileTouchManager disposed');
+                }
+            }
+            
+            // Initialize mobile touch manager
+            mobileTouchManager = new MobileTouchManager(container, null);
+            
             // Start loading with enhanced progress feedback
             progressiveLoader.showState('loading-three', 0, 'Connecting to CDN...');
             
