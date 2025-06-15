@@ -23,6 +23,19 @@ class OpenSCADWASMLoader {
     detectWASMBasePath() {
         // Phase 2: Enhanced path detection for anywidget compatibility
         
+        // Check if we have a wasm_base_url from the Python backend (preferred)
+        if (typeof window !== 'undefined' && window.anywidget && window.anywidget.model) {
+            try {
+                const wasmBaseUrl = window.anywidget.model.get('wasm_base_url');
+                if (wasmBaseUrl) {
+                    console.log('🔍 Phase 2: Using wasm_base_url from Python backend:', wasmBaseUrl);
+                    return wasmBaseUrl.endsWith('/') ? wasmBaseUrl : wasmBaseUrl + '/';
+                }
+            } catch (e) {
+                console.warn('🔍 Phase 2: Could not get wasm_base_url from model:', e);
+            }
+        }
+        
         // Check if running in anywidget context
         if (typeof window !== 'undefined' && window.anywidget) {
             console.log('🔍 Phase 2: anywidget context detected');
@@ -54,12 +67,15 @@ class OpenSCADWASMLoader {
      */
     async loadWASMWithFallbacks(filename) {
         const fallbackPaths = [
-            `${this.wasmBasePath}${filename}`,           // Primary detected path
+            `${this.wasmBasePath}${filename}`,           // Primary detected path (includes HTTP server)
+            `${this.wasmBasePath}wasm/${filename}`,      // HTTP server with wasm/ prefix
             `/static/wasm/${filename}`,                  // Package static
             `./wasm/${filename}`,                        // Relative
             `../src/marimo_openscad/wasm/${filename}`,   // Development
             `./dist/wasm/${filename}`,                   // Build output
-            `/dist/wasm/${filename}`                     // Deployed build
+            `/dist/wasm/${filename}`,                    // Deployed build
+            `http://localhost:8000/wasm/${filename}`,    // Local HTTP server fallback
+            `http://127.0.0.1:8000/wasm/${filename}`     // Alternative local server
         ];
         
         for (const path of fallbackPaths) {

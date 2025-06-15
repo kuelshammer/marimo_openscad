@@ -95,12 +95,13 @@ class STLParser {
  * WASM Rendering Manager - Main Thread Only (WASM-safe)
  */
 class WASMRenderingManager {
-    constructor() {
+    constructor(options = {}) {
         this.directRenderer = null;
         this.isWasmSupported = false;
         this.isWasmReady = false;
         this.initializationPromise = null;
         this.activeRender = null;
+        this.wasmBaseUrl = options.wasmBaseUrl;
         
         this.checkWasmSupport();
     }
@@ -143,6 +144,7 @@ class WASMRenderingManager {
                 enableManifold: true,
                 outputFormat: 'binstl',
                 timeout: 30000,
+                wasmBaseUrl: this.wasmBaseUrl,
                 ...options
             });
             
@@ -245,13 +247,13 @@ class WASMRenderingManager {
  * 3D Scene Manager with WASM Integration
  */
 class SceneManager {
-    constructor(container) {
+    constructor(container, options = {}) {
         this.container = container;
         this.scene = null;
         this.camera = null;
         this.renderer = null;
         this.currentMesh = null;
-        this.wasmManager = new WASMRenderingManager();
+        this.wasmManager = new WASMRenderingManager(options);
         this.lastScadCode = null;
         this.lastRenderId = null;
         this.controls = {
@@ -653,8 +655,19 @@ export function render({ model, el }) {
         } else {
             statusElement.textContent = 'Setting up 3D scene...';
             
-            // Initialize scene manager with validation
-            sceneManager = new SceneManager(container);
+            // Get WASM base URL from model
+            const wasmBaseUrl = model.get('wasm_base_url');
+            const wasmEnabled = model.get('wasm_enabled');
+            
+            console.log('🔍 WASM configuration:', { wasmBaseUrl, wasmEnabled });
+            
+            // Initialize scene manager with WASM options
+            const sceneOptions = {
+                wasmBaseUrl: wasmBaseUrl,
+                wasmEnabled: wasmEnabled
+            };
+            
+            sceneManager = new SceneManager(container, sceneOptions);
             
             // Verify scene was created successfully
             if (!sceneManager.scene || !sceneManager.renderer) {

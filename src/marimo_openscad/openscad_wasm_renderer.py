@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 from typing import Optional, Dict, Any
 from .openscad_renderer import OpenSCADRenderer, OpenSCADError
+from .wasm_asset_server import get_wasm_asset_server
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ class OpenSCADWASMRenderer:
         self.wasm_options = wasm_options or {}
         self.render_count = 0
         self.wasm_path = self._get_wasm_path()
+        self.wasm_server = get_wasm_asset_server()
         self.is_available = self._check_wasm_availability()
         
         logger.info(f"OpenSCAD WASM Renderer initialized (available: {self.is_available})")
@@ -96,34 +98,78 @@ class OpenSCADWASMRenderer:
         """Get OpenSCAD WASM version information"""
         return "OpenSCAD WASM 2022.03.20"
     
-    def get_wasm_url_base(self) -> str:
+    def get_wasm_url_base(self, base_url: Optional[str] = None) -> str:
         """
         Get the URL base path for WASM assets
         
-        This can be used by the JavaScript frontend to load WASM modules
-        from the correct package location.
+        This provides the web-accessible URL for WASM assets that can be
+        used by the JavaScript frontend to load WASM modules.
+        
+        Args:
+            base_url: Base URL for asset serving (provided by anywidget)
+            
+        Returns:
+            Web-accessible URL base for WASM assets
         """
-        # For anywidget in Marimo, we use the file:// protocol
-        # This allows direct access to the bundled WASM files
-        return f"file://{self.wasm_path}"
+        if base_url:
+            # Use provided base URL (from anywidget asset serving)
+            return base_url.rstrip('/') + '/wasm/'
+        else:
+            # Default fallback - this should be set by the viewer
+            logger.warning("No base URL provided for WASM assets, using fallback")
+            return '/wasm/'
     
-    def get_wasm_files(self) -> Dict[str, str]:
-        """Get paths to all WASM-related files"""
-        files = {}
-        wasm_files = [
-            "openscad.wasm",
-            "openscad.js", 
-            "openscad.d.ts",
-            "openscad.fonts.js",
-            "openscad.mcad.js"
-        ]
+    def get_wasm_files(self, base_url: Optional[str] = None) -> Dict[str, str]:
+        """
+        Get URLs for all WASM-related files
         
-        for filename in wasm_files:
-            file_path = self.wasm_path / filename
-            if file_path.exists():
-                files[filename] = str(file_path)
+        Args:
+            base_url: Base URL for asset serving (provided by anywidget)
+            
+        Returns:
+            Dictionary mapping filenames to web-accessible URLs
+        """
+        if base_url:
+            # Use WASM asset server to get proper URLs
+            return self.wasm_server.get_asset_urls(base_url.rstrip('/') + '/wasm/')
+        else:
+            # Fallback: return local file paths (for backward compatibility)
+            files = {}
+            wasm_files = [
+                "openscad.wasm",
+                "openscad.js", 
+                "openscad.d.ts",
+                "openscad.fonts.js",
+                "openscad.mcad.js"
+            ]
+            
+            for filename in wasm_files:
+                file_path = self.wasm_path / filename
+                if file_path.exists():
+                    files[filename] = str(file_path)
+            
+            return files
+    
+    def get_wasm_asset_data(self, filename: str):
+        """
+        Get WASM asset data for serving
         
-        return files
+        Args:
+            filename: Name of the WASM file to serve
+            
+        Returns:
+            Tuple of (file_data, mime_type) or None if file not found
+        """
+        return self.wasm_server.get_asset_data(filename)
+    
+    def validate_wasm_assets(self) -> Dict[str, bool]:
+        """
+        Validate that WASM assets are available
+        
+        Returns:
+            Dictionary mapping filenames to availability status
+        """
+        return self.wasm_server.validate_assets()
     
     def get_stats(self) -> Dict[str, Any]:
         """Get renderer statistics"""

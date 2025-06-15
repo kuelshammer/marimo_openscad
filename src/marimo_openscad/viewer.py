@@ -23,6 +23,7 @@ from .realtime_renderer import RealTimeRenderer
 from .wasm_version_manager import WASMVersionManager
 from .version_manager import OpenSCADVersionManager
 from .migration_engine import MigrationEngine
+from .wasm_http_server import start_wasm_server, stop_wasm_server
 
 logger = logging.getLogger(__name__)
 
@@ -6235,7 +6236,7 @@ ${this.errorHistory.map((err, i) =>
                 raise RuntimeError(f"All renderers failed. Primary: {e}, Fallback: {fallback_error}")
     
     def _setup_wasm_urls(self):
-        """Setup WASM URLs for JavaScript access"""
+        """Setup WASM URLs for JavaScript access with HTTP server"""
         try:
             # Check if we have a WASM renderer (directly or in hybrid)
             wasm_renderer = None
@@ -6247,9 +6248,24 @@ ${this.errorHistory.map((err, i) =>
                     wasm_renderer = self.renderer.wasm_renderer
             
             if wasm_renderer and wasm_renderer.is_available:
-                self.wasm_base_url = wasm_renderer.get_wasm_url_base()
-                self.wasm_enabled = True
-                logger.info(f"WASM URLs configured: {self.wasm_base_url}")
+                # Start HTTP server for WASM assets
+                try:
+                    base_url = start_wasm_server()
+                    self.wasm_base_url = base_url
+                    self.wasm_enabled = True
+                    logger.info(f"WASM HTTP server started: {base_url}")
+                    
+                    # Validate WASM assets are accessible
+                    validation = wasm_renderer.validate_wasm_assets()
+                    if not all(validation.values()):
+                        logger.warning(f"Some WASM assets are missing: {validation}")
+                    
+                except Exception as server_error:
+                    logger.error(f"Failed to start WASM HTTP server: {server_error}")
+                    # Fallback to direct serving attempt
+                    self.wasm_base_url = wasm_renderer.get_wasm_url_base()
+                    self.wasm_enabled = True
+                    logger.info(f"Using fallback WASM URLs: {self.wasm_base_url}")
             else:
                 self.wasm_enabled = False
                 self.wasm_base_url = ""
