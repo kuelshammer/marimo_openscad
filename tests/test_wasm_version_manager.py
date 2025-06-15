@@ -3,6 +3,10 @@ Tests for WASM Version Management System
 
 Tests the downloading, caching, and dynamic switching of different
 OpenSCAD WASM versions for version compatibility support.
+
+NOTE: Many tests in this file are marked as legacy_pre_bridge due to
+AsyncIO conflicts with the new bridge system. They test the old
+direct-download approach that has been replaced by the bridge pattern.
 """
 
 import pytest

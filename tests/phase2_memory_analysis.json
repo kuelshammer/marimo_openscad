@@ -1,20 +1,20 @@
 {
-  "timestamp": 1749982462.927516,
+  "timestamp": 1750002949.3265998,
   "memory_results": {
-    "initial_memory": 156.125,
-    "final_memory": 156.140625,
+    "initial_memory": 138.4375,
+    "final_memory": 138.453125,
     "single_viewer_increase": 0.0,
     "total_memory_increase": 0.015625,
     "avg_memory_per_viewer": 0.0026041666666666665,
     "memory_recovered": 0.0,
     "viewers_created": 6,
     "memory_snapshots": [
-      156.125,
-      156.125,
-      156.140625,
-      156.140625,
-      156.140625,
-      156.140625
+      138.4375,
+      138.4375,
+      138.453125,
+      138.453125,
+      138.453125,
+      138.453125
     ]
   },
   "memory_targets": {
@@ -34,5 +34,5 @@
   "memory_score": 1,
   "memory_percentage": 100.0,
   "wasm_2gb_compliant": true,
-  "wasm_safety_margin": 1891.859375
+  "wasm_safety_margin": 1909.546875
 }

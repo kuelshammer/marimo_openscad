@@ -1,30 +1,30 @@
 {
-  "timestamp": 1749982462.3964531,
+  "timestamp": 1750002948.7988532,
   "num_concurrent": 3,
   "successful_workers": 0,
-  "total_time": 0.002991124987602234,
+  "total_time": 0.0031492090201936662,
   "avg_render_time": null,
   "concurrency_efficiency": 0,
-  "final_memory_mb": 156.125,
+  "final_memory_mb": 138.4375,
   "detailed_results": [
     {
       "worker_id": 0,
       "success": false,
-      "render_time": 0.0025777079863473773,
+      "render_time": 0.0026483749970793724,
       "stl_size": 0,
       "error": null
     },
     {
       "worker_id": 1,
       "success": false,
-      "render_time": 0.00211516598938033,
+      "render_time": 0.002187709033023566,
       "stl_size": 0,
       "error": null
     },
     {
       "worker_id": 2,
       "success": false,
-      "render_time": 0.0017697499715723097,
+      "render_time": 0.001669041987042874,
       "stl_size": 0,
       "error": null
     }
