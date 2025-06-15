@@ -182,4 +182,225 @@ global.cancelAnimationFrame = (id) => {
     clearTimeout(id);
 };
 
-console.log('✅ Test setup complete');
+// Mock Canvas and WebGL for WASM tests
+global.HTMLCanvasElement = class MockCanvas {
+    constructor() {
+        this.width = 300;
+        this.height = 150;
+        this.style = {};
+    }
+    
+    getContext(contextType) {
+        if (contextType === 'webgl' || contextType === 'experimental-webgl') {
+            return {
+                // WebGL context mock
+                getShaderPrecisionFormat: () => ({ precision: 23 }),
+                getExtension: () => null,
+                getParameter: (param) => {
+                    // Mock common WebGL parameters
+                    if (param === 0x1F00) return 'Mock WebGL Vendor'; // GL_VENDOR
+                    if (param === 0x1F01) return 'Mock WebGL Renderer'; // GL_RENDERER
+                    if (param === 0x1F02) return 'WebGL 1.0'; // GL_VERSION
+                    return null;
+                },
+                createShader: () => ({}),
+                createProgram: () => ({}),
+                deleteShader: () => {},
+                deleteProgram: () => {},
+                useProgram: () => {},
+                createBuffer: () => ({}),
+                bindBuffer: () => {},
+                bufferData: () => {},
+                createTexture: () => ({}),
+                bindTexture: () => {},
+                texImage2D: () => {},
+                viewport: () => {},
+                clear: () => {},
+                drawArrays: () => {},
+                drawElements: () => {},
+                enable: () => {},
+                disable: () => {},
+                clearColor: () => {},
+                clearDepth: () => {}
+            };
+        } else if (contextType === '2d') {
+            return {
+                // 2D context mock
+                fillRect: () => {},
+                clearRect: () => {},
+                strokeRect: () => {},
+                beginPath: () => {},
+                moveTo: () => {},
+                lineTo: () => {},
+                stroke: () => {},
+                fill: () => {},
+                arc: () => {},
+                fillText: () => {},
+                measureText: () => ({ width: 100 })
+            };
+        }
+        return null;
+    }
+    
+    toDataURL() {
+        return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    }
+};
+
+// Mock WebAssembly for WASM tests
+global.WebAssembly = {
+    Module: class MockWASMModule {
+        constructor(bytes) {
+            this.bytes = bytes;
+        }
+        
+        static imports() {
+            return [];
+        }
+    },
+    
+    Memory: class MockWASMMemory {
+        constructor(descriptor) {
+            this.buffer = new ArrayBuffer(descriptor.initial * 65536); // 64KB pages
+        }
+    },
+    
+    Instance: class MockWASMInstance {
+        constructor(module, imports = {}) {
+            this.exports = {
+                // Mock OpenSCAD WASM exports
+                render: () => new Uint8Array(100), // Mock STL data
+                memory: new ArrayBuffer(1024 * 1024), // 1MB mock memory
+                _initialize: () => {},
+                _free: () => {},
+                _malloc: () => 0
+            };
+        }
+    },
+    
+    instantiate: async function(bytes, imports = {}) {
+        const module = new this.Module(bytes);
+        const instance = new this.Instance(module, imports);
+        return { module, instance };
+    },
+    
+    compile: async function(bytes) {
+        return new this.Module(bytes);
+    },
+    
+    validate: function(bytes) {
+        return bytes instanceof ArrayBuffer || bytes instanceof Uint8Array;
+    }
+};
+
+// Mock Worker for WASM worker tests
+global.Worker = class MockWorker {
+    constructor(scriptURL) {
+        this.scriptURL = scriptURL;
+        this.onmessage = null;
+        this.onerror = null;
+        
+        // Simulate async worker initialization
+        setTimeout(() => {
+            if (this.onmessage) {
+                this.onmessage({
+                    data: { type: 'ready', status: 'initialized' }
+                });
+            }
+        }, 10);
+    }
+    
+    postMessage(data) {
+        // Mock worker response
+        setTimeout(() => {
+            if (this.onmessage) {
+                if (data.type === 'render') {
+                    // Mock STL rendering response
+                    this.onmessage({
+                        data: {
+                            type: 'render_complete',
+                            stl_data: new Uint8Array(100), // Mock STL
+                            success: true
+                        }
+                    });
+                } else {
+                    this.onmessage({
+                        data: { type: 'response', payload: 'mock_response' }
+                    });
+                }
+            }
+        }, 50); // Simulate processing time
+    }
+    
+    terminate() {
+        // Mock worker termination
+    }
+};
+
+// Mock URL and Blob for worker creation
+global.URL = global.URL || {
+    createObjectURL: (blob) => 'blob:mock-url-' + Math.random(),
+    revokeObjectURL: (url) => {}
+};
+
+global.Blob = global.Blob || class MockBlob {
+    constructor(parts, options = {}) {
+        this.parts = parts;
+        this.type = options.type || '';
+        this.size = parts.reduce((size, part) => size + (part.length || 0), 0);
+    }
+};
+
+// Mock fetch for WASM module loading
+global.fetch = global.fetch || async function(url) {
+    return {
+        ok: true,
+        status: 200,
+        arrayBuffer: async () => new ArrayBuffer(1024), // Mock WASM bytes
+        text: async () => '// Mock JavaScript module',
+        json: async () => ({ version: '1.0.0', mock: true })
+    };
+};
+
+// Mock ResizeObserver for responsive components
+global.ResizeObserver = class MockResizeObserver {
+    constructor(callback) {
+        this.callback = callback;
+    }
+    
+    observe() {
+        // Mock resize event
+        setTimeout(() => {
+            this.callback([{
+                target: { clientWidth: 600, clientHeight: 400 },
+                contentRect: { width: 600, height: 400 }
+            }]);
+        }, 10);
+    }
+    
+    unobserve() {}
+    disconnect() {}
+};
+
+// Mock IntersectionObserver for performance optimization
+global.IntersectionObserver = class MockIntersectionObserver {
+    constructor(callback) {
+        this.callback = callback;
+    }
+    
+    observe() {
+        // Mock intersection event
+        setTimeout(() => {
+            this.callback([{
+                target: {},
+                isIntersecting: true,
+                intersectionRatio: 1.0
+            }]);
+        }, 10);
+    }
+    
+    unobserve() {}
+    disconnect() {}
+};
+
+console.log('✅ Test setup complete with enhanced WASM and browser mocking');

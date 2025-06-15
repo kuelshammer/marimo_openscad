@@ -1,10 +1,19 @@
-# Test Directory
+# JavaScript Test Directory
+
+## ⚠️ **CRITICAL WARNING: EXTENSIVE MOCKING**
+
+**🚨 IMPORTANT**: This directory contains tests that use **comprehensive mocking** of browser APIs. These tests provide CI/CD stability but **DO NOT validate real browser functionality**.
+
+### **Current Mock Implementation Status:**
+- ✅ **CI/CD Stable**: All tests pass in Node.js environment
+- ❌ **Real Validation**: Browser APIs are completely mocked
+- 🎯 **Target**: Replace with real browser testing (Playwright/Selenium)
 
 This directory contains test files for the JavaScript widget component.
 
 ## Files
 
-- **`setup.js`** - Test environment setup with Three.js mocks and browser API polyfills
+- **`setup.js`** - ⚠️ **TEMPORARY MOCK IMPLEMENTATION** - Comprehensive browser API mocking
 - **`widget.test.js`** - Basic test examples (needs expansion)
 
 ## Running Tests
@@ -63,11 +72,40 @@ The existing tests provide basic examples for:
 
 Sample STL files and test data generators should be added for comprehensive testing.
 
-## Mocking Strategy
+## ⚠️ **TEMPORARY MOCKING STRATEGY**
 
-The test environment uses comprehensive mocks for:
-- Three.js classes and constants
-- DOM APIs (atob, btoa, performance)
-- Browser APIs (requestAnimationFrame)
+**CRITICAL WARNING**: The test environment uses **extensive mocking** that **MUST be removed** before production:
 
-This allows tests to run in Node.js environment without requiring actual WebGL support.
+### **Current Mocks (setup.js):**
+```javascript
+// ⚠️ TEMPORARY - REMOVE AFTER REAL IMPLEMENTATION
+global.THREE = { /* Complete Three.js mock */ };
+global.WebAssembly = { /* Full WASM API simulation */ };
+global.HTMLCanvasElement = { /* Canvas/WebGL mock */ };
+global.Worker = { /* Web Worker simulation */ };
+global.fetch = { /* Module loading mock */ };
+global.ResizeObserver = { /* Responsive behavior mock */ };
+// + atob, btoa, performance, requestAnimationFrame...
+```
+
+### **What These Mocks Provide:**
+- ✅ **CI/CD Stability**: Tests pass in Node.js without browser
+- ✅ **Development Velocity**: Fast test execution
+- ✅ **Cross-Platform**: Works on all CI environments
+
+### **What These Mocks Hide:**
+- ❌ **Real WASM loading failures**
+- ❌ **Canvas rendering issues**
+- ❌ **WebGL compatibility problems**
+- ❌ **Memory management failures**
+- ❌ **Browser-specific bugs**
+- ❌ **Performance bottlenecks**
+
+### **MOCK REMOVAL REQUIREMENTS:**
+1. **Replace with Playwright E2E tests**
+2. **Test in real browser environments**
+3. **Validate actual WASM performance**
+4. **Cross-browser compatibility testing**
+5. **Remove all global.* assignments**
+
+This **temporary approach** allows tests to run in Node.js environment without requiring actual WebGL support, but **does not validate real functionality**.

@@ -10,6 +10,28 @@ Marimo-OpenSCAD is an interactive 3D CAD modeling widget for Marimo notebooks th
 
 - Beachte die Planungsdatei: `CSG_RENDERING_ROADMAP.md`
 
+## ⚠️ **CRITICAL DEVELOPMENT WARNING**
+
+### 🚨 **TEMPORARY MOCK IMPLEMENTATION IN PLACE**
+
+**IMPORTANT**: The current codebase contains **extensive mocking** for CI/CD stability that **MUST be addressed**:
+
+#### **Mock Locations:**
+- `src/test/setup.js` - **Full browser API mocking** (WebAssembly, Canvas, Worker, etc.)
+- `pytest.ini` - Updated with all marker definitions (fixed)
+- Multiple test files using mocked WASM/browser functionality
+
+#### **Development Priority:**
+1. 🔥 **HIGH**: Implement real WASM renderer to replace mocks
+2. 🚀 **MEDIUM**: Add Playwright E2E tests for real browser validation  
+3. 🎯 **LOW**: Remove all temporary mocks after real implementation
+
+#### **Before Production Deployment:**
+- [ ] Remove all `global.*` assignments in `src/test/setup.js`
+- [ ] Implement real WebAssembly integration
+- [ ] Add real browser testing with Playwright
+- [ ] Validate actual performance claims (190x)
+
 ## Development Commands
 
 ### Python Testing
@@ -38,17 +60,33 @@ make validate
 
 ### JavaScript Testing
 ```bash
-# Run JS widget tests
+# ⚠️ CURRENT: Uses extensive mocking (TEMPORARY)
 npm test
 
-# Run in watch mode
+# Run in watch mode  
 npm run test:watch
 
 # With coverage
 npm run test:coverage
 
-# WASM-specific tests
+# WASM-specific tests (MOCKED)
 npm run test:wasm
+
+# CI-compatible test with JUnit XML (uses mocks)
+npm run test:ci
+```
+
+### 🚨 **Mock Identification Commands**
+```bash
+# Find all mock implementations
+grep -r "Mock" src/test/
+grep -r "global\." src/test/setup.js
+
+# Check for test mode indicators
+grep -r "Running in test mode" src/
+
+# Verify real vs mocked components
+grep -r "WebAssembly" src/test/setup.js  # Should show mocked implementation
 ```
 
 ### Build Commands
@@ -133,28 +171,36 @@ SolidPython2 → SCAD Code → Local OpenSCAD CLI → STL → Three.js → WebGL
 - **Purpose**: Validates fixes for externally identified issues
 - **Command**: `make test-regression`
 
-### WASM Testing Strategy
+### ⚠️ **WASM Testing Strategy (TEMPORARY MOCKS)**
 
-**Real WASM Tests (Preferred)**:
-- **Location**: `tests/test_wasm_real_integration.py`
-- **No mocking**: Uses actual bundled WASM files
-- **Coverage**: File integrity, URL generation, capabilities, error handling
-- **Benefits**: Tests real package structure and file bundling
+**🚨 CRITICAL WARNING**: Current testing strategy relies on extensive mocking that **MUST be replaced**:
 
-**Legacy Mock Tests**:
+**Current Approach (TEMPORARY)**:
+- **Location**: `src/test/setup.js` - **Full browser API mocking**
+- **Coverage**: WebAssembly, Canvas, Worker, fetch - **ALL MOCKED**
+- **Benefits**: CI/CD stable, cross-platform compatible
+- **Limitations**: **DOES NOT validate real functionality**
+
+**Real WASM Tests (Preferred - FUTURE)**:
+- **Target**: `tests/test_wasm_real_integration.py`
+- **Strategy**: Uses actual bundled WASM files in real browsers
+- **Status**: ❌ **Currently uses mocks, needs real implementation**
+
+**Legacy Mock Tests (CURRENT)**:
 - **Location**: `tests/test_wasm_renderer.py`, `tests/test_wasm_integration.py`
-- **Heavy mocking**: For scenarios requiring browser execution
-- **Use cases**: Browser-specific behavior, JavaScript execution
+- **Strategy**: Heavy mocking for browser execution simulation
+- **Status**: ✅ **Working but not validating real functionality**
 
-**Minimal Mock Tests**:
-- **Fixture**: `minimal_mock_wasm_renderer`
-- **Strategy**: Use real WASM renderer, mock only browser execution
-- **Benefits**: Tests real file detection, realistic STL data generation
-
-**CI-Optimized Tests**:
+**CI-Optimized Tests (CURRENT)**:
 - **Location**: `tests/test_wasm_ci_optimized.py`
-- **Strategy**: Environment detection, CI-specific assertions, fallback handling
-- **Benefits**: Designed for GitHub Actions, cross-platform compatibility
+- **Strategy**: Environment detection with mock fallbacks
+- **Status**: ✅ **Working for CI but needs real browser validation**
+
+**REQUIRED MIGRATION PLAN**:
+1. ❌ **Remove all browser API mocks from setup.js**
+2. ❌ **Implement real WASM renderer integration**
+3. ❌ **Add Playwright/Selenium E2E tests**
+4. ❌ **Validate actual 190x performance claims**
 
 ### Performance Tests
 - **WASM performance**: `test_wasm_performance.py`, `test_wasm_real_integration.py`

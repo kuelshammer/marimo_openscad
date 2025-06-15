@@ -1,5 +1,14 @@
 # Test Suite for Marimo-OpenSCAD
 
+## ⚠️ **CRITICAL WARNING: TEMPORARY MOCK IMPLEMENTATION**
+
+**🚨 IMPORTANT**: This test suite currently uses **extensive mocking** to achieve CI/CD stability. The mocks **DO NOT validate real functionality** and **MUST be removed** before production deployment.
+
+### **Current Mock Status:**
+- ✅ **CI/CD Stable**: All tests pass in GitHub Actions
+- ❌ **Real Implementation**: Browser/WASM APIs are mocked
+- 🎯 **Target**: Remove mocks after real WASM implementation
+
 ## 🚨 CRITICAL: Cache Behavior Tests
 
 This test suite includes **CRITICAL** tests that prevent regression of the cache issue identified by external LLM analysis where `update_scad_code` changes don't trigger visual updates.
@@ -191,10 +200,38 @@ Add tests to `test_llm_identified_issues.py` with `@pytest.mark.regression`
 
 ## Test Environment
 
-### Mocking
+### ⚠️ **EXTENSIVE MOCKING (TEMPORARY)**
+
+**CRITICAL**: Current test environment uses comprehensive mocking for CI/CD stability:
+
+#### **Python Mocks:**
 - OpenSCAD executable is mocked (no real OpenSCAD needed)
 - File system operations are mocked
-- Three.js is mocked in JavaScript tests
+- WASM renderer execution is mocked
+
+#### **JavaScript Mocks (src/test/setup.js):**
+```javascript
+// TEMPORARY MOCKS - MUST BE REMOVED
+global.WebAssembly = { /* Full WASM API mock */ };
+global.HTMLCanvasElement = { /* Canvas/WebGL mock */ };
+global.Worker = { /* Web Worker mock */ };
+global.fetch = { /* Module loading mock */ };
+// + ResizeObserver, IntersectionObserver, URL, Blob...
+```
+
+#### **What These Mocks Hide:**
+- ❌ **Real WASM module loading failures**
+- ❌ **Browser compatibility issues**
+- ❌ **Canvas/WebGL integration problems**
+- ❌ **Actual performance characteristics**
+- ❌ **Memory management behavior**
+- ❌ **Cross-browser differences**
+
+#### **Mock Removal Plan:**
+1. **Phase 1**: Implement real WASM renderer
+2. **Phase 2**: Add Playwright E2E tests with real browsers
+3. **Phase 3**: Remove all temporary mocks
+4. **Phase 4**: Validate with real browser testing
 
 ### Dependencies
 - `pytest` - Test framework

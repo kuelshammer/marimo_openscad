@@ -18,10 +18,12 @@ Bring parametric 3D design to your Marimo notebooks with reactive parameters, re
 ### 🆕 **Version 2.0: WASM-Safe Architecture** 
 This release introduces a completely rewritten JavaScript architecture that works seamlessly in both **local Marimo** and **Marimo WASM** environments. The new anywidget-compatible design eliminates Web Worker dependencies while maintaining excellent performance.
 
-**📊 Current Status (January 2025):**
+**📊 Current Status (June 2025):**
 - ✅ **Phase 1 Complete**: Full gap closure achieved with 15/15 critical tests passing
 - ✅ **Phase 2 Complete**: Bundle system validated with 9/9 tests passing at 100% performance score
 - 🚀 **Phase 3 Ready**: Async communication system ready for implementation
+- ✅ **CI/CD Ready**: Test infrastructure optimized with comprehensive mocking
+- ⚠️ **TEMPORARY MOCKS**: Browser/WASM APIs mocked for CI - requires real implementation
 - 📋 **Gap Closure**: All critical validation gaps systematically closed
 
 **🔥 Recent Achievements:**
@@ -244,6 +246,81 @@ For frontend widget development only:
 - **Node.js 18+** and **npm** 
 - Used for JavaScript testing, linting, and bundling
 - **Not required** for end users installing via PyPI
+
+## ⚠️ **CRITICAL: Current Test Implementation Status**
+
+### 🚨 **TEMPORARY MOCKING IN PLACE**
+
+**WARNING**: The current test suite uses **extensive mocking** for Browser/WASM APIs to achieve CI/CD compatibility. This provides test infrastructure stability but **does not validate real functionality**.
+
+#### **Current Mock Implementation:**
+```javascript
+// src/test/setup.js - TEMPORARY MOCKS
+global.WebAssembly = { /* Mock WASM API */ };
+global.HTMLCanvasElement = { /* Mock Canvas/WebGL */ };
+global.Worker = { /* Mock Web Workers */ };
+// + ResizeObserver, fetch, URL, Blob...
+```
+
+#### **What is Mocked:**
+- ✅ **Browser APIs**: Canvas, WebGL, WebAssembly, Workers
+- ✅ **Three.js Components**: Scene, Camera, Renderer, Materials
+- ✅ **DOM APIs**: Performance, requestAnimationFrame, ResizeObserver
+- ✅ **WASM Infrastructure**: Module loading, memory management, execution
+
+#### **Real Implementation Status:**
+| Component | Mock Status | Real Implementation | Priority |
+|-----------|-------------|-------------------|----------|
+| **WASM Renderer** | 🟡 Mocked | ❌ **Needs Implementation** | 🔥 CRITICAL |
+| **Canvas Integration** | 🟡 Mocked | ❌ **Needs Implementation** | 🔥 CRITICAL |
+| **Worker Management** | 🟡 Mocked | ❌ **Needs Implementation** | 🚀 HIGH |
+| **Memory Management** | 🟡 Mocked | ⚠️ **Partial** | 🚀 HIGH |
+| **Error Handling** | ✅ Real | ✅ **Implemented** | ✅ COMPLETE |
+
+### 📋 **NEXT DEVELOPMENT STEPS**
+
+#### **Phase 1: Remove Browser API Mocks** 🔥
+1. **Implement real WASM module loading**
+2. **Add actual Canvas/WebGL integration** 
+3. **Replace Worker mocks with real implementation**
+4. **Validate browser compatibility testing**
+
+#### **Phase 2: Real Browser Testing** 🚀
+1. **Add Playwright/Selenium E2E tests**
+2. **Test in actual browser environments**
+3. **Validate WASM performance claims (190x)**
+4. **Cross-browser compatibility validation**
+
+#### **Phase 3: Production Readiness** 🎯
+1. **Remove all temporary mocks**
+2. **Comprehensive integration testing**
+3. **Performance benchmarking with real data**
+4. **Documentation update with real metrics**
+
+### 🎯 **MOCK REMOVAL TIMELINE**
+
+**CRITICAL**: These mocks **must be removed** before production deployment:
+
+```bash
+# Current CI-optimized test command
+npm run test:ci  # Uses mocks for stability
+
+# Future production-ready test command (goal)
+npm run test:real  # No mocks, real browser integration
+```
+
+**Target Removal Date**: After WASM renderer real implementation is complete.
+
+### 🔍 **How to Identify Mock Usage**
+
+```bash
+# Search for mock implementations
+grep -r "Mock" src/test/
+grep -r "global\." src/test/setup.js
+
+# Check for real vs mock in tests
+grep -r "Running in test mode" src/test/
+```
 
 ## 🎨 Examples
 
