@@ -1,5 +1,5 @@
 {
-  "timestamp": 1749960930.3528168,
+  "timestamp": 1749982457.0411782,
   "error_handling_ready": true,
   "successful_scenarios": 4,
   "total_scenarios": 4,
@@ -9,7 +9,7 @@
       "success": true,
       "result": {
         "timeout_detected": true,
-        "timeout_age": 35.000000953674316
+        "timeout_age": 35.0
       }
     },
     "malformed_message": {

@@ -12,23 +12,42 @@ Marimo-OpenSCAD is an interactive 3D CAD modeling widget for Marimo notebooks th
 
 ## ⚠️ **CRITICAL DEVELOPMENT WARNING**
 
+### 🚨 **REAL FUNCTIONALITY AUDIT ERGEBNIS** (15. Juni 2025)
+
+**✅ MAJOR ERKENNTNISSE**: Real Functionality Audit completed - 4/4 tests passed
+
+#### **ECHTE WASM-IMPLEMENTIERUNG BESTÄTIGT:**
+- ✅ **WASM-Dateien sind ECHT**: 16.4MB echte Binärdaten
+  - `openscad.wasm`: 7,720,447 bytes (echtes OpenSCAD WASM)
+  - `openscad.fonts.js`: 8,163,407 bytes (echte Font-Bibliothek)
+  - `openscad.mcad.js`: 491,462 bytes (echte MCAD-Bibliothek)
+- ✅ **Python WASM Renderer funktional**: Dateierkennung, URL-Generierung
+- ✅ **Viewer Creation erfolgreich**: OpenSCADViewer wird korrekt erstellt
+
+#### **🔍 KRITISCHER BEFUND - IMPLEMENTIERUNGSLÜCKE:**
+- ⚠️ **Python gibt Placeholder zurück**: `WASM_RENDER_REQUEST:-8427547496623440318`
+- **DIAGNOSE**: Python→JavaScript Bridge fehlt für echte WASM-Ausführung
+- **ROOT CAUSE**: anywidget Frontend muss WASM-Ausführung übernehmen
+
 ### 🚨 **TEMPORARY MOCK IMPLEMENTATION IN PLACE**
 
-**IMPORTANT**: The current codebase contains **extensive mocking** for CI/CD stability that **MUST be addressed**:
+**IMPORTANT**: Mocks verdecken, dass JavaScript Frontend echte WASM-Arbeit machen muss:
 
 #### **Mock Locations:**
-- `src/test/setup.js` - **Full browser API mocking** (WebAssembly, Canvas, Worker, etc.)
+- `src/test/setup.js` - **Full browser API mocking** (versteckt echte WASM-Integration)
 - `pytest.ini` - Updated with all marker definitions (fixed)
 - Multiple test files using mocked WASM/browser functionality
 
-#### **Development Priority:**
-1. 🔥 **HIGH**: Implement real WASM renderer to replace mocks
-2. 🚀 **MEDIUM**: Add Playwright E2E tests for real browser validation  
-3. 🎯 **LOW**: Remove all temporary mocks after real implementation
+#### **Development Priority UPDATED:**
+1. 🔥 **HIGHEST**: Python↔JavaScript anywidget Bridge für WASM-Requests testen
+2. 🚀 **HIGH**: JavaScript WASM Frontend-Integration validieren  
+3. 🎯 **MEDIUM**: Remove mocks nach Bridge-Implementierung
+4. 📋 **LOW**: Add Playwright E2E tests for real browser validation
 
 #### **Before Production Deployment:**
+- [ ] **CRITICAL**: Implement Python→JavaScript WASM request bridge
+- [ ] Validate JavaScript frontend handles `WASM_RENDER_REQUEST:hash` 
 - [ ] Remove all `global.*` assignments in `src/test/setup.js`
-- [ ] Implement real WebAssembly integration
 - [ ] Add real browser testing with Playwright
 - [ ] Validate actual performance claims (190x)
 
