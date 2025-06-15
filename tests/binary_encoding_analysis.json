@@ -1,46 +1,46 @@
 {
-  "timestamp": 1750002943.2201421,
+  "timestamp": 1750024502.54073,
   "encoding_efficient": true,
   "large_file_test_passed": true,
   "avg_overhead": 1.3334054759063025,
-  "avg_encode_throughput_mb_per_sec": 736.8367150067114,
-  "avg_decode_throughput_mb_per_sec": 594.3742284678257,
+  "avg_encode_throughput_mb_per_sec": 683.2126549020501,
+  "avg_decode_throughput_mb_per_sec": 539.5513438875216,
   "detailed_results": {
     "minimal_stl": {
       "original_size": 126,
       "encoded_size": 168,
       "size_overhead": 1.3333333333333333,
-      "avg_encode_time": 4.250032361596823e-07,
-      "avg_decode_time": 5.542009603232146e-07,
-      "encode_throughput_mb_per_sec": 282.7342326919126,
-      "decode_throughput_mb_per_sec": 216.82200586066736
+      "avg_encode_time": 4.830886609852314e-07,
+      "avg_decode_time": 7.00005330145359e-07,
+      "encode_throughput_mb_per_sec": 248.73894498397476,
+      "decode_throughput_mb_per_sec": 171.66006984866124
     },
     "small_stl": {
       "original_size": 1044,
       "encoded_size": 1392,
       "size_overhead": 1.3333333333333333,
-      "avg_encode_time": 1.254194648936391e-06,
-      "avg_decode_time": 1.5874858945608139e-06,
-      "encode_throughput_mb_per_sec": 793.8448686353953,
-      "decode_throughput_mb_per_sec": 627.1778475257399
+      "avg_encode_time": 1.3917102478444577e-06,
+      "avg_decode_time": 1.6414909623563289e-06,
+      "encode_throughput_mb_per_sec": 715.4046525634269,
+      "decode_throughput_mb_per_sec": 606.5436905597753
     },
     "medium_stl": {
       "original_size": 5090,
       "encoded_size": 6788,
       "size_overhead": 1.3335952848722987,
-      "avg_encode_time": 5.795806646347046e-06,
-      "avg_decode_time": 6.283499533310532e-06,
-      "encode_throughput_mb_per_sec": 837.5369584779535,
-      "decode_throughput_mb_per_sec": 772.5316513153812
+      "avg_encode_time": 5.412392783910036e-06,
+      "avg_decode_time": 6.804207805544138e-06,
+      "encode_throughput_mb_per_sec": 896.8680700592143,
+      "decode_throughput_mb_per_sec": 713.4118194556844
     },
     "large_stl": {
       "original_size": 50090,
       "encoded_size": 66788,
       "size_overhead": 1.3333599520862447,
-      "avg_encode_time": 4.623318091034889e-05,
-      "avg_decode_time": 6.277492502704263e-05,
-      "encode_throughput_mb_per_sec": 1033.2308002215843,
-      "decode_throughput_mb_per_sec": 760.965409169514
+      "avg_encode_time": 5.4791709408164026e-05,
+      "avg_decode_time": 7.166258292272687e-05,
+      "encode_throughput_mb_per_sec": 871.8389520015842,
+      "decode_throughput_mb_per_sec": 666.5897956859654
     }
   }
 }
