@@ -35,17 +35,17 @@
   "renderer_tests": {
     "auto": {
       "success": true,
-      "creation_time": 0.0005627500358968973,
+      "creation_time": 0.0005925829755142331,
       "has_stl_data": true
     },
     "wasm": {
       "success": true,
-      "creation_time": 0.0005276669980958104,
+      "creation_time": 0.0005998329725116491,
       "has_stl_data": true
     },
     "local": {
       "success": true,
-      "creation_time": 0.0005377079942263663,
+      "creation_time": 0.0005468750023283064,
       "has_stl_data": true
     }
   },

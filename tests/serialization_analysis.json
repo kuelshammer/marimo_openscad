@@ -1,37 +1,37 @@
 {
-  "timestamp": 1749919280.626482,
+  "timestamp": 1749960930.26605,
   "performance_acceptable": true,
-  "total_serialize_time": 6.725580955389887e-05,
-  "total_deserialize_time": 2.6183518930338326e-05,
+  "total_serialize_time": 6.570709403604269e-05,
+  "total_deserialize_time": 2.531577309127897e-05,
   "total_size_bytes": 28855.0,
   "detailed_results": {
     "simple_request": {
-      "avg_serialize_time": 1.1487276060506702e-06,
-      "avg_deserialize_time": 1.0365794878453016e-06,
+      "avg_serialize_time": 1.0891817510128021e-06,
+      "avg_deserialize_time": 7.962505333125591e-07,
       "avg_size_bytes": 116.0,
-      "serializations_per_sec": 870528.3957073197,
-      "deserializations_per_sec": 964711.3527961681
+      "serializations_per_sec": 918120.4138520735,
+      "deserializations_per_sec": 1255886.1290049038
     },
     "complex_request": {
-      "avg_serialize_time": 4.793732077814639e-06,
-      "avg_deserialize_time": 2.508741454221308e-06,
+      "avg_serialize_time": 4.543657996691763e-06,
+      "avg_deserialize_time": 2.396227209828794e-06,
       "avg_size_bytes": 1657.0,
-      "serializations_per_sec": 208605.73427288388,
-      "deserializations_per_sec": 398606.24071777513
+      "serializations_per_sec": 220086.98734105864,
+      "deserializations_per_sec": 417322.69623607525
     },
     "binary_response": {
-      "avg_serialize_time": 5.999541899655014e-05,
-      "avg_deserialize_time": 2.1614128490909935e-05,
+      "avg_serialize_time": 5.8742022374644876e-05,
+      "avg_deserialize_time": 2.1093710674904287e-05,
       "avg_size_bytes": 26874.0,
-      "serializations_per_sec": 16667.9392647879,
-      "deserializations_per_sec": 46266.03383155426
+      "serializations_per_sec": 17023.588218025587,
+      "deserializations_per_sec": 47407.49578924134
     },
     "error_response": {
-      "avg_serialize_time": 1.3179308734834195e-06,
-      "avg_deserialize_time": 1.0240694973617793e-06,
+      "avg_serialize_time": 1.3322319136932492e-06,
+      "avg_deserialize_time": 1.0295846732333303e-06,
       "avg_size_bytes": 208.0,
-      "serializations_per_sec": 758765.1371705882,
-      "deserializations_per_sec": 976496.2266488872
+      "serializations_per_sec": 750620.0607578699,
+      "deserializations_per_sec": 971265.4296412339
     }
   }
 }

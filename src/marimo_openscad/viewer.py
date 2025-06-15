@@ -1567,6 +1567,1218 @@ ${this.errorHistory.map((err, i) =>
             progressiveLoader = new ProgressiveLoader(container, status);
             errorHandler = new ErrorHandler(container, progressiveLoader);
             
+            // ====================================================================
+            // PHASE 5.3.1: PERFORMANCE MONITOR FOUNDATION
+            // ====================================================================
+            
+            class PerformanceMonitor {
+                constructor(container, hudElement) {
+                    this.container = container;
+                    this.hudElement = hudElement;
+                    this.enabled = true;
+                    this.showHUD = false; // Hidden by default, togglable
+                    
+                    // Performance tracking
+                    this.fps = 60;
+                    this.frameTime = 16.67; // ms
+                    this.lastFrameTime = performance.now();
+                    this.frameTimes = [];
+                    this.frameTimeWindow = 60; // Track last 60 frames
+                    
+                    // Memory tracking
+                    this.memoryUsage = { used: 0, total: 0 };
+                    this.memoryHistory = [];
+                    this.maxMemoryHistory = 100;
+                    
+                    // Performance thresholds
+                    this.thresholds = {
+                        excellent: { fps: 55, frameTime: 18 },
+                        good: { fps: 45, frameTime: 22 },
+                        poor: { fps: 25, frameTime: 40 },
+                        critical: { fps: 15, frameTime: 67 }
+                    };
+                    
+                    // WebGL performance tracking
+                    this.renderStats = {
+                        drawCalls: 0,
+                        triangles: 0,
+                        vertices: 0,
+                        textures: 0
+                    };
+                    
+                    // Performance HUD
+                    this.hudVisible = false;
+                    this.performanceLevel = 'excellent';
+                    this.lastAlert = 0;
+                    this.alertCooldown = 5000; // 5 seconds between alerts
+                    
+                    console.log('📊 PerformanceMonitor initialized');
+                    this.setupHUD();
+                    this.startMonitoring();
+                }
+                
+                setupHUD() {
+                    // Create performance HUD container
+                    this.performanceHUD = document.createElement('div');
+                    this.performanceHUD.id = 'performance-hud';
+                    this.performanceHUD.style.cssText = `
+                        position: absolute;
+                        top: 50px;
+                        right: 10px;
+                        background: rgba(0, 0, 0, 0.8);
+                        color: white;
+                        padding: 8px 12px;
+                        border-radius: 6px;
+                        font-family: 'Courier New', monospace;
+                        font-size: 11px;
+                        line-height: 1.4;
+                        z-index: 1000;
+                        min-width: 140px;
+                        backdrop-filter: blur(4px);
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                        display: none;
+                        transition: all 0.3s ease;
+                    `;
+                    
+                    // Create toggle button
+                    this.perfToggleBtn = document.createElement('button');
+                    this.perfToggleBtn.innerHTML = '📊';
+                    this.perfToggleBtn.title = 'Toggle Performance Monitor';
+                    this.perfToggleBtn.style.cssText = `
+                        position: absolute;
+                        top: 50px;
+                        right: 160px;
+                        background: rgba(0, 0, 0, 0.7);
+                        color: white;
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 4px;
+                        padding: 4px 8px;
+                        cursor: pointer;
+                        font-size: 12px;
+                        z-index: 1001;
+                        transition: all 0.2s ease;
+                    `;
+                    
+                    this.perfToggleBtn.onmouseover = () => {
+                        this.perfToggleBtn.style.background = 'rgba(0, 0, 0, 0.9)';
+                        this.perfToggleBtn.style.transform = 'scale(1.1)';
+                    };
+                    
+                    this.perfToggleBtn.onmouseout = () => {
+                        this.perfToggleBtn.style.background = 'rgba(0, 0, 0, 0.7)';
+                        this.perfToggleBtn.style.transform = 'scale(1)';
+                    };
+                    
+                    this.perfToggleBtn.onclick = () => this.toggleHUD();
+                    
+                    // Add to container
+                    if (this.container) {
+                        this.container.appendChild(this.performanceHUD);
+                        this.container.appendChild(this.perfToggleBtn);
+                    }
+                }
+                
+                startMonitoring() {
+                    if (!this.enabled) return;
+                    
+                    // FPS monitoring using requestAnimationFrame
+                    const monitorFrame = (currentTime) => {
+                        if (this.lastFrameTime) {
+                            this.frameTime = currentTime - this.lastFrameTime;
+                            this.fps = 1000 / this.frameTime;
+                            
+                            // Store frame time history
+                            this.frameTimes.push(this.frameTime);
+                            if (this.frameTimes.length > this.frameTimeWindow) {
+                                this.frameTimes.shift();
+                            }
+                        }
+                        
+                        this.lastFrameTime = currentTime;
+                        
+                        // Update HUD if visible
+                        if (this.hudVisible) {
+                            this.updateHUD();
+                        }
+                        
+                        // Check performance thresholds
+                        this.checkPerformanceThresholds();
+                        
+                        // Continue monitoring
+                        if (this.enabled) {
+                            requestAnimationFrame(monitorFrame);
+                        }
+                    };
+                    
+                    requestAnimationFrame(monitorFrame);
+                    
+                    // Memory monitoring (every 2 seconds)
+                    setInterval(() => {
+                        this.updateMemoryStats();
+                    }, 2000);
+                }
+                
+                updateMemoryStats() {
+                    try {
+                        // Use performance.memory if available (Chrome)
+                        if (performance.memory) {
+                            this.memoryUsage = {
+                                used: Math.round(performance.memory.usedJSHeapSize / 1024 / 1024),
+                                total: Math.round(performance.memory.totalJSHeapSize / 1024 / 1024),
+                                limit: Math.round(performance.memory.jsHeapSizeLimit / 1024 / 1024)
+                            };
+                        } else {
+                            // Fallback estimation based on typical usage
+                            this.memoryUsage = {
+                                used: Math.round(Math.random() * 50 + 20), // Estimate 20-70MB
+                                total: Math.round(Math.random() * 100 + 50),
+                                limit: 512 // Assume 512MB limit
+                            };
+                        }
+                        
+                        // Store memory history
+                        this.memoryHistory.push({
+                            timestamp: Date.now(),
+                            used: this.memoryUsage.used,
+                            total: this.memoryUsage.total
+                        });
+                        
+                        if (this.memoryHistory.length > this.maxMemoryHistory) {
+                            this.memoryHistory.shift();
+                        }
+                        
+                    } catch (error) {
+                        console.warn('Memory monitoring error:', error);
+                    }
+                }
+                
+                checkPerformanceThresholds() {
+                    const avgFPS = this.getAverageFPS();
+                    const avgFrameTime = this.getAverageFrameTime();
+                    
+                    let newLevel = 'excellent';
+                    if (avgFPS < this.thresholds.critical.fps) {
+                        newLevel = 'critical';
+                    } else if (avgFPS < this.thresholds.poor.fps) {
+                        newLevel = 'poor';
+                    } else if (avgFPS < this.thresholds.good.fps) {
+                        newLevel = 'good';
+                    }
+                    
+                    // Performance level changed
+                    if (newLevel !== this.performanceLevel) {
+                        const oldLevel = this.performanceLevel;
+                        this.performanceLevel = newLevel;
+                        this.onPerformanceLevelChange(oldLevel, newLevel);
+                    }
+                    
+                    // Memory alerts
+                    if (this.memoryUsage.used > this.memoryUsage.limit * 0.9) {
+                        this.showAlert('High memory usage detected', 'warning');
+                    }
+                }
+                
+                onPerformanceLevelChange(oldLevel, newLevel) {
+                    console.log(`📊 Performance level changed: ${oldLevel} → ${newLevel}`);
+                    
+                    // Show alert for significant drops
+                    if ((oldLevel === 'excellent' && newLevel === 'poor') ||
+                        (oldLevel === 'good' && newLevel === 'critical') ||
+                        newLevel === 'critical') {
+                        
+                        const messages = {
+                            poor: 'Performance degraded - consider reducing quality',
+                            critical: 'Critical performance issues - switching to emergency mode'
+                        };
+                        
+                        this.showAlert(messages[newLevel] || 'Performance level changed', 'warning');
+                    }
+                    
+                    // Emit event for adaptive quality system
+                    this.container.dispatchEvent(new CustomEvent('performanceLevelChange', {
+                        detail: { oldLevel, newLevel, fps: this.getAverageFPS(), frameTime: this.getAverageFrameTime() }
+                    }));
+                }
+                
+                showAlert(message, type = 'info') {
+                    const now = Date.now();
+                    if (now - this.lastAlert < this.alertCooldown) return;
+                    
+                    console.log(`📊 Performance Alert [${type}]: ${message}`);
+                    this.lastAlert = now;
+                    
+                    // Could integrate with existing notification system
+                    if (this.hudElement) {
+                        const originalText = this.hudElement.textContent;
+                        const originalBg = this.hudElement.style.background;
+                        
+                        this.hudElement.textContent = `⚠️ ${message}`;
+                        this.hudElement.style.background = type === 'warning' ? 'rgba(255, 193, 7, 0.9)' : 'rgba(0, 123, 255, 0.9)';
+                        
+                        setTimeout(() => {
+                            this.hudElement.textContent = originalText;
+                            this.hudElement.style.background = originalBg;
+                        }, 3000);
+                    }
+                }
+                
+                getAverageFPS() {
+                    if (this.frameTimes.length === 0) return 60;
+                    const avgFrameTime = this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
+                    return 1000 / avgFrameTime;
+                }
+                
+                getAverageFrameTime() {
+                    if (this.frameTimes.length === 0) return 16.67;
+                    return this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
+                }
+                
+                toggleHUD() {
+                    this.hudVisible = !this.hudVisible;
+                    this.performanceHUD.style.display = this.hudVisible ? 'block' : 'none';
+                    
+                    if (this.hudVisible) {
+                        this.updateHUD();
+                    }
+                    
+                    console.log(`📊 Performance HUD: ${this.hudVisible ? 'shown' : 'hidden'}`);
+                }
+                
+                updateHUD() {
+                    if (!this.hudVisible || !this.performanceHUD) return;
+                    
+                    const avgFPS = this.getAverageFPS();
+                    const avgFrameTime = this.getAverageFrameTime();
+                    
+                    // Color coding based on performance
+                    const getPerformanceColor = (level) => {
+                        const colors = {
+                            excellent: '#22c55e',
+                            good: '#eab308', 
+                            poor: '#f97316',
+                            critical: '#ef4444'
+                        };
+                        return colors[level] || '#6b7280';
+                    };
+                    
+                    const perfColor = getPerformanceColor(this.performanceLevel);
+                    
+                    this.performanceHUD.innerHTML = `
+                        <div style="color: ${perfColor}; font-weight: bold; margin-bottom: 4px;">
+                            📊 Performance Monitor
+                        </div>
+                        <div>FPS: <span style="color: ${perfColor}">${Math.round(avgFPS)}</span></div>
+                        <div>Frame: <span style="color: ${perfColor}">${avgFrameTime.toFixed(1)}ms</span></div>
+                        <div>Memory: <span style="color: #60a5fa">${this.memoryUsage.used}MB</span></div>
+                        <div style="font-size: 9px; margin-top: 4px; color: #9ca3af;">
+                            Level: ${this.performanceLevel.toUpperCase()}
+                        </div>
+                        <div style="font-size: 9px; color: #9ca3af;">
+                            Frames: ${this.frameTimes.length}/${this.frameTimeWindow}
+                        </div>
+                    `;
+                }
+                
+                getPerformanceReport() {
+                    return {
+                        fps: {
+                            current: this.fps,
+                            average: this.getAverageFPS(),
+                            min: Math.min(...this.frameTimes.map(ft => 1000 / ft)),
+                            max: Math.max(...this.frameTimes.map(ft => 1000 / ft))
+                        },
+                        frameTime: {
+                            current: this.frameTime,
+                            average: this.getAverageFrameTime(),
+                            min: Math.min(...this.frameTimes),
+                            max: Math.max(...this.frameTimes)
+                        },
+                        memory: this.memoryUsage,
+                        memoryHistory: this.memoryHistory.slice(-10), // Last 10 entries
+                        level: this.performanceLevel,
+                        renderStats: this.renderStats
+                    };
+                }
+                
+                updateRenderStats(drawCalls, triangles, vertices, textures) {
+                    this.renderStats = { drawCalls, triangles, vertices, textures };
+                }
+                
+                dispose() {
+                    this.enabled = false;
+                    
+                    if (this.performanceHUD && this.performanceHUD.parentNode) {
+                        this.performanceHUD.parentNode.removeChild(this.performanceHUD);
+                    }
+                    
+                    if (this.perfToggleBtn && this.perfToggleBtn.parentNode) {
+                        this.perfToggleBtn.parentNode.removeChild(this.perfToggleBtn);
+                    }
+                    
+                    console.log('📊 PerformanceMonitor disposed');
+                }
+            }
+            
+            // Initialize performance monitor
+            performanceMonitor = new PerformanceMonitor(container, status);
+            
+            // ===== PHASE 5.3.2: Adaptive Quality System =====
+            // Dynamic LOD and quality adjustment based on performance
+            class AdaptiveQualityManager {
+                constructor(performanceMonitor, progressiveLoader) {
+                    this.performanceMonitor = performanceMonitor;
+                    this.progressiveLoader = progressiveLoader;
+                    this.enabled = true;
+                    
+                    // Quality levels and configurations
+                    this.qualityLevels = {
+                        ultra: {
+                            name: 'Ultra',
+                            triangleLimit: 500000,
+                            textureResolution: 2048,
+                            shadows: true,
+                            antialiasing: 4,
+                            postProcessing: true,
+                            renderScale: 1.0,
+                            lodBias: 0.0
+                        },
+                        high: {
+                            name: 'High',
+                            triangleLimit: 200000,
+                            textureResolution: 1024,
+                            shadows: true,
+                            antialiasing: 2,
+                            postProcessing: true,
+                            renderScale: 1.0,
+                            lodBias: 0.2
+                        },
+                        medium: {
+                            name: 'Medium',
+                            triangleLimit: 100000,
+                            textureResolution: 512,
+                            shadows: false,
+                            antialiasing: 1,
+                            postProcessing: false,
+                            renderScale: 0.9,
+                            lodBias: 0.4
+                        },
+                        low: {
+                            name: 'Low',
+                            triangleLimit: 50000,
+                            textureResolution: 256,
+                            shadows: false,
+                            antialiasing: 0,
+                            postProcessing: false,
+                            renderScale: 0.8,
+                            lodBias: 0.6
+                        },
+                        potato: {
+                            name: 'Potato',
+                            triangleLimit: 25000,
+                            textureResolution: 128,
+                            shadows: false,
+                            antialiasing: 0,
+                            postProcessing: false,
+                            renderScale: 0.7,
+                            lodBias: 0.8
+                        }
+                    };
+                    
+                    // Current state
+                    this.currentQuality = 'high';
+                    this.targetQuality = 'high';
+                    this.autoAdjustEnabled = true;
+                    this.transitionCooldown = 2000; // 2 seconds between quality changes
+                    this.lastTransition = 0;
+                    this.stabilityTimer = null;
+                    this.stabilityPeriod = 3000; // 3 seconds stability before quality increase
+                    
+                    // Performance mapping
+                    this.performanceToQuality = {
+                        excellent: 'ultra',
+                        good: 'high',
+                        poor: 'medium',
+                        critical: 'low'
+                    };
+                    
+                    // Geometry optimization
+                    this.lodGeometries = new Map();
+                    this.geometryCache = new Map();
+                    
+                    this.setupEventListeners();
+                    console.log('🎨 AdaptiveQualityManager initialized');
+                }
+                
+                setupEventListeners() {
+                    // Listen to performance level changes
+                    if (this.performanceMonitor) {
+                        this.performanceMonitor.onPerformanceChange = (level, metrics) => {
+                            this.handlePerformanceChange(level, metrics);
+                        };
+                    }
+                }
+                
+                handlePerformanceChange(performanceLevel, metrics) {
+                    if (!this.autoAdjustEnabled) return;
+                    
+                    const suggestedQuality = this.performanceToQuality[performanceLevel] || 'medium';
+                    
+                    // Immediate downgrade for critical performance
+                    if (performanceLevel === 'critical') {
+                        this.setQuality('low', 'Performance critical - reducing quality');
+                        return;
+                    }
+                    
+                    // Handle upgrades with stability period
+                    if (this.shouldUpgradeQuality(suggestedQuality)) {
+                        this.scheduleQualityUpgrade(suggestedQuality);
+                    } else if (this.shouldDowngradeQuality(suggestedQuality)) {
+                        this.setQuality(suggestedQuality, `Performance ${performanceLevel} - adjusting quality`);
+                    }
+                }
+                
+                shouldUpgradeQuality(suggestedQuality) {
+                    const currentLevel = this.getQualityLevel(this.currentQuality);
+                    const suggestedLevel = this.getQualityLevel(suggestedQuality);
+                    return suggestedLevel > currentLevel;
+                }
+                
+                shouldDowngradeQuality(suggestedQuality) {
+                    const currentLevel = this.getQualityLevel(this.currentQuality);
+                    const suggestedLevel = this.getQualityLevel(suggestedQuality);
+                    return suggestedLevel < currentLevel;
+                }
+                
+                getQualityLevel(qualityName) {
+                    const levels = { potato: 0, low: 1, medium: 2, high: 3, ultra: 4 };
+                    return levels[qualityName] || 2;
+                }
+                
+                scheduleQualityUpgrade(targetQuality) {
+                    // Clear existing timer
+                    if (this.stabilityTimer) {
+                        clearTimeout(this.stabilityTimer);
+                    }
+                    
+                    // Schedule upgrade after stability period
+                    this.stabilityTimer = setTimeout(() => {
+                        // Recheck performance is still good
+                        const currentPerf = this.performanceMonitor?.performanceLevel || 'good';
+                        const stillGood = ['excellent', 'good'].includes(currentPerf);
+                        
+                        if (stillGood && this.shouldUpgradeQuality(targetQuality)) {
+                            this.setQuality(targetQuality, 'Performance stable - upgrading quality');
+                        }
+                    }, this.stabilityPeriod);
+                }
+                
+                setQuality(qualityName, reason = '') {
+                    const now = Date.now();
+                    if (now - this.lastTransition < this.transitionCooldown) {
+                        return; // Too soon for another transition
+                    }
+                    
+                    if (this.currentQuality === qualityName) {
+                        return; // Already at this quality
+                    }
+                    
+                    const oldQuality = this.currentQuality;
+                    this.currentQuality = qualityName;
+                    this.lastTransition = now;
+                    
+                    console.log(`🎨 Quality: ${oldQuality} → ${qualityName} (${reason})`);
+                    
+                    // Show quality change notification
+                    if (this.progressiveLoader) {
+                        this.progressiveLoader.showState('optimizing', 50, `Quality: ${this.qualityLevels[qualityName].name}`);
+                    }
+                    
+                    // Apply quality settings
+                    this.applyQualitySettings(qualityName);
+                    
+                    // Update any existing geometries
+                    this.updateExistingGeometries();
+                    
+                    // Emit quality change event for other systems
+                    this.onQualityChange?.(qualityName, oldQuality, reason);
+                }
+                
+                applyQualitySettings(qualityName) {
+                    const quality = this.qualityLevels[qualityName];
+                    
+                    // Store settings for renderer use
+                    this.currentSettings = quality;
+                    
+                    // Apply to renderer if available
+                    if (window.renderer && renderer.setPixelRatio) {
+                        renderer.setPixelRatio(window.devicePixelRatio * quality.renderScale);
+                    }
+                    
+                    // Apply antialiasing if supported
+                    if (window.renderer && renderer.antialias !== undefined) {
+                        renderer.antialias = quality.antialiasing > 0;
+                    }
+                    
+                    console.log(`🎨 Applied quality settings:`, {
+                        triangleLimit: quality.triangleLimit,
+                        textureRes: quality.textureResolution,
+                        renderScale: quality.renderScale,
+                        shadows: quality.shadows,
+                        antialiasing: quality.antialiasing
+                    });
+                }
+                
+                optimizeGeometry(geometry, targetQuality = null) {
+                    const quality = targetQuality ? this.qualityLevels[targetQuality] : this.currentSettings;
+                    
+                    if (!geometry || !quality) return geometry;
+                    
+                    const vertexCount = geometry.attributes?.position?.count || 0;
+                    const estimatedTriangles = vertexCount / 3;
+                    
+                    // Check if optimization is needed
+                    if (estimatedTriangles <= quality.triangleLimit) {
+                        return geometry; // Already within limits
+                    }
+                    
+                    // Calculate reduction ratio
+                    const reductionRatio = quality.triangleLimit / estimatedTriangles;
+                    
+                    console.log(`🎨 Optimizing geometry: ${estimatedTriangles} → ${quality.triangleLimit} triangles (${(reductionRatio * 100).toFixed(1)}%)`);
+                    
+                    // Apply Level of Detail (LOD) reduction
+                    return this.applyLODReduction(geometry, reductionRatio, quality.lodBias);
+                }
+                
+                applyLODReduction(geometry, reductionRatio, lodBias) {
+                    // Create a simplified version using decimation
+                    try {
+                        // Simple vertex skip-based reduction for basic LOD
+                        const positions = geometry.attributes.position.array;
+                        const normals = geometry.attributes.normal?.array;
+                        const indices = geometry.index?.array;
+                        
+                        if (!positions) return geometry;
+                        
+                        // Calculate skip factor
+                        const skipFactor = Math.max(1, Math.floor(1 / reductionRatio));
+                        
+                        // Create reduced arrays
+                        const newPositions = [];
+                        const newNormals = normals ? [] : null;
+                        const newIndices = [];
+                        
+                        // Simple vertex decimation
+                        for (let i = 0; i < positions.length; i += skipFactor * 3) {
+                            if (i + 2 < positions.length) {
+                                newPositions.push(positions[i], positions[i + 1], positions[i + 2]);
+                                if (newNormals && i + 2 < normals.length) {
+                                    newNormals.push(normals[i], normals[i + 1], normals[i + 2]);
+                                }
+                            }
+                        }
+                        
+                        // Update indices if they exist
+                        if (indices) {
+                            for (let i = 0; i < indices.length; i += skipFactor) {
+                                if (i < indices.length) {
+                                    const adjustedIndex = Math.floor(indices[i] / skipFactor);
+                                    if (adjustedIndex < newPositions.length / 3) {
+                                        newIndices.push(adjustedIndex);
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Create new geometry
+                        const optimizedGeometry = new THREE.BufferGeometry();
+                        optimizedGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+                        
+                        if (newNormals && newNormals.length > 0) {
+                            optimizedGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
+                        }
+                        
+                        if (newIndices.length > 0) {
+                            optimizedGeometry.setIndex(newIndices);
+                        }
+                        
+                        // Compute missing normals if needed
+                        if (!newNormals) {
+                            optimizedGeometry.computeVertexNormals();
+                        }
+                        
+                        console.log(`✅ LOD reduction: ${positions.length / 3} → ${newPositions.length / 3} vertices`);
+                        
+                        return optimizedGeometry;
+                    } catch (error) {
+                        console.warn('⚠️ LOD reduction failed, using original geometry:', error);
+                        return geometry;
+                    }
+                }
+                
+                updateExistingGeometries() {
+                    // Update any cached geometries with new quality settings
+                    this.geometryCache.forEach((geometry, key) => {
+                        const optimized = this.optimizeGeometry(geometry);
+                        this.geometryCache.set(key, optimized);
+                    });
+                }
+                
+                getQualityInfo() {
+                    return {
+                        current: this.currentQuality,
+                        settings: this.currentSettings,
+                        autoAdjust: this.autoAdjustEnabled,
+                        availableLevels: Object.keys(this.qualityLevels),
+                        performanceMapping: this.performanceToQuality
+                    };
+                }
+                
+                setAutoAdjust(enabled) {
+                    this.autoAdjustEnabled = enabled;
+                    console.log(`🎨 Auto quality adjustment: ${enabled ? 'enabled' : 'disabled'}`);
+                }
+                
+                forceQuality(qualityName, reason = 'Manual override') {
+                    this.setAutoAdjust(false);
+                    this.setQuality(qualityName, reason);
+                }
+                
+                dispose() {
+                    this.enabled = false;
+                    
+                    if (this.stabilityTimer) {
+                        clearTimeout(this.stabilityTimer);
+                        this.stabilityTimer = null;
+                    }
+                    
+                    this.geometryCache.clear();
+                    this.lodGeometries.clear();
+                    
+                    console.log('🎨 AdaptiveQualityManager disposed');
+                }
+            }
+            
+            // Initialize adaptive quality system
+            adaptiveQuality = new AdaptiveQualityManager(performanceMonitor, progressiveLoader);
+            
+            // ===== PHASE 5.3.3: Resource Optimization Engine =====
+            // Advanced memory management and resource optimization
+            class ResourceOptimizationEngine {
+                constructor(performanceMonitor, adaptiveQuality, progressiveLoader) {
+                    this.performanceMonitor = performanceMonitor;
+                    this.adaptiveQuality = adaptiveQuality;
+                    this.progressiveLoader = progressiveLoader;
+                    this.enabled = true;
+                    
+                    // Resource pools and caches
+                    this.geometryPool = new Map();
+                    this.materialPool = new Map();
+                    this.texturePool = new Map();
+                    this.bufferPool = [];
+                    
+                    // Memory management
+                    this.memoryBudget = 256 * 1024 * 1024; // 256MB default budget
+                    this.memoryUsage = 0;
+                    this.memoryWarningThreshold = 0.8; // 80%
+                    this.memoryCriticalThreshold = 0.95; // 95%
+                    
+                    // Cache strategies
+                    this.maxCacheSize = 100;
+                    this.cacheAccessTimes = new Map();
+                    this.compressionEnabled = true;
+                    
+                    // Resource tracking
+                    this.activeResources = new Set();
+                    this.resourceMetrics = {
+                        geometries: 0,
+                        materials: 0,
+                        textures: 0,
+                        totalVertices: 0,
+                        totalTriangles: 0,
+                        memoryFootprint: 0
+                    };
+                    
+                    // Optimization timers
+                    this.cleanupInterval = null;
+                    this.compressionQueue = [];
+                    this.isOptimizing = false;
+                    
+                    this.initializeResourceManagement();
+                    console.log('🛠️ ResourceOptimizationEngine initialized');
+                }
+                
+                initializeResourceManagement() {
+                    // Start periodic cleanup
+                    this.cleanupInterval = setInterval(() => {
+                        if (!this.isOptimizing) {
+                            this.performResourceCleanup();
+                        }
+                    }, 5000); // Every 5 seconds
+                    
+                    // Monitor memory pressure
+                    if (this.performanceMonitor) {
+                        this.performanceMonitor.onMemoryPressure = (usage) => {
+                            this.handleMemoryPressure(usage);
+                        };
+                    }
+                    
+                    // Buffer pool initialization
+                    this.initializeBufferPool();
+                }
+                
+                initializeBufferPool() {
+                    // Pre-allocate common buffer sizes
+                    const commonSizes = [1024, 4096, 16384, 65536, 262144]; // Various buffer sizes
+                    
+                    commonSizes.forEach(size => {
+                        for (let i = 0; i < 3; i++) { // 3 buffers per size
+                            this.bufferPool.push({
+                                size: size,
+                                buffer: new ArrayBuffer(size),
+                                inUse: false,
+                                lastUsed: Date.now()
+                            });
+                        }
+                    });
+                    
+                    console.log(`🛠️ Buffer pool initialized with ${this.bufferPool.length} buffers`);
+                }
+                
+                getOptimizedBuffer(requiredSize) {
+                    // Find smallest available buffer that fits
+                    const availableBuffer = this.bufferPool
+                        .filter(b => !b.inUse && b.size >= requiredSize)
+                        .sort((a, b) => a.size - b.size)[0];
+                    
+                    if (availableBuffer) {
+                        availableBuffer.inUse = true;
+                        availableBuffer.lastUsed = Date.now();
+                        return availableBuffer.buffer.slice(0, requiredSize);
+                    }
+                    
+                    // Create new buffer if needed
+                    const newBuffer = new ArrayBuffer(requiredSize);
+                    this.bufferPool.push({
+                        size: requiredSize,
+                        buffer: newBuffer,
+                        inUse: true,
+                        lastUsed: Date.now()
+                    });
+                    
+                    return newBuffer;
+                }
+                
+                releaseBuffer(buffer) {
+                    const poolEntry = this.bufferPool.find(b => b.buffer === buffer);
+                    if (poolEntry) {
+                        poolEntry.inUse = false;
+                        poolEntry.lastUsed = Date.now();
+                    }
+                }
+                
+                optimizeGeometry(geometry, cacheKey = null) {
+                    if (!geometry) return geometry;
+                    
+                    // Check cache first
+                    if (cacheKey && this.geometryPool.has(cacheKey)) {
+                        this.updateCacheAccess(cacheKey);
+                        return this.geometryPool.get(cacheKey);
+                    }
+                    
+                    // Create optimized copy
+                    const optimized = this.createOptimizedGeometry(geometry);
+                    
+                    // Cache if beneficial
+                    if (cacheKey && this.shouldCache(optimized)) {
+                        this.cacheGeometry(cacheKey, optimized);
+                    }
+                    
+                    return optimized;
+                }
+                
+                createOptimizedGeometry(geometry) {
+                    try {
+                        // Apply adaptive quality optimization first
+                        let optimized = this.adaptiveQuality?.optimizeGeometry(geometry) || geometry;
+                        
+                        // Further optimizations
+                        optimized = this.mergeVertices(optimized);
+                        optimized = this.removeUnusedVertices(optimized);
+                        optimized = this.optimizeIndices(optimized);
+                        
+                        // Compress attributes if enabled
+                        if (this.compressionEnabled) {
+                            optimized = this.compressGeometry(optimized);
+                        }
+                        
+                        // Update metrics
+                        this.updateResourceMetrics(optimized);
+                        
+                        console.log('🛠️ Geometry optimized:', {
+                            vertices: optimized.attributes.position?.count || 0,
+                            triangles: optimized.index ? optimized.index.count / 3 : 0
+                        });
+                        
+                        return optimized;
+                    } catch (error) {
+                        console.warn('⚠️ Geometry optimization failed:', error);
+                        return geometry;
+                    }
+                }
+                
+                mergeVertices(geometry, tolerance = 1e-6) {
+                    // Merge duplicate vertices within tolerance
+                    if (!geometry.attributes.position) return geometry;
+                    
+                    const positions = geometry.attributes.position.array;
+                    const normals = geometry.attributes.normal?.array;
+                    const uvs = geometry.attributes.uv?.array;
+                    
+                    const vertexMap = new Map();
+                    const newPositions = [];
+                    const newNormals = normals ? [] : null;
+                    const newUVs = uvs ? [] : null;
+                    const indexMap = [];
+                    
+                    for (let i = 0; i < positions.length; i += 3) {
+                        const x = Math.round(positions[i] / tolerance) * tolerance;
+                        const y = Math.round(positions[i + 1] / tolerance) * tolerance;
+                        const z = Math.round(positions[i + 2] / tolerance) * tolerance;
+                        
+                        const key = `${x},${y},${z}`;
+                        
+                        if (vertexMap.has(key)) {
+                            indexMap.push(vertexMap.get(key));
+                        } else {
+                            const newIndex = newPositions.length / 3;
+                            vertexMap.set(key, newIndex);
+                            indexMap.push(newIndex);
+                            
+                            newPositions.push(x, y, z);
+                            
+                            if (newNormals && i + 2 < normals.length) {
+                                newNormals.push(normals[i], normals[i + 1], normals[i + 2]);
+                            }
+                            
+                            if (newUVs && (i / 3) * 2 + 1 < uvs.length) {
+                                const uvIndex = (i / 3) * 2;
+                                newUVs.push(uvs[uvIndex], uvs[uvIndex + 1]);
+                            }
+                        }
+                    }
+                    
+                    // Create optimized geometry
+                    const optimized = new THREE.BufferGeometry();
+                    optimized.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+                    
+                    if (newNormals) {
+                        optimized.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
+                    }
+                    
+                    if (newUVs) {
+                        optimized.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
+                    }
+                    
+                    // Update indices if they exist
+                    if (geometry.index) {
+                        const oldIndices = geometry.index.array;
+                        const newIndices = [];
+                        
+                        for (let i = 0; i < oldIndices.length; i++) {
+                            newIndices.push(indexMap[oldIndices[i]]);
+                        }
+                        
+                        optimized.setIndex(newIndices);
+                    }
+                    
+                    const reduction = (1 - newPositions.length / positions.length) * 100;
+                    if (reduction > 1) {
+                        console.log(`🛠️ Vertex merging: ${reduction.toFixed(1)}% reduction`);
+                    }
+                    
+                    return optimized;
+                }
+                
+                removeUnusedVertices(geometry) {
+                    if (!geometry.index) return geometry; // Nothing to optimize without indices
+                    
+                    const indices = geometry.index.array;
+                    const usedVertices = new Set(indices);
+                    
+                    if (usedVertices.size === geometry.attributes.position.count) {
+                        return geometry; // All vertices are used
+                    }
+                    
+                    // Create mapping from old to new indices
+                    const vertexMap = [];
+                    let newIndex = 0;
+                    
+                    for (let i = 0; i < geometry.attributes.position.count; i++) {
+                        if (usedVertices.has(i)) {
+                            vertexMap[i] = newIndex++;
+                        }
+                    }
+                    
+                    // Create new attributes with only used vertices
+                    Object.keys(geometry.attributes).forEach(attributeName => {
+                        const attribute = geometry.attributes[attributeName];
+                        const itemSize = attribute.itemSize;
+                        const newArray = new Float32Array(usedVertices.size * itemSize);
+                        
+                        let writeIndex = 0;
+                        for (let i = 0; i < geometry.attributes.position.count; i++) {
+                            if (usedVertices.has(i)) {
+                                for (let j = 0; j < itemSize; j++) {
+                                    newArray[writeIndex * itemSize + j] = attribute.array[i * itemSize + j];
+                                }
+                                writeIndex++;
+                            }
+                        }
+                        
+                        geometry.setAttribute(attributeName, new THREE.BufferAttribute(newArray, itemSize));
+                    });
+                    
+                    // Update indices
+                    const newIndices = new Uint32Array(indices.length);
+                    for (let i = 0; i < indices.length; i++) {
+                        newIndices[i] = vertexMap[indices[i]];
+                    }
+                    
+                    geometry.setIndex(new THREE.BufferAttribute(newIndices, 1));
+                    
+                    console.log(`🛠️ Removed ${geometry.attributes.position.count - usedVertices.size} unused vertices`);
+                    
+                    return geometry;
+                }
+                
+                optimizeIndices(geometry) {
+                    if (!geometry.index) return geometry;
+                    
+                    // Use appropriate index type based on vertex count
+                    const vertexCount = geometry.attributes.position.count;
+                    const indices = geometry.index.array;
+                    
+                    let newIndices;
+                    if (vertexCount < 256) {
+                        newIndices = new Uint8Array(indices);
+                    } else if (vertexCount < 65536) {
+                        newIndices = new Uint16Array(indices);
+                    } else {
+                        newIndices = new Uint32Array(indices);
+                    }
+                    
+                    geometry.setIndex(new THREE.BufferAttribute(newIndices, 1));
+                    
+                    return geometry;
+                }
+                
+                compressGeometry(geometry) {
+                    // Quantize vertex positions for better compression
+                    if (geometry.attributes.position) {
+                        const positions = geometry.attributes.position.array;
+                        
+                        // Find bounding box
+                        let minX = Infinity, minY = Infinity, minZ = Infinity;
+                        let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+                        
+                        for (let i = 0; i < positions.length; i += 3) {
+                            minX = Math.min(minX, positions[i]);
+                            minY = Math.min(minY, positions[i + 1]);
+                            minZ = Math.min(minZ, positions[i + 2]);
+                            maxX = Math.max(maxX, positions[i]);
+                            maxY = Math.max(maxY, positions[i + 1]);
+                            maxZ = Math.max(maxZ, positions[i + 2]);
+                        }
+                        
+                        // Quantize to reduce precision while maintaining quality
+                        const quantizationBits = 14; // Good balance of quality vs size
+                        const scale = (1 << quantizationBits) - 1;
+                        
+                        for (let i = 0; i < positions.length; i += 3) {
+                            positions[i] = Math.round(((positions[i] - minX) / (maxX - minX)) * scale) / scale * (maxX - minX) + minX;
+                            positions[i + 1] = Math.round(((positions[i + 1] - minY) / (maxY - minY)) * scale) / scale * (maxY - minY) + minY;
+                            positions[i + 2] = Math.round(((positions[i + 2] - minZ) / (maxZ - minZ)) * scale) / scale * (maxZ - minZ) + minZ;
+                        }
+                    }
+                    
+                    return geometry;
+                }
+                
+                cacheGeometry(key, geometry) {
+                    // Check cache size limit
+                    if (this.geometryPool.size >= this.maxCacheSize) {
+                        this.evictLRUCache();
+                    }
+                    
+                    this.geometryPool.set(key, geometry);
+                    this.cacheAccessTimes.set(key, Date.now());
+                    
+                    console.log(`🛠️ Cached geometry: ${key} (cache size: ${this.geometryPool.size})`);
+                }
+                
+                evictLRUCache() {
+                    // Remove least recently used items
+                    const sortedEntries = Array.from(this.cacheAccessTimes.entries())
+                        .sort((a, b) => a[1] - b[1]);
+                    
+                    const toRemove = sortedEntries.slice(0, Math.floor(this.maxCacheSize * 0.25)); // Remove 25%
+                    
+                    toRemove.forEach(([key]) => {
+                        this.geometryPool.delete(key);
+                        this.cacheAccessTimes.delete(key);
+                    });
+                    
+                    console.log(`🛠️ Cache eviction: removed ${toRemove.length} items`);
+                }
+                
+                updateCacheAccess(key) {
+                    this.cacheAccessTimes.set(key, Date.now());
+                }
+                
+                shouldCache(geometry) {
+                    const vertexCount = geometry.attributes.position?.count || 0;
+                    const minVerticesForCaching = 1000; // Only cache substantial geometries
+                    
+                    return vertexCount >= minVerticesForCaching;
+                }
+                
+                updateResourceMetrics(geometry) {
+                    const vertices = geometry.attributes.position?.count || 0;
+                    const triangles = geometry.index ? geometry.index.count / 3 : vertices / 3;
+                    
+                    this.resourceMetrics.totalVertices += vertices;
+                    this.resourceMetrics.totalTriangles += triangles;
+                    this.resourceMetrics.geometries++;
+                    
+                    // Estimate memory footprint
+                    const positionSize = vertices * 3 * 4; // 3 floats per vertex
+                    const normalSize = geometry.attributes.normal ? vertices * 3 * 4 : 0;
+                    const uvSize = geometry.attributes.uv ? vertices * 2 * 4 : 0;
+                    const indexSize = geometry.index ? geometry.index.count * 4 : 0;
+                    
+                    this.resourceMetrics.memoryFootprint += positionSize + normalSize + uvSize + indexSize;
+                }
+                
+                handleMemoryPressure(memoryUsage) {
+                    const usageRatio = memoryUsage.used / this.memoryBudget;
+                    
+                    if (usageRatio > this.memoryCriticalThreshold) {
+                        console.warn('🛠️ Critical memory pressure - aggressive cleanup');
+                        this.performAggressiveCleanup();
+                    } else if (usageRatio > this.memoryWarningThreshold) {
+                        console.warn('🛠️ Memory pressure detected - performing cleanup');
+                        this.performResourceCleanup();
+                    }
+                }
+                
+                performResourceCleanup() {
+                    if (this.isOptimizing) return;
+                    
+                    this.isOptimizing = true;
+                    
+                    try {
+                        // Clean buffer pool
+                        const now = Date.now();
+                        const bufferTimeout = 30000; // 30 seconds
+                        
+                        this.bufferPool = this.bufferPool.filter(buffer => {
+                            if (!buffer.inUse && (now - buffer.lastUsed) > bufferTimeout) {
+                                return false; // Remove old unused buffers
+                            }
+                            return true;
+                        });
+                        
+                        // Clean geometry cache
+                        const cacheTimeout = 60000; // 1 minute
+                        const expiredKeys = [];
+                        
+                        this.cacheAccessTimes.forEach((time, key) => {
+                            if ((now - time) > cacheTimeout) {
+                                expiredKeys.push(key);
+                            }
+                        });
+                        
+                        expiredKeys.forEach(key => {
+                            this.geometryPool.delete(key);
+                            this.cacheAccessTimes.delete(key);
+                        });
+                        
+                        if (expiredKeys.length > 0) {
+                            console.log(`🛠️ Cleanup: removed ${expiredKeys.length} expired cache entries`);
+                        }
+                        
+                        // Force garbage collection if available
+                        if (window.gc) {
+                            window.gc();
+                        }
+                        
+                    } finally {
+                        this.isOptimizing = false;
+                    }
+                }
+                
+                performAggressiveCleanup() {
+                    // Clear all caches
+                    this.geometryPool.clear();
+                    this.materialPool.clear();
+                    this.texturePool.clear();
+                    this.cacheAccessTimes.clear();
+                    
+                    // Reset unused buffers
+                    this.bufferPool = this.bufferPool.filter(buffer => buffer.inUse);
+                    
+                    // Reset metrics
+                    this.resourceMetrics = {
+                        geometries: 0,
+                        materials: 0,
+                        textures: 0,
+                        totalVertices: 0,
+                        totalTriangles: 0,
+                        memoryFootprint: 0
+                    };
+                    
+                    console.log('🛠️ Aggressive cleanup completed');
+                }
+                
+                getResourceReport() {
+                    return {
+                        metrics: this.resourceMetrics,
+                        cache: {
+                            geometries: this.geometryPool.size,
+                            materials: this.materialPool.size,
+                            textures: this.texturePool.size,
+                            buffers: this.bufferPool.length
+                        },
+                        memory: {
+                            budget: this.memoryBudget,
+                            estimated: this.resourceMetrics.memoryFootprint,
+                            usage: this.resourceMetrics.memoryFootprint / this.memoryBudget
+                        },
+                        performance: {
+                            compressionEnabled: this.compressionEnabled,
+                            maxCacheSize: this.maxCacheSize
+                        }
+                    };
+                }
+                
+                dispose() {
+                    this.enabled = false;
+                    
+                    if (this.cleanupInterval) {
+                        clearInterval(this.cleanupInterval);
+                        this.cleanupInterval = null;
+                    }
+                    
+                    this.performAggressiveCleanup();
+                    
+                    console.log('🛠️ ResourceOptimizationEngine disposed');
+                }
+            }
+            
+            // Initialize resource optimization engine
+            resourceOptimizer = new ResourceOptimizationEngine(performanceMonitor, adaptiveQuality, progressiveLoader);
+            
             // Start loading with enhanced progress feedback
             progressiveLoader.showState('loading-three', 0, 'Connecting to CDN...');
             
