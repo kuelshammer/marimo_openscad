@@ -209,8 +209,9 @@ SolidPython2 → OpenSCAD CLI → STL Binary → Three.js BufferGeometry → Web
 ### 🔧 **Local Renderer (Fallback)**
 - All WASM requirements above, plus:
 - **OpenSCAD 2021.01+** (must be installed separately)
-- **Automatic Detection**: Works with standard installations (Homebrew, apt, Windows installer)
-- **Cross-Platform**: macOS `/Applications/OpenSCAD.app/`, Linux `/usr/bin/openscad`, Windows `Program Files`
+- **✅ VALIDATED**: Standard `brew install --cask openscad` → works immediately
+- **Apple Silicon**: Automatic Rosetta-2 compatibility (if needed)
+- **Cross-Platform**: macOS `/opt/homebrew/bin/openscad`, Linux `/usr/bin/openscad`, Windows `Program Files`
 
 ### 🌐 **Environment Compatibility**
 

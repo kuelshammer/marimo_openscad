@@ -18,7 +18,9 @@ All notable changes to this project will be documented in this file.
 
 ### Critical Issue Resolution
 - ✅ **Gateway 1 REACHED**: Local OpenSCAD Renderer fully functional (912 bytes STL)
-- ✅ **Cross-Platform Detection**: Automatic OpenSCAD discovery working (PyPI-ready)
+- ✅ **PyPI-Distribution VALIDATED**: Standard Homebrew installation → zero config
+- ✅ **Apple Silicon Support**: Rosetta-2 compatibility verified
+- ✅ **Cross-Platform Detection**: `/opt/homebrew/bin/openscad` auto-discovery working
 - ✅ **Marimo Service Worker Bug**: Identified and documented (MARIMO_BUG_REPORT.md)
 - ✅ **Project Status Correction**: Phase 5 was 100% complete, not missing
 - 🔄 **Remaining Blockers**: Marimo service worker bug, WASM browser context

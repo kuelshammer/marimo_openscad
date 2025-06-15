@@ -46,16 +46,23 @@ SyntaxError: return not in function
 ## 🎯 **Realistische Prioritäten & Lösungsansätze**
 
 ### **✅ Priorität 1: ABGESCHLOSSEN - Local OpenSCAD Setup**
-**Status**: ✅ **ERFOLGREICH IMPLEMENTIERT** (15. Juni 2025)  
-**Ergebnis**: Local Renderer vollständig funktional
+**Status**: ✅ **ERFOLGREICH IMPLEMENTIERT & VALIDIERT** (15. Juni 2025)  
+**Ergebnis**: Local Renderer vollständig funktional + PyPI-ready
 
 **Was erreicht wurde:**
 ```bash
-# ✅ OpenSCAD automatisch erkannt in /Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD
-# ✅ Cross-platform detection funktioniert ohne manuelle Konfiguration
+# ✅ OpenSCAD automatisch erkannt via Standard Homebrew Installation
+# ✅ Cross-platform detection funktioniert ohne manuelle Konfiguration  
 # ✅ Local Renderer generiert 912 bytes STL-Daten
-# ✅ PyPI-Distribution ready - kein manueller PATH-Setup nötig
+# ✅ PyPI-Distribution VALIDIERT: brew install --cask openscad → sofort funktional
+# ✅ Apple Silicon Support: Rosetta-2 automatisch erkannt und installiert
 ```
+
+**Validierung durchgeführt:**
+- ✅ Komplette Deinstallation + Standard Homebrew Neuinstallation
+- ✅ Automatische Erkennung `/opt/homebrew/bin/openscad` 
+- ✅ 912 bytes STL-Generation nach Rosetta-2 Installation
+- ✅ Zero-configuration für Standard-User bestätigt
 
 **Acceptance Criteria:**
 - ✅ **ERREICHT**: OpenSCAD automatisch gefunden via Standard-Pfade
