@@ -736,6 +736,73 @@ export function render({ model, el }) {
             statusElement.textContent = 'Loading STL model...';
             
             try {
+                // 🔍 CRITICAL BRIDGE: Check for WASM_RENDER_REQUEST from Python backend
+                if (typeof stlData === 'string' && stlData.startsWith('WASM_RENDER_REQUEST:')) {
+                    console.log('🔍 WASM_RENDER_REQUEST detected from Python backend');
+                    
+                    // Extract hash from request
+                    const hash = stlData.substring('WASM_RENDER_REQUEST:'.length);
+                    console.log(`🔑 WASM render hash: ${hash}`);
+                    
+                    // Get SCAD code from model for WASM rendering
+                    const scadCode = model.get('scad_code');
+                    if (!scadCode) {
+                        console.error('❌ WASM render requested but no SCAD code available');
+                        statusElement.textContent = 'WASM render requested but no SCAD code available';
+                        if (statusElement.style) {
+                            statusElement.style.backgroundColor = 'rgba(244, 67, 54, 0.8)';
+                        }
+                        return;
+                    }
+                    
+                    // Check if WASM renderer is ready
+                    if (!sceneManager || !sceneManager.wasmManager.isWasmReady) {
+                        console.warn('⚠️ WASM render requested but WASM not ready, falling back to placeholder');
+                        statusElement.textContent = 'WASM not ready - request ignored';
+                        if (statusElement.style) {
+                            statusElement.style.backgroundColor = 'rgba(255, 193, 7, 0.8)';
+                        }
+                        return;
+                    }
+                    
+                    // Execute WASM rendering with the SCAD code
+                    statusElement.textContent = `Executing WASM render (hash: ${hash.substring(0, 8)}...)`;
+                    if (statusElement.style) {
+                        statusElement.style.backgroundColor = 'rgba(33, 150, 243, 0.8)';
+                    }
+                    
+                    console.log(`🚀 Executing WASM render for hash ${hash}`);
+                    
+                    sceneManager.renderScadCode(scadCode)
+                        .then(result => {
+                            if (result.success) {
+                                console.log(`✅ WASM Bridge Success: ${result.metadata?.size || 'unknown'} bytes STL generated`);
+                                statusElement.textContent = `WASM Bridge Success: ${result.metadata?.size || 'unknown'} bytes rendered`;
+                                if (statusElement.style) {
+                                    statusElement.style.backgroundColor = 'rgba(76, 175, 80, 0.8)';
+                                }
+                            } else {
+                                console.warn(`⚠️ WASM Bridge Fallback: ${result.message || 'Unknown error'}`);
+                                statusElement.textContent = `WASM Bridge Fallback: ${result.message || 'Failed'}`;
+                                if (statusElement.style) {
+                                    statusElement.style.backgroundColor = 'rgba(255, 193, 7, 0.8)';
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error(`❌ WASM Bridge Error: ${error.message}`);
+                            statusElement.textContent = `WASM Bridge Error: ${error.message}`;
+                            if (statusElement.style) {
+                                statusElement.style.backgroundColor = 'rgba(244, 67, 54, 0.8)';
+                            }
+                        });
+                    
+                    return; // Exit early for WASM requests
+                }
+                
+                // 📦 Standard STL data processing (existing functionality)
+                console.log('📦 Processing standard STL data');
+                
                 // Decode base64 STL data
                 const binaryString = atob(stlData);
                 const bytes = new Uint8Array(binaryString.length);

@@ -474,6 +474,61 @@ async function render({ model, el }) {
                 statusElement.textContent = 'Loading STL model...';
                 
                 try {
+                    // 🔍 CRITICAL BRIDGE: Check for WASM_RENDER_REQUEST from Python backend
+                    if (typeof stlData === 'string' && stlData.startsWith('WASM_RENDER_REQUEST:')) {
+                        console.log('🔍 WASM_RENDER_REQUEST detected from Python backend (Marimo Widget)');
+                        
+                        // Extract hash from request
+                        const hash = stlData.substring('WASM_RENDER_REQUEST:'.length);
+                        console.log(`🔑 WASM render hash (Marimo): ${hash}`);
+                        
+                        // Get SCAD code from model for WASM rendering
+                        const scadCode = model.get('scad_code');
+                        if (!scadCode) {
+                            console.error('❌ WASM render requested but no SCAD code available (Marimo)');
+                            statusElement.textContent = 'WASM render requested but no SCAD code available';
+                            statusElement.style.backgroundColor = 'rgba(244, 67, 54, 0.8)';
+                            return;
+                        }
+                        
+                        // Check if WASM renderer is ready
+                        if (!sceneManager.isWasmReady || !sceneManager.directRenderer) {
+                            console.warn('⚠️ WASM render requested but WASM not ready (Marimo), falling back');
+                            statusElement.textContent = 'WASM not ready - request ignored (Marimo)';
+                            statusElement.style.backgroundColor = 'rgba(255, 193, 7, 0.8)';
+                            return;
+                        }
+                        
+                        // Execute WASM rendering with the SCAD code
+                        statusElement.textContent = `Executing WASM render (Marimo, hash: ${hash.substring(0, 8)}...)`;
+                        statusElement.style.backgroundColor = 'rgba(33, 150, 243, 0.8)';
+                        
+                        console.log(`🚀 Executing WASM render for hash ${hash} (Marimo Widget)`);
+                        
+                        sceneManager.renderScadCode(scadCode)
+                            .then(result => {
+                                if (result.success) {
+                                    console.log(`✅ WASM Bridge Success (Marimo): ${result.size || 'unknown'} bytes STL generated`);
+                                    statusElement.textContent = `WASM Bridge Success (Marimo): ${result.size || 'unknown'} bytes`;
+                                    statusElement.style.backgroundColor = 'rgba(76, 175, 80, 0.8)';
+                                } else {
+                                    console.warn(`⚠️ WASM Bridge Fallback (Marimo): ${result.message || 'Unknown error'}`);
+                                    statusElement.textContent = `WASM Bridge Fallback (Marimo): ${result.message || 'Failed'}`;
+                                    statusElement.style.backgroundColor = 'rgba(255, 193, 7, 0.8)';
+                                }
+                            })
+                            .catch(error => {
+                                console.error(`❌ WASM Bridge Error (Marimo): ${error.message}`);
+                                statusElement.textContent = `WASM Bridge Error (Marimo): ${error.message}`;
+                                statusElement.style.backgroundColor = 'rgba(244, 67, 54, 0.8)';
+                            });
+                        
+                        return; // Exit early for WASM requests
+                    }
+                    
+                    // 📦 Standard STL data processing (existing functionality)
+                    console.log('📦 Processing standard STL data (Marimo Widget)');
+                    
                     const binaryString = atob(stlData);
                     const bytes = new Uint8Array(binaryString.length);
                     for (let i = 0; i < binaryString.length; i++) {
