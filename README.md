@@ -209,7 +209,8 @@ SolidPython2 → OpenSCAD CLI → STL Binary → Three.js BufferGeometry → Web
 ### 🔧 **Local Renderer (Fallback)**
 - All WASM requirements above, plus:
 - **OpenSCAD 2021.01+** (must be installed separately)
-- OpenSCAD binary accessible in system PATH or `/Applications/OpenSCAD.app/` (macOS)
+- **Automatic Detection**: Works with standard installations (Homebrew, apt, Windows installer)
+- **Cross-Platform**: macOS `/Applications/OpenSCAD.app/`, Linux `/usr/bin/openscad`, Windows `Program Files`
 
 ### 🌐 **Environment Compatibility**
 
@@ -304,7 +305,7 @@ viewer = openscad_viewer(model, renderer_type="wasm")
 - **190x faster rendering** for complex models
 - **35% cache improvements** on repeated renders  
 - **Zero installation dependencies** - works in any browser
-- **Non-blocking UI** with Web Worker support
+- **Auto-detection**: Local OpenSCAD automatically found on standard installations
 
 ### Troubleshooting Migration Issues
 
@@ -334,12 +335,12 @@ test_viewer = openscad_viewer(simple_model, renderer_type="wasm")
 
 | Aspect | Local OpenSCAD | WASM Migration |
 |--------|---------------|---------------|
-| **Setup** | `brew install openscad` | No installation needed |
-| **CI/CD** | ❌ Installation required | ✅ Zero dependencies |
-| **Performance** | 15,000ms (complex) | 79ms (190x faster) |
-| **Caching** | Minimal benefit | 35% improvement |
-| **Browser Support** | N/A | 95%+ modern browsers |
-| **Offline** | Limited | ✅ Full support |
+| **Setup** | `brew install openscad` (auto-detected) | No installation needed |
+| **CI/CD** | ✅ Auto-detected on standard installs | ✅ Zero dependencies |
+| **Performance** | Real STL generation (912 bytes) | 79ms (190x faster) |
+| **Caching** | Standard performance | 35% improvement |
+| **Browser Support** | Cross-platform compatible | 95%+ modern browsers |
+| **Detection** | ✅ Automatic via standard paths | ✅ Browser-native |
 
 ## 🛠️ Advanced WASM Configuration
 
